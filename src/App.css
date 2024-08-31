@@ -1,0 +1,40 @@
+#root {
+}
+
+
+.navdropdown
+ select {
+  background-color: white !important;
+  font-size: 16px;
+}
+
+.searchbutton {
+  border-top-right-radius: 0.5rem;    /* 8px */
+  border-bottom-right-radius: 0.5rem; /* 8px */
+
+  span {
+    margin: 0px !important;
+  }
+}
+
+.authtxthead{
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.authtextnothead{
+  font-size: 12px;
+  color: #828282;
+  text-align: center;
+}
+
+.footer-content{
+  color: #002F34A3;
+  font-size: 12px;
+
+}
+
+
+
+
+
