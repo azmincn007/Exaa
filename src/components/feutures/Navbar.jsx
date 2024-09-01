@@ -6,20 +6,14 @@ import SearchComponent from '../Specific/Navbar/SearchComponent'
 import LoginModal from '../modals/Authentications/LoginModal'
 import { IMAGES } from '../../constants/logoimg'
 import ProfileDropdown from '../Specific/Navbar/ProfileDropdown'
+import { useAuth } from '../../Hooks/AuthContext'
 
 function Navbar({onShowPackagesAndOrders}) {
   const [isExpanded, setIsExpanded] = useState(false)
   const { isOpen, onOpen, onClose } = useDisclosure()
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false)
   const profileDropdownRef = useRef(null)
-
-  useEffect(() => {
-    const token = localStorage.getItem('UserToken')
-    console.log(token);
-    
-    setIsLoggedIn(!!token)
-  }, [])
+  const { isLoggedIn, logout } = useAuth() // Use the auth context
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -37,8 +31,7 @@ function Navbar({onShowPackagesAndOrders}) {
   const toggleExpand = () => setIsExpanded(!isExpanded)
 
   const handleLogout = () => {
-    localStorage.removeItem('UserToken')
-    setIsLoggedIn(false)
+    logout() // Use the logout function from context
     setIsProfileDropdownOpen(false)
   }
 

@@ -33,6 +33,11 @@ function LoginModal({ isOpen, onClose }) {
     onClose(); // Close the LoginModal
   };
 
+  const handleLoginSuccess = () => {
+    closeLoginWithMobileOrEmail();
+    onClose(); // Close the LoginModal
+  };
+
   return (
     <>
       <Modal
@@ -59,17 +64,18 @@ function LoginModal({ isOpen, onClose }) {
                 Continue With Phone
               </Button>
               <p className='flex justify-center'>or</p>
-              <Button 
-                className="w-[100%] font-semibold" 
-                colorScheme='black' 
-                variant='outline' 
+              <Button
+                className="w-[100%] font-semibold"
+                colorScheme='black'
+                variant='outline'
                 borderWidth="2px"
                 onClick={() => openLoginWithMobileOrEmail('email')}
               >
                 Continue With Email
               </Button>
               <p className='text-[#828282] text-12 pt-4'>if you are a new user</p>
-              <Link className='text-exaBluetxt font-semibold' onClick={openSignUpModal}>Sign Up</Link>            </div>
+              <Link className='text-exaBluetxt font-semibold' onClick={openSignUpModal}>Sign Up</Link>
+            </div>
           </ModalBody>
           <ModalFooter className="flex justify-end font-300 text-12 w-4/5 mx-auto text-center opacity-60">
             <div>
@@ -81,12 +87,13 @@ function LoginModal({ isOpen, onClose }) {
       </Modal>
 
       <LoginWithMobileOrEmail 
-        isOpen={isLoginWithMobileOrEmailOpen} 
+        isOpen={isLoginWithMobileOrEmailOpen}
         onClose={closeLoginWithMobileOrEmail}
         loginType={loginType}
+        onLoginSuccess={handleLoginSuccess}
       />
 
-<SignupModal isOpen={isSignUpModalOpen} onClose={() => setIsSignUpModalOpen(false)} />
+      <SignupModal isOpen={isSignUpModalOpen} onClose={() => setIsSignUpModalOpen(false)} />
     </>
   );
 }

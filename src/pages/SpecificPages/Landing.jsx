@@ -7,12 +7,9 @@ import Downlaoddiv from '../../components/Specific/Landing/Downlaoddiv';
 import RecommendedAdsGrid from '../../components/Specific/Landing/RecomendedAdsGrid';
 
 const fetchBanners = async () => {
-  const token = localStorage.getItem('UserToken');
-  const response = await axios.get(`${BASE_URL}/api/home-page`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const response = await axios.get(`${BASE_URL}/api/home-page`);
+  console.log(response);
+  
   return response.data.data.banners;
 };
 
@@ -25,7 +22,7 @@ const Carousel = () => {
 
     const timer = setInterval(() => {
       setCurrentIndex((prevIndex) =>
-         prevIndex === images.length - 1 ? 0 : prevIndex + 1
+        prevIndex === images.length - 1 ? 0 : prevIndex + 1
       );
     }, 10000);
 
@@ -83,7 +80,7 @@ function Landing() {
       
       <Box className='w-[90%] md:w-[80%] mx-auto py-4'>
         <Box className='font-semibold text-2xl mb-4'>Latest Recommendations</Box>
-        <RecommendedAdsGrid /> {/* Replace the static grid with RecommendedAdsGrid */}
+        <RecommendedAdsGrid />
       </Box>
       
       <Downlaoddiv/>

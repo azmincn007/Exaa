@@ -10,7 +10,7 @@ function CardUser({ imageUrl, price, title, location, postedDate, adBoostTag }) 
   const isFeatured = adBoostTag === "Featured";
 
   return (
-    <Card maxW='300px' className='overflow-hidden shadow-md relative'>
+    <Card maxW='300px' className='overflow-hidden shadow-md relative cardUser '>
       {isFeatured && <div className='absolute left-0 bottom-0 w-1 h-[100px] bg-[#FFCE32]'></div>}
       <CardBody className='p-2 '>
         <div className='relative'>

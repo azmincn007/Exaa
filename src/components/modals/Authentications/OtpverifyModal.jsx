@@ -6,18 +6,17 @@ import { BiSolidEdit } from "react-icons/bi";
 import { useMutation } from "react-query";
 import axios from "axios";
 import { BASE_URL } from "../../../config/config";
+import { useAuth } from "../../../Hooks/AuthContext";
 
 function OtpVerify({ isOpen, onClose, verificationType, contactInfo, onEdit, onLoginSuccess }) {
   const [otp, setOtp] = useState("");
   const toast = useToast();
+  const { login } = useAuth(); 
 
   const verifyOtpMutation = useMutation(
     (otpData) => axios.post(`${BASE_URL}/api/auth/verifyOtp`, otpData),
     {
       onSuccess: (data) => {
-       
-        
-
         if (data.data && data.data.data.jwt) {
           localStorage.setItem('UserToken', data.data.data.jwt);
         } else {
@@ -31,15 +30,15 @@ function OtpVerify({ isOpen, onClose, verificationType, contactInfo, onEdit, onL
           isClosable: true,
         });
 
-        // Call onLoginSuccess if it's defined
+        // Call onLoginSuccess to close both modals
         if (typeof onLoginSuccess === 'function') {
           onLoginSuccess(data.data);
+          login()
+          
         } else {
           console.warn("onLoginSuccess is not defined");
+          onClose(); // Fallback to just closing the OTP modal
         }
-
-        // Close all modals
-        onClose();
       },
       onError: (error) => {
         console.error("API Error:", error);

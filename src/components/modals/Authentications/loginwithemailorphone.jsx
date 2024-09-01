@@ -20,7 +20,7 @@ import EmailInput from '../../forms/Input/EmailInput';
 import OtpVerify from './OtpverifyModal';
 import { BASE_URL } from '../../../config/config';
 
-function LoginWithMobileOrEmail({ isOpen, onClose, loginType }) {
+function LoginWithMobileOrEmail({ isOpen, onClose, loginType, onLoginSuccess }) {
   const { register, handleSubmit, watch, formState: { errors } } = useForm();
   const [showFullText, setShowFullText] = useState(false);
   const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
@@ -75,6 +75,11 @@ function LoginWithMobileOrEmail({ isOpen, onClose, loginType }) {
 
   const toggleShowFullText = () => {
     setShowFullText(!showFullText);
+  };
+
+  const handleLoginSuccess = () => {
+    setIsOtpModalOpen(false);
+    onLoginSuccess(); // This will close both LoginWithMobileOrEmail and LoginModal
   };
 
   return (
@@ -134,7 +139,7 @@ function LoginWithMobileOrEmail({ isOpen, onClose, loginType }) {
                 loadingText="Loading"
                 onClick={handleSubmit(onSubmit)}
               >
-              Next
+                Next
               </Button>
             </div>
           </ModalBody>
@@ -147,6 +152,7 @@ function LoginWithMobileOrEmail({ isOpen, onClose, loginType }) {
         verificationType={loginType}
         contactInfo={inputValue}
         onEdit={handleEdit}
+        onLoginSuccess={handleLoginSuccess}
       />
     </>
   );

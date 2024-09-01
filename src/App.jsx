@@ -3,6 +3,7 @@ import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { createContext, useState } from 'react';
+import { AuthProvider } from './Hooks/AuthContext';
 
 
 // Import your components
@@ -13,6 +14,7 @@ function App() {
   const[selectedTown,setSelectedTown]=useState(null)
   return (
     <QueryClientProvider client={queryClient}>
+          <AuthProvider> 
       <TownContext.Provider value={[selectedTown,setSelectedTown]}>
 
     <Router>
@@ -24,6 +26,7 @@ function App() {
       </div>
     </Router>
     </TownContext.Provider>
+    </AuthProvider> 
 
     </QueryClientProvider>
   );
