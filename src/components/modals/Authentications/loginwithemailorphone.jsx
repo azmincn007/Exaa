@@ -89,14 +89,16 @@ function LoginWithMobileOrEmail({ isOpen, onClose, loginType, onLoginSuccess }) 
         onClose={onClose}
         isOpen={isOpen && !isOtpModalOpen}
         motionPreset='slideInBottom'
+        size={{ base: 'xs', sm: 'sm', md: 'md' }}
+
       >
         <ModalOverlay />
-        <ModalContent className="bg-white p-4 rounded-lg font-Inter min-h-[450px]">
+        <ModalContent className="bg-white p-4 rounded-lg font-Inter min-h-[500px] ">
           <ModalHeader className="flex items-center justify-center">
             <img className="h-[35px] w-auto" src={IMAGES.ExaLogoBlack} alt="Exa Logo" />
           </ModalHeader>
           <Divider className="border-gray-300" />
-          <ModalBody className="w-4/6 mx-auto ">
+          <ModalBody className=" w-full md:w-4/6 mx-auto ">
             <div className='absolute left-4 cursor-pointer' onClick={onClose}>
               <IoArrowBack className='h-[30px] w-[30px]'/>
             </div>

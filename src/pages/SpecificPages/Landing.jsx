@@ -9,7 +9,6 @@ import RecommendedAdsGrid from '../../components/Specific/Landing/RecomendedAdsG
 const fetchBanners = async () => {
   const response = await axios.get(`${BASE_URL}/api/home-page`);
   console.log(response);
-  
   return response.data.data.banners;
 };
 
@@ -56,13 +55,16 @@ const Carousel = () => {
       ))}
       <Text
         position="absolute"
-        top="0"
-        left="0"
-        bg="rgba(0,0,0,0.5)"
-        color="white"
-        px="2"
+        top="1"
+        left="50%"
+        transform="translateX(-50%)"
+        bg="white"
+        color="black"
+        px="3"
         py="1"
         fontSize="sm"
+        fontWeight="medium"
+        borderRadius="2xl"
         zIndex="1"
       >
         Advertisement
@@ -74,11 +76,11 @@ const Carousel = () => {
 function Landing() {
   return (
     <Box className='bg-offwhite py-8 font-Inter'>
-      <Box className='w-full md:w-[60%] lg:w-[30%] mx-auto h-[200px]'>
+      <Box className='w-[60%]  mx-auto h-[200px]'>
         <Carousel />
       </Box>
       
-      <Box className='w-[90%] md:w-[80%] mx-auto py-4'>
+      <Box className='w-[90%] md:w-[80%] mx-auto py-4  sm:py-16'>
         <Box className='font-semibold text-2xl mb-4'>Latest Recommendations</Box>
         <RecommendedAdsGrid />
       </Box>

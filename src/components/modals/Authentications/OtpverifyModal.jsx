@@ -67,9 +67,10 @@ function OtpVerify({ isOpen, onClose, verificationType, contactInfo, onEdit, onL
   };
 
   return (
-    <Modal isCentered onClose={onClose} isOpen={isOpen} motionPreset="slideInBottom">
+    <Modal isCentered onClose={onClose} isOpen={isOpen} motionPreset="slideInBottom"         size={{ base: 'xs', sm: 'sm', md: 'md' }}
+>
       <ModalOverlay />
-      <ModalContent className="bg-white p-4 rounded-lg font-Inter min-h-[450px]">
+      <ModalContent className="bg-white p-4 rounded-lg font-Inter min-h-[500px]">
         <ModalHeader className="flex items-center justify-center">
           <img className="h-[35px] w-auto" src={IMAGES.ExaLogoBlack} alt="Exa Logo" />
         </ModalHeader>

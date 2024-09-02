@@ -9,6 +9,7 @@ module.exports = {
 
       fontFamily: {
         'Inter': ['Inter', 'sans-serif'],
+        'Roboto': ["Roboto", 'sans-serif'],
       },
       fontWeights: {
         lean:300,

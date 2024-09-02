@@ -93,7 +93,8 @@ function TownModal({ isOpen, onClose, districtId, districtName, onLocationSet })
       onClose={onClose}
       isOpen={isOpen}
       motionPreset='slideInBottom'
-      size="md"
+      size={{ base: 'xs', md: 'md' }} 
+
     >
       <ModalOverlay />
       <ModalContent className="bg-white p-2 rounded-lg font-Inter">

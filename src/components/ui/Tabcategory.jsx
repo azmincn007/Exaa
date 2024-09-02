@@ -23,7 +23,7 @@ function Tabcategory() {
   const limitedData = data ? data.slice(0, 8) : [];
 
   return (
-    <div className="w-full flex justify-center">
+    <div className="w-full">
       <Tabs variant="unstyled">
         <Swiper
           slidesPerView="auto"
@@ -46,7 +46,7 @@ function Tabcategory() {
               : limitedData.map((category) => (
                   <SwiperSlide key={category.id} style={{ width: 'auto' }}>
                     <Tab
-                      className="min-w-fit sm:text-xs text-2xs  md:text-sm whitespace-nowrap px-2 py-1"
+                      className="min-w-fit text-2xs sm:text-xs md:text-sm whitespace-nowrap px-2 py-1"
                       _selected={{ color: 'blue.500', borderBottom: '2px solid', borderColor: 'blue.500' }}
                       _focus={{ boxShadow: 'none' }}
                     >
