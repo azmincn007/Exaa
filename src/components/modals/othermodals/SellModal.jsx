@@ -272,7 +272,7 @@ const SellModal = ({ isOpen, onClose }) => {
       case 'floorNo':
       case 'carParking':
       case 'type':
-      case 'listedBy':
+     
       case 'carpetArea':
       case 'maintenance':
       case 'securityAmount':
