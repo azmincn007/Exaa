@@ -75,7 +75,7 @@ function LocationModal({ isOpen, onClose, onLocationSet }) {
                 <Grid templateColumns="repeat(3, 1fr)" gap={2} width="100%">
                   {data.map((district) => (
                     <GridItem
-                      key={district.id}
+                   
                       w="100%"
                       h="40px"
                       bg={selectedDistrict?.id === district.id ? "blue.500" : "white"}

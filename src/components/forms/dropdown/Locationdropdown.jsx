@@ -88,7 +88,7 @@ export const LocationInput = ({ label, ...props }) => {
         >
           {locations.map((location) => (
             <ListItem
-              key={location}
+             
               px={3}
               py={2}
               cursor="pointer"
