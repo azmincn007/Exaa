@@ -1,7 +1,7 @@
 import React from "react";
 import { Box, Button, Grid, GridItem, useBreakpointValue } from "@chakra-ui/react";
 import { useLocation, useNavigate } from "react-router-dom";
-import emptyillus from "../../assets/emptyillus.png";
+import emptyillus from "../../assets/empty.png";
 import { FaGoogle } from "react-icons/fa";
 import { IoLogoWhatsapp } from "react-icons/io5";
 import { IoIosMail } from "react-icons/io";
