@@ -77,11 +77,18 @@ function RecommendedAdsGrid() {
 
   const renderSkeletons = () => (
     <>
-      {[...Array(skeletonCount)].map((_, index) => (
-        <Box key={index}>
+      {renderSkeleton()}
+      {columns >= 2 && renderSkeleton()}
+      {columns >= 3 && renderSkeleton()}
+      {columns >= 4 && renderSkeleton()}
+      {skeletonCount > 4 && (
+        <>
           {renderSkeleton()}
-        </Box>
-      ))}
+          {columns >= 2 && renderSkeleton()}
+          {columns >= 3 && renderSkeleton()}
+          {columns >= 4 && renderSkeleton()}
+        </>
+      )}
     </>
   );
 
@@ -100,14 +107,21 @@ function RecommendedAdsGrid() {
           modules={[Pagination]}
           className="mySwiper"
         >
-          {isLoading ? renderSkeletons() : data.map(renderCard)}
+          {isLoading ? (
+            <>
+              {renderSkeleton()}
+              {renderSkeleton()}
+              {renderSkeleton()}
+              {renderSkeleton()}
+            </>
+          ) : (
+            data.map(renderCard)
+          )}
         </Swiper>
       ) : (
         <>
           <SimpleGrid columns={columns} spacing={4}>
-            {isLoading
-              ? renderSkeletons()
-              : data.slice(0, visibleAds).map(renderCard)}
+            {isLoading ? renderSkeletons() : data.slice(0, visibleAds).map(renderCard)}
           </SimpleGrid>
           {!isLoading && visibleAds < dataLength && (
             <Center mt={4}>
