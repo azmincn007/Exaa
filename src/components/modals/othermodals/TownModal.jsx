@@ -1,5 +1,5 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { useQuery, useMutation } from 'react-query';
+import React, { useContext } from 'react';
+import { useQuery } from 'react-query';
 import axios from 'axios';
 import {
   Modal,
@@ -26,30 +26,9 @@ const fetchTowns = async (districtId) => {
   return response.data.data;
 };
 
-const updateUserLocation = async ({ districtId, townId }) => {
-  const token = localStorage.getItem('UserToken');
-  const response = await axios.post(
-    `${BASE_URL}/api/user-locations`,
-    {
-      locationDistrict: districtId,
-      locationTown: townId,
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-  return response.data;
-};
-
 function TownModal({ isOpen, onClose, districtId, districtName, onLocationSet }) {
   const [selectedTown, setSelectedTown] = useContext(TownContext);
-  console.log(selectedTown);
-  
   const toast = useToast();
-
-
 
   const { data: towns, isLoading, error } = useQuery(
     ['towns', districtId],
@@ -57,36 +36,23 @@ function TownModal({ isOpen, onClose, districtId, districtName, onLocationSet })
     { enabled: !!districtId }
   );
 
-  const updateLocationMutation = useMutation(updateUserLocation, {
-    onSuccess: () => {
-      toast({
-        title: "Location updated",
-        description: "Your location has been successfully updated.",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-      onClose();
-      onLocationSet();
-    },
-    onError: (error) => {
-      toast({
-        title: "Error updating location",
-        description: error.message || "An error occurred while updating your location.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    },
-  });
-
   const handleTownSelect = (town) => {
     setSelectedTown(town.id);
-    // Store the selected town ID in localStorage
     localStorage.setItem('selectedTownId', town.id);
-    updateLocationMutation.mutate({ districtId, townId: town.id });
+    localStorage.setItem('selectedDistrictId', districtId);
+    localStorage.setItem('selectedTownName', town.name);  // Add this line
+  
+    toast({
+      title: "Location Selected",
+      description: `You have selected ${town.name} in ${districtName}.`,
+      status: "success",
+      duration: 3000,
+      isClosable: true,
+    });
+  
+    onClose();
+    onLocationSet();
   };
-
   return (
     <Modal
       isCentered
@@ -94,7 +60,6 @@ function TownModal({ isOpen, onClose, districtId, districtName, onLocationSet })
       isOpen={isOpen}
       motionPreset='slideInBottom'
       size={{ base: 'xs', md: 'md' }} 
-
     >
       <ModalOverlay />
       <ModalContent className="bg-white p-2 rounded-lg font-Inter">
@@ -103,7 +68,7 @@ function TownModal({ isOpen, onClose, districtId, districtName, onLocationSet })
         </ModalHeader>
         <Divider className="border-gray-300" />
         <ModalBody className="py-4 px-2">
-        <div className="absolute left-4 cursor-pointer" onClick={onClose}>
+          <div className="absolute left-4 cursor-pointer" onClick={onClose}>
             <IoArrowBack className="h-[30px] w-[30px]" />
           </div>
           <VStack spacing={3} align="stretch">
@@ -122,8 +87,8 @@ function TownModal({ isOpen, onClose, districtId, districtName, onLocationSet })
                     key={town.id}
                     w="100%"
                     h="40px"
-                    bg={selectedTown?.id === town.id ? "blue.500" : "white"}
-                    color={selectedTown?.id === town.id ? "white" : "black"}
+                    bg={selectedTown === town.id ? "blue.500" : "white"}
+                    color={selectedTown === town.id ? "white" : "black"}
                     border="1px"
                     borderColor="gray.200"
                     borderRadius="md"

@@ -1,36 +1,41 @@
 import React, { useState, useEffect } from 'react';
-import Navbar from '../components/feutures/Navbar';
-import CatetogoryTab from '../components/feutures/CatetogoryTab';
 import Landing from './SpecificPages/Landing';
-import Footer from '../components/feutures/Footer';
 import PackagesAndOrders from './SpecificPages/PackagesandOrders';
 import LocationModal from '../components/modals/othermodals/LocationModal';
+import Layout from './Layout';
 
 function Home() {
-  const [showPackagesAndOrders, setShowPackagesAndOrders] = useState(false);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const token = localStorage.getItem('UserToken');
+  console.log(token);
+  
 
+  // Open the LocationModal when the component mounts if any of the IDs is null
   useEffect(() => {
-    // Open the LocationModal when the component mounts
-    setIsLocationModalOpen(true);
+    const selectedTownId = localStorage.getItem('selectedTownId');
+    const selectedDistrictId = localStorage.getItem('selectedDistrictId');
+    
+
+    // Check if either selectedTownId or selectedDistrictId is null
+    if (selectedTownId === null || selectedDistrictId === null) {
+      setIsLocationModalOpen(true);
+    } else {
+      setIsLocationModalOpen(false);
+    }
+
+  
   }, []);
 
-  const handleShowPackagesAndOrders = () => {
-    setShowPackagesAndOrders(true);
-  };
-
-  const handleCloseLocationModal = () => {
+  const handleLocationModalClose = () => {
     setIsLocationModalOpen(false);
   };
 
   return (
-    <div>
-      <Navbar onShowPackagesAndOrders={handleShowPackagesAndOrders} />
-      <CatetogoryTab />
-      {showPackagesAndOrders ? <PackagesAndOrders /> : <Landing />}
-      <Footer />
-      <LocationModal isOpen={isLocationModalOpen} onClose={handleCloseLocationModal} />
-    </div>
+    <>
+        <Landing />
+
+      <LocationModal isOpen={isLocationModalOpen} onClose={handleLocationModalClose} />
+    </>
   );
 }
 

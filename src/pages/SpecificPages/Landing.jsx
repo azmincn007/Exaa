@@ -8,7 +8,6 @@ import RecommendedAdsGrid from '../../components/Specific/Landing/RecomendedAdsG
 
 const fetchBanners = async () => {
   const response = await axios.get(`${BASE_URL}/api/home-page`);
-  console.log(response);
   return response.data.data.banners;
 };
 

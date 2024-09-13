@@ -1,73 +1,32 @@
 import React from 'react';
 import { Card, CardBody, Image } from '@chakra-ui/react';
-import { BiHeart, BiSolidHeart } from 'react-icons/bi';
+import { BiSolidHeart } from 'react-icons/bi';
 import { Link } from 'react-router-dom';
-import { useMutation, useQueryClient } from 'react-query';
-import axios from 'axios';
 import { BASE_URL } from '../../../config/config';
 
-function CardUser({ id, imageUrl, price, title, location, postedDate, adBoostTag, adCategoryId, isAdFavourite }) {
-  
+function FavoriteCard({ 
+  id, 
+  imageUrl, 
+  price, 
+  title, 
+  location, 
+  postedDate, 
+  adBoostTag, 
+  adCategoryId, 
+  onUnfavorite 
+}) {
   const completeImageUrl = `${BASE_URL}${imageUrl}`;
   const isFeatured = adBoostTag === "Featured";
-  const queryClient = useQueryClient();
 
-  const addFavoriteMutation = useMutation(
-    async () => {
-      const token = localStorage.getItem('UserToken');
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-      const response = await axios.post(
-        `${BASE_URL}/api/ad-favourites`,
-        { adId: id, adCategoryId: adCategoryId },
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
-      return response.data;
-    },
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries('recommendedAds');
-      },
-    }
-  );
-
-  const deleteFavoriteMutation = useMutation(
-    async () => {
-      const token = localStorage.getItem('UserToken');
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-      const response = await axios.delete(
-        `${BASE_URL}/api/ad-delete-favourite/${id}/${adCategoryId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
-      return response.data;
-    },
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries('recommendedAds');
-      },
-    }
-  );
-
-  const handleFavoriteClick = (e) => {
+  const handleUnfavoriteClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (isAdFavourite) {
-      deleteFavoriteMutation.mutate();
-    } else {
-      addFavoriteMutation.mutate();
-    }
+    onUnfavorite(id, adCategoryId);
   };
 
   return (
     <Link to={`/details/${id}/${adCategoryId}`} className="block">
-      <Card maxW='300px' className='overflow-hidden shadow-md relative cardUser'>
+      <Card maxW='300px' className='overflow-hidden shadow-md relative favoriteCard'>
         {isFeatured && <div className='absolute left-0 bottom-0 w-1 h-[100px] bg-[#FFCE32]'></div>}
         <CardBody className='p-2'>
           <div className='relative'>
@@ -88,13 +47,9 @@ function CardUser({ id, imageUrl, price, title, location, postedDate, adBoostTag
             )}
             <div
               className='absolute top-2 right-2 bg-white p-1.5 rounded-full cursor-pointer'
-              onClick={handleFavoriteClick}
+              onClick={handleUnfavoriteClick}
             >
-              {isAdFavourite ? (
-                <BiSolidHeart className="w-5 h-5 text-red-500" />
-              ) : (
-                <BiHeart className="w-5 h-5 text-gray-600" />
-              )}
+              <BiSolidHeart className="w-5 h-5 text-red-500" />
             </div>
           </div>
           <div className='p-3 font-Roboto'>
@@ -111,4 +66,4 @@ function CardUser({ id, imageUrl, price, title, location, postedDate, adBoostTag
   );
 }
 
-export default CardUser;
+export default FavoriteCard;

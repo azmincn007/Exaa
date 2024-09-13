@@ -1,3 +1,4 @@
+// LocationModal.jsx
 import React, { useState } from 'react';
 import { useQuery } from 'react-query';
 import axios from 'axios';
@@ -24,7 +25,7 @@ const fetchLocationDistricts = async () => {
   return response.data.data;
 };
 
-function LocationModal({ isOpen, onClose }) {
+function LocationModal({ isOpen, onClose, onLocationSet }) {
   const [selectedDistrict, setSelectedDistrict] = useState(null);
   const [isTownModalOpen, setIsTownModalOpen] = useState(false);
 
@@ -42,6 +43,7 @@ function LocationModal({ isOpen, onClose }) {
   const handleLocationSet = () => {
     setIsTownModalOpen(false);
     onClose();
+    onLocationSet();
   };
 
   return (

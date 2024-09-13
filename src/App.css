@@ -1,4 +1,5 @@
 #root {
+  background-color: #F1F1F1;
 }
 
 
@@ -37,6 +38,67 @@
 .cardUser{
   border: 1.1px solid #0E040533 !important;
 }
+.swiper-container {
+  position: relative;
+  width: 600px;
+  height: 400px;
+  margin: auto;
+}
+
+.swiper-button-prev,
+.swiper-button-next {
+  color: black;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+}
+
+.swiper-button-prev {
+  left: -50px; /* Adjust this value to move the button further outside the image */
+}
+
+.swiper-button-next {
+  right: -50px; /* Adjust this value to move the button further outside the image */
+}
+
+.vertical-line {
+  width: 1px; /* Thickness of the vertical line */
+  background-color: black; /* Color of the vertical line */
+  height: 100%; /* Height of the vertical line */
+
+}
+
+
+/* Remove Chakra UI default focus and hover styles */
+*:focus, *:hover, *:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
 
 
 
+
+/* Reset specific Chakra UI component styles */
+.chakra-input, .chakra-select, .chakra-button {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Optional: Custom focus styles for accessibility */
+.select-sell {
+  color: black !important;
+  border-color: black !important;
+
+}
+
+.simple-flex{
+  display: flex;
+  justify-content: space-between;
+}
+
+@media (max-width: 1300px) {
+  .simple-flex {
+    flex-direction: column;
+  }
+}

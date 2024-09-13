@@ -17,6 +17,16 @@ import { BASE_URL } from '../../../config/config';
 import { BiLeftArrowAlt } from 'react-icons/bi';
 import { FaChevronRight } from 'react-icons/fa';
 
+const fetchCategories = async () => {
+  const token = localStorage.getItem('UserToken');
+  const response = await axios.get(`${BASE_URL}/api/ad-categories`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.data.data;
+};
+
 const fetchSubcategories = async (categoryId) => {
   const token = localStorage.getItem('UserToken');
   const response = await axios.get(`${BASE_URL}/api/ad-find-category-sub-categories/${categoryId}`, {
@@ -27,8 +37,10 @@ const fetchSubcategories = async (categoryId) => {
   return response.data.data;
 };
 
-function CategoryModal({ isOpen, onClose, categories }) {
+function CategoryModal({ isOpen, onClose }) {
   const [selectedCategory, setSelectedCategory] = useState(null);
+
+  const { data: categories, isLoading: isLoadingCategories } = useQuery('categories', fetchCategories);
 
   const { data: subcategories, isLoading: isLoadingSubcategories } = useQuery(
     ['subcategories', selectedCategory],
@@ -56,7 +68,9 @@ function CategoryModal({ isOpen, onClose, categories }) {
               Select the Category
             </Text>
           </Box>
-          {selectedCategory === null ? (
+          {isLoadingCategories ? (
+            <Spinner />
+          ) : selectedCategory === null ? (
             <Grid
               templateColumns={{ base: 'repeat(1, 1fr)', md: 'repeat(2, 1fr)' }}
               gap={2}
