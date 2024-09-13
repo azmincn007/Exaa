@@ -81,7 +81,7 @@ function Landing() {
       
       <Box className='w-[90%] md:w-[80%] mx-auto py-4  sm:py-16'>
         <Box className='font-semibold text-2xl mb-4'>Latest Recommendations</Box>
-        <RecommendedAdsGrid />
+        {/* <RecommendedAdsGrid /> */}
       </Box>
       
       <Downlaoddiv/>
