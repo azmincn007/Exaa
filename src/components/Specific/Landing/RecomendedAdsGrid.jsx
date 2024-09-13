@@ -1,12 +1,12 @@
 import React, { useState, memo, useContext, useEffect } from 'react';
 import { useQuery } from 'react-query';
 import axios from 'axios';
-import { SimpleGrid, Box, Button, Center, useBreakpointValue, Skeleton, Card, CardBody } from '@chakra-ui/react';
+import { SimpleGrid, Box, Button, Center, useBreakpointValue, Card, CardBody } from '@chakra-ui/react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination } from 'swiper/modules';
 import { BASE_URL } from '../../../config/config';
 import CardUser from '../../../components/common/Cards/CardUser.jsx';
-import { TownContext } from '../../../App'; // Make sure this path is correct
+import { TownContext } from '../../../App';
 import 'swiper/css';
 import 'swiper/css/pagination';
 
@@ -21,23 +21,16 @@ function RecommendedAdsGrid() {
 
   const fetchRecommendedAds = async () => {
     const endpoint = `${BASE_URL}/api/find-latest-recommended-ads`;
-    const token = localStorage.getItem('UserToken');
-
-    
-
     const params = {
       adLimit: 30,
       locationTownId: selectedTown,
     };
-
-    const headers = token ? { Authorization: `Bearer ${token}` } : {};
-    const response = await axios.get(endpoint, { params, headers });
+    const response = await axios.get(endpoint, { params });
     console.log(response.data.data);
-    
     return response.data.data;
   };
 
-  const { data, isLoading, error, refetch } = useQuery(['recommendedAds', selectedTown], fetchRecommendedAds, {
+  const { data, error, refetch } = useQuery(['recommendedAds', selectedTown], fetchRecommendedAds, {
     enabled: !!selectedTown,
   });
 
@@ -46,8 +39,6 @@ function RecommendedAdsGrid() {
       refetch();
     }
   }, [selectedTown, refetch]);
-
-  if (error) return <Box>An error occurred: {error.message}</Box>;
 
   const dataLength = data ? data.length : 0;
 
@@ -72,26 +63,13 @@ function RecommendedAdsGrid() {
     </SwiperSlide>
   );
 
-  const renderSkeleton = () => (
-    <SwiperSlide>
-      <Card maxW='300px' className='overflow-hidden shadow-md relative cardUser'>
-        <CardBody className='p-2'>
-          <div className='relative'>
-            <Skeleton height='170px' width='100%' />
-          </div>
-          <div className='p-3 font-Roboto'>
-            <Skeleton height='24px' width='80px' />
-            <Skeleton height='16px' width='100%' mt={2} />
-            <Skeleton height='16px' width='100%' mt={2} />
-            <div className='mt-2 flex justify-between text-xs text-gray-500'>
-              <Skeleton height='16px' width='60px' />
-              <Skeleton height='16px' width='60px' />
-            </div>
-          </div>
-        </CardBody>
-      </Card>
-    </SwiperSlide>
-  );
+  if (error) {
+    return <Box>An error occurred: {error.message}</Box>;
+  }
+
+  if (!data) {
+    return <Box>Loading...</Box>;
+  }
 
   return (
     <Box>
@@ -104,31 +82,12 @@ function RecommendedAdsGrid() {
           modules={[Pagination]}
           className="mySwiper"
         >
-          {isLoading ? Array.from({ length: 8 }).map(renderSkeleton) : data.map(renderCard)}
+          {data.map(renderCard)}
         </Swiper>
       ) : (
         <>
           <SimpleGrid columns={columns} spacing={4}>
-            {isLoading ? Array.from({ length: visibleAds }).map((_, index) => (
-              <SwiperSlide key={index}>
-                <Card maxW='300px' className='overflow-hidden shadow-md relative cardUser'>
-                  <CardBody className='p-2'>
-                    <div className='relative'>
-                      <Skeleton height='200px' width='100%' />
-                    </div>
-                    <div className='p-3 font-Roboto'>
-                      <Skeleton height='24px' width='80px' />
-                      <Skeleton height='16px' width='100%' mt={2} />
-                      <Skeleton height='16px' width='100%' mt={2} />
-                      <div className='mt-2 flex justify-between text-xs text-gray-500'>
-                        <Skeleton height='16px' width='60px' />
-                        <Skeleton height='16px' width='60px' />
-                      </div>
-                    </div>
-                  </CardBody>
-                </Card>
-              </SwiperSlide>
-            )) : data.slice(0, visibleAds).map(renderCard)}
+            {data.slice(0, visibleAds).map(renderCard)}
           </SimpleGrid>
           {visibleAds < dataLength && (
             <Center mt={4}>
