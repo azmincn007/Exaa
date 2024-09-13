@@ -5,7 +5,7 @@ import axios from 'axios';
 import { BASE_URL } from '../../config/config';
 import FavoriteCard from '../../components/common/Cards/FavouriteCard';
 import AdListing from '../../components/common/Cards/AdlistingCard';
-import emptyIllus from '../../assets/emptyIllus.png';
+import emptyIllus from '../../assets/empty.png';
 
 function SkeletonCard() {
   return (
