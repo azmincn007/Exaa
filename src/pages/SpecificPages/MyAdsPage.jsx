@@ -165,7 +165,7 @@ function MyAdsPage() {
             id={ad.id}
             adCategoryId={ad.adCategory.id}
             isFeatured={ad.isFeatured}
-            imageUrl={ad.images.url}
+            imageUrl={ad.images?.url}
             price={ad.price}
             title={ad.title}
             location={ad.locationTown.name}

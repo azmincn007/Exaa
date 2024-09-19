@@ -6,7 +6,6 @@ import { FaVolcano } from 'react-icons/fa6';
 import { MdFavoriteBorder } from 'react-icons/md';
 
 const ProfileDropdown = ({ onLogout, userData }) => {
-  console.log(userData);
   
   const navigate = useNavigate();
 

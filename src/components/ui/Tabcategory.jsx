@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Tab, TabList, Tabs, Skeleton } from '@chakra-ui/react';
 import { useQuery } from 'react-query';
 import axios from 'axios';
@@ -7,20 +7,29 @@ import { FreeMode } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/free-mode';
 import { BASE_URL } from '../../config/config';
+import { useNavigate } from 'react-router-dom';
 
 const fetchCategories = async () => {
   const response = await axios.get(`${BASE_URL}/api/ad-categories`);
+  
   return response.data.data;
 };
 
 function Tabcategory() {
+  const navigate = useNavigate();
   const { data, isLoading, isError, error } = useQuery('categories', fetchCategories);
+  const [activeTab, setActiveTab] = useState(null);
 
   if (isError) {
     return <div>Error: {error.message}</div>;
   }
 
   const limitedData = data ? data.slice(0, 8) : [];
+
+  const handleCategoryClick = (categoryId, categoryName) => {
+    setActiveTab(categoryId);
+    navigate(`/category/${categoryId}/${categoryName}`);
+  };
 
   return (
     <div className="w-full">
@@ -46,9 +55,11 @@ function Tabcategory() {
               : limitedData.map((category) => (
                   <SwiperSlide key={category.id} style={{ width: 'auto' }}>
                     <Tab
-                      className="min-w-fit text-2xs sm:text-xs md:text-sm whitespace-nowrap px-2 py-1"
-                      _selected={{ color: 'blue.500', borderBottom: '2px solid', borderColor: 'blue.500' }}
+                      className={`min-w-fit text-2xs sm:text-xs md:text-sm whitespace-nowrap px-2 py-1 ${
+                        activeTab === category.id ? 'text-blue-500 border-b-2 border-blue-500' : ''
+                      }`}
                       _focus={{ boxShadow: 'none' }}
+                      onClick={() => handleCategoryClick(category.id, category.name)}  
                     >
                       {category.name}
                     </Tab>

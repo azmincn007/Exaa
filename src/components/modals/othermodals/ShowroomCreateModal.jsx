@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { useQuery } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 import axios from "axios";
-import { useForm,Controller } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import {
   Modal,
   ModalOverlay,
@@ -27,7 +27,6 @@ import { BASE_URL } from "../../../config/config";
 import { IoAddOutline, IoClose } from "react-icons/io5";
 import SellInput from "../../../components/forms/Input/SellInput.jsx";
 import PhoneInputShowroom from "../../../components/forms/Input/MobileInputShowroom.jsx";
-
 
 const fetchCategories = async (userToken) => {
   const { data } = await axios.get(`${BASE_URL}/api/find-showroom-categories`, {
@@ -80,6 +79,7 @@ const ShowroomCreateModal = ({ isOpen, onClose }) => {
   } = useForm();
   const [userToken, setUserToken] = useState(localStorage.getItem("UserToken"));
   const toast = useToast();
+  const queryClient = useQueryClient();
 
   const modalSize = useBreakpointValue({ base: "full", md: "xl" });
   const fontSize = useBreakpointValue({ base: "sm", md: "md" });
@@ -161,7 +161,6 @@ const ShowroomCreateModal = ({ isOpen, onClose }) => {
       formData.append("images", uploadedImage.file);
     }
 
-    // Log the data being sent to the API
     console.log("Data being sent to API:");
     for (let [key, value] of formData.entries()) {
       console.log(key, value);
@@ -183,6 +182,8 @@ const ShowroomCreateModal = ({ isOpen, onClose }) => {
           duration: 3000,
           isClosable: true,
         });
+        // Invalidate and refetch showrooms query
+        queryClient.invalidateQueries("showrooms");
         onClose();
       } else {
         throw new Error("Failed to create showroom");
@@ -205,7 +206,7 @@ const ShowroomCreateModal = ({ isOpen, onClose }) => {
       setSelectedSubCategoryId(null);
       setSelectedDistrictId(null);
       setUploadedImage(null);
-      setUserToken(localStorage.getItem("UserToken")); // Ensure token is updated when modal opens
+      setUserToken(localStorage.getItem("UserToken"));
     }
   }, [isOpen, reset]);
 
@@ -247,23 +248,23 @@ const ShowroomCreateModal = ({ isOpen, onClose }) => {
               fontSize={fontSize}
             />
             <FormControl isInvalid={errors.phone}>
-  <FormLabel fontSize={fontSize}>Mobile Number</FormLabel>
-  <Controller
-    name="phone"
-    control={control}
-    rules={{
-      required: "Mobile number is required",
-      pattern: {
-        value: /^[6-9]\d{9}$/,
-        message: "Invalid mobile number",
-      },
-    }}
-    render={({ field }) => (
-      <PhoneInputShowroom {...field} error={errors.phone} />
-    )}
-  />
-  <FormErrorMessage>{errors.phone && errors.phone.message}</FormErrorMessage>
-</FormControl>
+              <FormLabel fontSize={fontSize}>Mobile Number</FormLabel>
+              <Controller
+                name="phone"
+                control={control}
+                rules={{
+                  required: "Mobile number is required",
+                  pattern: {
+                    value: /^[6-9]\d{9}$/,
+                    message: "Invalid mobile number",
+                  },
+                }}
+                render={({ field }) => (
+                  <PhoneInputShowroom {...field} error={errors.phone} />
+                )}
+              />
+              <FormErrorMessage>{errors.phone && errors.phone.message}</FormErrorMessage>
+            </FormControl>
 
             <FormControl isInvalid={errors.adCategory} fontSize={fontSize}>
               <FormLabel>Category</FormLabel>

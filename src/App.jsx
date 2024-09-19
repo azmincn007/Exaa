@@ -14,6 +14,7 @@ import MyShowroom from './pages/SpecificPages/MyShowroom';
 import Showroom from './pages/SpecificPages/Showroom';
 import Showroomsingle from './pages/SpecificPages/Showroomsingle';
 import MyAdsPage from './pages/SpecificPages/MyAdsPage';
+import CategoryBasedGrid from './components/Specific/Landing/CategoryBasedGrid';
 
 export const TownContext = createContext();
 
@@ -38,6 +39,7 @@ function App() {
               <Route path="/" element={<Layout><Home /></Layout>} />
               <Route path="/packages-and-orders/:section" element={<Layout><PackagesAndOrders /></Layout>} />
               <Route path="/buy-packages/myorders" element={<BuyPackagesAndMyorders />} />
+              <Route path="/category/:categoryId/:categoryName" element={<Layout><CategoryBasedGrid /></Layout>} />
               <Route path="/details/:id/:adCategoryId" element={<Layout><SingleAd /></Layout>} />
               <Route path="/profile" element={<Layout><Profile /></Layout>} />
               <Route path="/profile/edit-profile"  element={<Layout><EditProfile /></Layout>} />

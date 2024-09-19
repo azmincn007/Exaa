@@ -2,18 +2,7 @@ import React, { useState } from 'react';
 import { FormControl, FormLabel, Input, Box, List, ListItem } from '@chakra-ui/react';
 import { FaChevronDown } from "react-icons/fa"
 
-const locations = [
-  "New York",
-  "Los Angeles",
-  "Chicago",
-  "Houston",
-  "Phoenix",
-  "Philadelphia",
-  "San Antonio",
-  "San Diego",
-  "Dallas",
-  "San Jose"
-];
+
 
 export const LocationInput = ({ label, ...props }) => {
   const [isOpen, setIsOpen] = useState(false);

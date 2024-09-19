@@ -21,7 +21,6 @@ import {
   Image,
   Icon,
   Flex,
-  Spinner,
   Text,
   useBreakpointValue,
   useToast,
@@ -53,6 +52,8 @@ const fetchSubCategoryDetails = async (userToken, subCategoryId) => {
   const { data } = await axios.get(`${BASE_URL}/api/ad-find-one-sub-category/${subCategoryId}`, {
     headers: { 'Authorization': `Bearer ${userToken}` },
   });
+  console.log(data.data);
+  
   return data.data;
 };
 
@@ -113,6 +114,15 @@ const SellModal = ({ isOpen, onClose }) => {
     { enabled: isOpen && !!getUserToken() && !!selectedDistrictId }
   );
 
+  const clearForm = useCallback(() => {
+    reset();
+    setSelectedCategoryId(null);
+    setSelectedSubCategoryId(null);
+    setSelectedDistrictId(null);
+    setUploadedImages([]);
+    setSubCategoryDetails(null);
+  }, [reset]);
+
   const handleCategoryChange = useCallback((e) => {
     const newCategoryId = e.target.value;
     setSelectedCategoryId(newCategoryId);
@@ -165,15 +175,22 @@ const SellModal = ({ isOpen, onClose }) => {
     const filteredData = Object.keys(data)
       .filter(key => relevantFields.includes(key) || ['adCategory', 'adSubCategory', 'locationDistrict', 'locationTown'].includes(key))
       .reduce((obj, key) => {
-        if (data[key] !== "") {
+        if (data[key] !== "" && key !== 'adShowroom') {
           obj[key] = data[key];
         }
         return obj;
       }, {});
 
+    // Add adShowroom as an empty array
+    filteredData.adShowroom = [];
+
     const formData = new FormData();
     Object.keys(filteredData).forEach(key => {
-      formData.append(key, filteredData[key]);
+      if (key === 'adShowroom') {
+        formData.append(key, JSON.stringify(filteredData[key]));
+      } else {
+        formData.append(key, filteredData[key]);
+      }
     });
 
     // Create an array to hold all image files
@@ -205,13 +222,14 @@ const SellModal = ({ isOpen, onClose }) => {
           duration: 3000,
           isClosable: true,
         });
+        clearForm(); // Clear the form after successful submission
         onClose();
+      
       } else {
         throw new Error('Failed to add ad');
       }
     } catch (error) {
       let errorMessage = 'Error adding ad';
-
 
       if (error.response && error.response.data && error.response.data.message) {
         errorMessage = error.response.data.message;
@@ -272,7 +290,6 @@ const SellModal = ({ isOpen, onClose }) => {
       case 'floorNo':
       case 'carParking':
       case 'type':
-     
       case 'carpetArea':
       case 'maintenance':
       case 'securityAmount':
@@ -285,7 +302,6 @@ const SellModal = ({ isOpen, onClose }) => {
       case 'motorPower':
       case 'buyYear':
       case 'experience':
-      case 'adShowroom':
       case 'salary':
         return { type: 'number', label: fieldName.charAt(0).toUpperCase() + fieldName.slice(1), rules: numberRules };
       case 'superBuiltupArea':
@@ -305,6 +321,8 @@ const SellModal = ({ isOpen, onClose }) => {
         return { type: 'select', label: "District", options: districts || [], rules: commonRules };
       case 'locationTown':
         return { type: 'select', label: "Town", options: towns || [], rules: commonRules };
+      case 'adShowroom':
+        return null; // This will prevent rendering a field for adShowroom
       default:
         return null;
     }
