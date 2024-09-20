@@ -1,5 +1,5 @@
 import './App.css';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Home from './pages/Home';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { createContext, useEffect, useState } from 'react';
@@ -15,6 +15,8 @@ import Showroom from './pages/SpecificPages/Showroom';
 import Showroomsingle from './pages/SpecificPages/Showroomsingle';
 import MyAdsPage from './pages/SpecificPages/MyAdsPage';
 import CategoryBasedGrid from './components/Specific/Landing/CategoryBasedGrid';
+import Chatcomponent from './pages/SpecificPages/Chatcomponent';
+import ChatComponent from './pages/SpecificPages/Chatcomponent';
 
 export const TownContext = createContext();
 
@@ -47,7 +49,12 @@ function App() {
               <Route path="/my-showroom" element={<Layout><MyShowroom /></Layout>} />
               <Route path="/showroom/:id" element={<Layout><Showroomsingle /></Layout>} />
               <Route path="/my-ads" element={<Layout><MyAdsPage /></Layout>} />
-
+              <Route path="/chats" element={<Layout><ChatComponent /></Layout>}>
+  <Route index element={<Navigate to="/chats/all" replace />} />
+  <Route path="all" element={<ChatComponent />} />
+  <Route path="buying" element={<ChatComponent />} />
+  <Route path="selling" element={<ChatComponent />} />
+</Route>
             </Routes>
           </Router>
         </TownContext.Provider>

@@ -16,6 +16,7 @@ import { BASE_URL } from "../../config/config";
 import SellModal from "../modals/othermodals/SellModal";
 import { FaCar } from "react-icons/fa";
 import { MdDoorSliding } from "react-icons/md";
+import { BiMessage } from "react-icons/bi";
 
 // Custom hook for fetching user data
 const useUserData = (isLoggedIn) => {
@@ -27,7 +28,6 @@ const useUserData = (isLoggedIn) => {
           Authorization: `Bearer ${localStorage.getItem("UserToken")}`,
         },
       });
-      console.log(response.data);
       return response.data.data;
     },
     {
@@ -200,7 +200,7 @@ function Navbar({ onShowPackagesAndOrders }) {
             {isLoggedIn ? (
               <div className="flex justify-between items-center space-x-0">
                 <IconButton aria-label="showroom" icon={<MdDoorSliding  onClick={()=>navigate('/showroom')} className="text-xl text-white" />} className="bg-[#FFFFFF1A] rounded-full" />
-                <IconButton aria-label="Messages" icon={<AiOutlineMail className="text-xl text-white" />} className="bg-[#FFFFFF1A] rounded-full" />
+                <IconButton aria-label="Messages" icon={<BiMessage onClick={()=>navigate('/chats')}  className="text-xl text-white" />} className="bg-[#FFFFFF1A] rounded-full" />
                 <IconButton aria-label="Notifications" icon={<AiOutlineBell className="text-xl text-white" />} className="bg-[#FFFFFF1A] rounded-full" />
                 {renderProfileDropdown(false)}
               </div>
@@ -220,11 +220,11 @@ function Navbar({ onShowPackagesAndOrders }) {
         {/* Small screens and tablet layout (below 900px) */}
         <div className="lg:hidden flex flex-col space-y-4">
           <div className="flex justify-end items-center mb-2">
-            <div className="pr-1">
-              <Select variant="unstyled" placeholder="location" />
+            <div className="pr-1 flex gap-2 items-center">
+            <FaLocationDot /> <SimpleCountryDropdown />
             </div>
             <div className="pl-1">
-              <Select variant="unstyled" placeholder="language" />
+            <StyledLanguageDropdown />
             </div>
           </div>
           <div className="flex items-center justify-between">

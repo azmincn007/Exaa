@@ -56,7 +56,7 @@ const Rest = ({ adData }) => {
 
         { label: 'Posting Date', value: adData?.createdAt ? formatDate(adData.createdAt) : undefined },
     ];
-    console.log(adData);
+   
     
   return (
     <div className="col-span-12 md:col-span-8 bg-white rounded-lg p-4 font-Inter">

@@ -10,8 +10,8 @@
 }
 
 .searchbutton {
-  border-top-right-radius: 0.5rem;    /* 8px */
-  border-bottom-right-radius: 0.5rem; /* 8px */
+  border-top-right-radius: 4px;    /* 8px */
+  border-bottom-right-radius: 4px; /* 8px */
 
   span {
     margin: 0px !important;

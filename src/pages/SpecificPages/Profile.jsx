@@ -11,7 +11,6 @@ const Profile = () => {
   const location = useLocation();
   const userData = location.state?.userData;
   
-
   // Responsive text sizes
   const textSize = useBreakpointValue({ base: 'sm', md: 'md', lg: 'lg' });
   const titleSize = useBreakpointValue({ base: 'md', md: 'lg', lg: 'xl' });
@@ -30,7 +29,7 @@ const Profile = () => {
             <p className={`text-${textSize} text-gray-600 mb-2`}>{userData.email}</p>
             <p className={`text-${textSize} text-gray-600 mb-2`}>Member since May 2018</p>
             <p className={`text-${textSize} text-gray-600 mb-4`}>3346 Followers · 12 Following</p>
-
+            
             <div className="mb-4 flex flex-col gap-4">
               <p className={`text-${textSize} text-black font-semibold`}>User verified with</p>
               <div className="flex items-center gap-8">
@@ -38,7 +37,11 @@ const Profile = () => {
                 <IoLogoWhatsapp className="h-7 w-7" />
                 <IoIosMail className="h-7 w-7" />
               </div>
-              <Button onClick={()=>navigate('/profile/edit-profile')} className="w-full mb-2" colorScheme="blue">
+              <Button 
+                onClick={() => navigate('/profile/edit-profile', { state: { userData } })}
+                className="w-full mb-2" 
+                colorScheme="blue"
+              >
                 Edit Profile
               </Button>
               <Button variant="link" className="text-blue-500">
@@ -52,7 +55,7 @@ const Profile = () => {
             <img
               src={emptyillus}
               alt="Empty state illustration"
-              className="max-h-[200px] w-auto mb-4 md:max-h-[250px] md:max-w-[250px]" // Responsive image size
+              className="max-h-[200px] w-auto mb-4 md:max-h-[250px] md:max-w-[250px]"
             />
             <h2 className={`text-${titleSize} font-semibold mb-2`}>You haven't listed anything yet</h2>
             <p className={`text-${textSize} text-gray-600 mb-4`}>Lorem ipsum dolor sit amet consectetur.</p>

@@ -20,8 +20,7 @@ function SearchComponent() {
       margin="auto" 
       className='bg-white text-exagray'
       borderRadius="lg"
-      borderTopRightRadius="xl"
-      borderBottomRightRadius="xl"
+      
     >
       <InputGroup size="md">
         <Input

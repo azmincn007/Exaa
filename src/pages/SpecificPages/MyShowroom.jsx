@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -10,11 +10,12 @@ import {
   VStack,
   Spinner,
   Center,
-  HStack,
 } from "@chakra-ui/react";
-import { MdAddCircleOutline, MdChevronLeft, MdChevronRight } from "react-icons/md";
+import { MdAddCircleOutline } from "react-icons/md";
 import { useQuery, useQueryClient } from "react-query";
 import axios from "axios";
+import { Swiper, SwiperSlide } from 'swiper/react';
+import 'swiper/css';
 import ShowroomCreateModal from "../../components/modals/othermodals/ShowroomCreateModal";
 import { BASE_URL } from "../../config/config";
 import emptyillus from '../../assets/empty.png';
@@ -56,8 +57,6 @@ const MyShowroom = () => {
   const [isSellModalOpen, setIsSellModalOpen] = useState(false);
   const [selectedShowroom, setSelectedShowroom] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState('Select Location');
-  const [currentShowroomIndex, setCurrentShowroomIndex] = useState(0);
-  const showroomContainerRef = useRef(null);
 
   const queryClient = useQueryClient();
   const isMobile = useBreakpointValue({ base: true, md: false });
@@ -68,9 +67,6 @@ const MyShowroom = () => {
       setSelectedLocation(storedTownName);
     }
   }, []);
-
-  const textSize = useBreakpointValue({ base: "sm", md: "md", lg: "lg" });
-  const titleSize = useBreakpointValue({ base: "md", md: "lg", lg: "xl" });
 
   const { data: showrooms, isLoading: showroomsLoading, error: showroomsError } = useQuery(
     "showrooms",
@@ -105,33 +101,43 @@ const MyShowroom = () => {
   const handleSellModalOpen = () => setIsSellModalOpen(true);
   const handleSellModalClose = () => setIsSellModalOpen(false);
 
-  const handleShowroomSelect = (showroom, index) => {
+  const handleShowroomSelect = (showroom) => {
     setSelectedShowroom(showroom);
-    setCurrentShowroomIndex(index);
   };
 
   const handleAdCreated = () => {
     queryClient.invalidateQueries(["showroomAds", selectedShowroom?.id]);
   };
 
-  const scrollShowrooms = (direction) => {
-    if (showroomContainerRef.current) {
-      const scrollAmount = direction === 'left' ? -300 : 300;
-      showroomContainerRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-    }
-  };
-
-  const handlePrevShowroom = () => {
-    if (currentShowroomIndex > 0) {
-      handleShowroomSelect(showrooms[currentShowroomIndex - 1], currentShowroomIndex - 1);
-    }
-  };
-
-  const handleNextShowroom = () => {
-    if (currentShowroomIndex < showrooms.length - 1) {
-      handleShowroomSelect(showrooms[currentShowroomIndex + 1], currentShowroomIndex + 1);
-    }
-  };
+  const renderShowroomContent = (showroom) => (
+    <Box
+      borderRadius="xl"
+      overflow="hidden"
+      bg={selectedShowroom?.id === showroom.id ? "#4F7598" : "#23496C"}
+      color="white"
+      className="p-4"
+      height="100%"
+    >
+      <Image
+        src={`${BASE_URL}${showroom.images?.url}`}
+        alt={showroom.name}
+        objectFit="cover"
+        height="100px"
+        width="100%"
+        bg="black"
+        className="rounded-xl"
+      />
+      <Box p={2}>
+        <Text fontSize="xl" fontWeight="bold" mb={2}>
+          {showroom.name}
+        </Text>
+        <Text fontSize="sm">Category: {showroom.adCategory?.name}</Text>
+        <Text fontSize="sm">
+          Created On: {new Date(showroom.createdAt).toLocaleDateString()}
+        </Text>
+      </Box>
+    </Box>
+  );
 
   return (
     <Box maxWidth="container" margin="auto" padding={8} className="font-Inter">
@@ -148,7 +154,7 @@ const MyShowroom = () => {
           bg="#0071BC1A" 
           height={{ base: "auto", md: "100vh" }}
           overflowY={{ base: "visible", md: "auto" }}
-          overflowX={{ base: "hidden", md: "visible" }}
+          overflowX="hidden"
           position="relative"
           css={{
             '&::-webkit-scrollbar': {
@@ -163,65 +169,37 @@ const MyShowroom = () => {
             },
           }}
         >
-          {isMobile && showrooms && showrooms.length > 1 && (
-            <HStack justify="space-between" position="absolute" top="50%" width="100%" zIndex="1">
-              <Button onClick={handlePrevShowroom} disabled={currentShowroomIndex === 0}>
-                <MdChevronLeft />
-              </Button>
-              <Button onClick={handleNextShowroom} disabled={currentShowroomIndex === showrooms.length - 1}>
-                <MdChevronRight />
-              </Button>
-            </HStack>
-          )}
           <VStack 
             spacing={4} 
             align="stretch" 
-            p={4} 
-            ref={showroomContainerRef}
-            overflowX={{ base: "auto", md: "visible" }}
-            css={{
-              scrollSnapType: "x mandatory",
-              '&::-webkit-scrollbar': { display: 'none' },
-              scrollbarWidth: 'none',
-            }}
+            p={4}
           >
             {showrooms && showrooms.length > 0 ? (
-              <HStack spacing={4} width={isMobile ? `${showrooms.length * 100}%` : "100%"}>
-                {showrooms.map((showroom, index) => (
+              isMobile ? (
+                <Swiper
+                className="w-full"
+                  spaceBetween={30}
+                  slidesPerView={1}
+                  onSlideChange={(swiper) => handleShowroomSelect(showrooms[swiper.activeIndex])}
+                >
+                  {showrooms.map((showroom) => (
+                    <SwiperSlide key={showroom.id}>
+                      {renderShowroomContent(showroom)}
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
+              ) : (
+                // Desktop view remains unchanged
+                showrooms.map((showroom) => (
                   <Box
                     key={showroom.id}
-                    borderRadius="xl"
-                    overflow="hidden"
-                    bg={selectedShowroom?.id === showroom.id ? "#4F7598" : "#23496C"}
-                    color="white"
-                    className="p-4"
+                    onClick={() => handleShowroomSelect(showroom)}
                     cursor="pointer"
-                    onClick={() => handleShowroomSelect(showroom, index)}
-                    flexShrink={0}
-                    width={isMobile ? "100%" : "auto"}
-                    scrollSnapAlign="start"
                   >
-                    <Image
-                      src={`${BASE_URL}${showroom.images?.url}`}
-                      alt={showroom.name}
-                      objectFit="cover"
-                      height="100px"
-                      width="100%"
-                      bg="black"
-                      className="rounded-xl"
-                    />
-                    <Box p={2}>
-                      <Text fontSize="xl" fontWeight="bold" mb={2}>
-                        {showroom.name}
-                      </Text>
-                      <Text fontSize="sm">Category: {showroom.adCategory?.name}</Text>
-                      <Text fontSize="sm">
-                        Created On: {new Date(showroom.createdAt).toLocaleDateString()}
-                      </Text>
-                    </Box>
+                    {renderShowroomContent(showroom)}
                   </Box>
-                ))}
-              </HStack>
+                ))
+              )
             ) : (
               <Box textAlign="center">
                 <Image

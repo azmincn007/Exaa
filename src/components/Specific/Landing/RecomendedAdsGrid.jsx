@@ -3,19 +3,16 @@ import { useQuery } from 'react-query';
 import axios from 'axios';
 import { SimpleGrid, Box, Button, Center, useBreakpointValue, Skeleton, SkeletonText } from '@chakra-ui/react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Pagination } from 'swiper/modules';
 import { BASE_URL } from '../../../config/config';
 import CardUser from '../../../components/common/Cards/CardUser.jsx';
 import { TownContext } from '../../../App';
 import 'swiper/css';
-import 'swiper/css/pagination';
 
 const MemoizedCardUser = memo(CardUser);
 
 function RecommendedAdsGrid() {
   const [selectedTown] = useContext(TownContext);
   const [visibleAds, setVisibleAds] = useState(8);
-  
   const isSmallMobile = useBreakpointValue({ base: true, sm: false });
   const columns = useBreakpointValue({ base: 1, sm: 2, md: 2, lg: 3, xl: 4 });
   const skeletonCount = useBreakpointValue({ base: 4, sm: 4, md: 4, lg: 6, xl: 8 });
@@ -27,7 +24,6 @@ function RecommendedAdsGrid() {
       locationTownId: selectedTown,
     };
     const response = await axios.get(endpoint, { params });
-    console.log(response.data.data);
     return response.data.data;
   };
 
@@ -103,8 +99,8 @@ function RecommendedAdsGrid() {
           slidesPerView={1.2}
           spaceBetween={10}
           centeredSlides={true}
-          pagination={{ clickable: true }}
-          modules={[Pagination]}
+          pagination={false} // Disable pagination dots
+          modules={[]} // No pagination module needed
           className="mySwiper"
         >
           {isLoading ? (

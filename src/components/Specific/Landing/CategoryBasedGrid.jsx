@@ -88,7 +88,7 @@ const CategoryBasedGrid = () => {
   };
 
   const columns = useBreakpointValue({ base: "1fr", md: "250px 1fr" });
-  const cardColumns = useBreakpointValue({ base: 1, sm: 2, md: 3 });
+  const cardColumns = useBreakpointValue({ base: 2, sm: 2, md: 3 });
   const isMobile = useBreakpointValue({ base: true, md: false });
 
   const FilterSection = () => (
