@@ -1,13 +1,13 @@
 import React from 'react';
-import { 
-  Box, 
-  Input, 
-  Button, 
-  Grid, 
-  GridItem, 
-  Text, 
-  VStack, 
-  InputGroup, 
+import {
+  Box,
+  Input,
+  Button,
+  Grid,
+  GridItem,
+  Text,
+  VStack,
+  InputGroup,
   InputLeftAddon,
   FormControl,
   useToast,
@@ -16,46 +16,37 @@ import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { BASE_URL } from '../../../config/config';
 
-const ProfileEditForm = ({userData}) => {
-
-  
+const ProfileEditForm = ({ userData }) => {
   const { register, handleSubmit, formState: { errors } } = useForm({
     defaultValues: {
       name: userData.name,
       phone: userData.phone?.slice(-10) || '',
       email: userData.email,
-      profileImage:userData.profileImage.url
     }
   });
   const navigate = useNavigate();
   const toast = useToast();
+  const userToken = localStorage.getItem('UserToken'); // Retrieve token once
 
   const onSubmit = async (data) => {
-    const userToken = localStorage.getItem('UserToken');
-    const updatedData = {
-      name: data.name,
-      email: data.email,
-      phone: `+91${data.phone}`,
-      profileImage:userData.profileImage.url
-    };
-
-    console.log('Data being sent:', updatedData);
+    const formData = new FormData();
+    formData.append('name', data.name);
+    formData.append('email', data.email);
+    formData.append('phone', `+91${data.phone}`);
+    console.log('FormData being sent:', formData);
 
     try {
       const response = await fetch(`${BASE_URL}/api/auth/changeProfile`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${userToken}`,
-          'Content-Type': 'application/json'
         },
-        body: JSON.stringify(updatedData)
+        body: formData
       });
 
       console.log('Full response:', response);
-
       const responseData = await response.json();
       console.log('Response data:', responseData);
-
       if (response.ok) {
         toast({
           title: "Profile updated successfully",
@@ -63,13 +54,9 @@ const ProfileEditForm = ({userData}) => {
           duration: 3000,
           isClosable: true,
         });
-        navigate('/');
-        window.location.reload();
+        navigate('/'); // Removed window.location.reload()
       } else {
-        let errorMessage = 'Failed to update profile';
-        if (responseData && responseData.message) {
-          errorMessage = responseData.message;
-        }
+        let errorMessage = responseData?.message || 'Failed to update profile';
         throw new Error(errorMessage);
       }
     } catch (error) {
@@ -85,8 +72,9 @@ const ProfileEditForm = ({userData}) => {
   };
 
   const handleDiscard = () => {
-    navigate('/');
+    navigate('/profile');
   };
+
   return (
     <Box maxWidth="800px" margin="auto" p={6} borderWidth={2} borderRadius="lg" boxShadow="md" borderColor="black">
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -96,13 +84,13 @@ const ProfileEditForm = ({userData}) => {
             <Grid templateColumns={{ base: 'repeat(12, 1fr)', md: 'repeat(12, 1fr)' }} gap={2}>
               <GridItem colSpan={{ base: 12, md: 5 }}>
                 <FormControl>
-                  <Input 
+                  <Input
                     {...register("name")}
                     placeholder={userData.name}
-                    border="1px" 
-                    borderColor="black" 
-                    _hover={{ borderColor: 'black' }} 
-                    _focus={{ borderColor: 'blue' }} 
+                    border="1px"
+                    borderColor="black"
+                    _hover={{ borderColor: 'black' }}
+                    _focus={{ borderColor: 'blue' }}
                   />
                 </FormControl>
               </GridItem>
@@ -117,15 +105,15 @@ const ProfileEditForm = ({userData}) => {
               <GridItem colSpan={{ base: 12, md: 5 }}>
                 <FormControl isInvalid={errors.phone}>
                   <InputGroup>
-                    <InputLeftAddon 
-                      children="+91 |" 
-                      bg="transparent" 
-                      border="1px" 
-                      borderColor="black" 
+                    <InputLeftAddon
+                      children="+91 |"
+                      bg="transparent"
+                      border="1px"
+                      borderColor="black"
                       borderRight="none"
                       color="gray.500"
                     />
-                    <Input 
+                    <Input
                       {...register("phone", {
                         required: "Phone number is required",
                         pattern: {
@@ -134,11 +122,11 @@ const ProfileEditForm = ({userData}) => {
                         }
                       })}
                       placeholder={userData.phone.slice(-10)}
-                      border="1px" 
-                      borderColor="black" 
+                      border="1px"
+                      borderColor="black"
                       borderLeft="none"
-                      _hover={{ borderColor: 'black' }} 
-                      _focus={{ borderColor: 'blue' }} 
+                      _hover={{ borderColor: 'black' }}
+                      _focus={{ borderColor: 'blue' }}
                     />
                   </InputGroup>
                 </FormControl>
@@ -150,7 +138,7 @@ const ProfileEditForm = ({userData}) => {
               </GridItem>
               <GridItem colSpan={{ base: 12, md: 5 }}>
                 <FormControl isInvalid={errors.email}>
-                  <Input 
+                  <Input
                     {...register("email", {
                       required: "Email is required",
                       pattern: {
@@ -159,10 +147,10 @@ const ProfileEditForm = ({userData}) => {
                       }
                     })}
                     placeholder={userData.email}
-                    border="1px" 
-                    borderColor="black" 
-                    _hover={{ borderColor: 'black' }} 
-                    _focus={{ borderColor: 'blue' }} 
+                    border="1px"
+                    borderColor="black"
+                    _hover={{ borderColor: 'black' }}
+                    _focus={{ borderColor: 'blue' }}
                   />
                 </FormControl>
               </GridItem>
@@ -181,11 +169,11 @@ const ProfileEditForm = ({userData}) => {
                 <Text fontSize={{ base: 'xs', md: 'sm' }} color="gray.500">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</Text>
               </GridItem>
               <GridItem className='flex justify-end' colSpan={{ base: 12, md: 7 }}>
-                <Button 
-                  variant="outline" 
-                  borderWidth={1} 
-                  borderColor="black" 
-                  size="md" 
+                <Button
+                  variant="outline"
+                  borderWidth={1}
+                  borderColor="black"
+                  size="md"
                   width="100%"
                   _hover={{
                     bg: '#0071BC',
@@ -205,9 +193,9 @@ const ProfileEditForm = ({userData}) => {
           </Box>
           <Grid templateColumns={{ base: 'repeat(12, 1fr)', md: 'repeat(12, 1fr)' }} gap={2}>
             <GridItem colSpan={{ base: 12, md: 6 }}>
-              <Button 
+              <Button
                 width='100%'
-                variant="solid" 
+                variant="solid"
                 bg="#0071BC1A"
                 color="#0071BC"
                 size="md"
@@ -226,9 +214,9 @@ const ProfileEditForm = ({userData}) => {
               </Button>
             </GridItem>
             <GridItem colSpan={{ base: 12, md: 6 }} className='flex justify-end'>
-              <Button 
+              <Button
                 width='100%'
-                colorScheme="blue" 
+                colorScheme="blue"
                 size="md"
                 type="submit"
                 _hover={{
