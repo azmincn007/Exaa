@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Box, Flex, Text, Grid, GridItem } from "@chakra-ui/react";
 import { useLocation } from "react-router-dom";
 import ProfileEditForm from "../../components/Specific/Profile/ProfileEdit";
 import ProfilePictureUpload from "../../components/Specific/Profile/ProfilePictureUpload";
+import { UserdataContext } from "../../App";
 
 const EditProfile = () => {
   const [activeSection, setActiveSection] = useState("profile");
-  const location = useLocation();
-  const userData = location.state?.userData;
+ 
+  const { userData, isLoading } = useContext(UserdataContext);
+
 
   console.log(userData);
   
@@ -60,8 +62,8 @@ const EditProfile = () => {
         </GridItem>
 
         <GridItem className="flex justify-center items-center">
-          {activeSection === "profile" && <ProfileEditForm userData={userData} />}
-          {activeSection === "photo" && <ProfilePictureUpload userData={userData} />}
+          {activeSection === "profile" && <ProfileEditForm/>}
+          {activeSection === "photo" && <ProfilePictureUpload  />}
         </GridItem>
       </Grid>
     </Box>

@@ -11,21 +11,23 @@ import axios from 'axios';
 import CarCar from '../AdSingleStructure/CarCar';
 import Rest from '../AdSingleStructure/Rest';
 import { ArrowRight } from 'lucide-react';
+import SkeletonSingleAdPage from '../../Skelton/singleadPageskelton';
+import LoginModal from '../../modals/Authentications/LoginModal';
+
 
 const fetchAdData = async ({ queryKey }) => {
   const [_, adCategoryId, adId] = queryKey;
   const userToken = localStorage.getItem('UserToken');
 
-  if (!userToken) {
-    throw new Error('User token not found');
+  let config = {};
+  if (userToken) {
+    config.headers = {
+      Authorization: `Bearer ${userToken}`
+    };
   }
 
-  const { data } = await axios.get(`${BASE_URL}/api/find-one-ad/${adCategoryId}/${adId}`, {
-    headers: {
-      Authorization: `Bearer ${userToken}`
-    }
-  });
-  console.log(data);
+  const { data } = await axios.get(`${BASE_URL}/api/find-one-ad/${adCategoryId}/${adId}`, config);
+  console.log(data.data);
   return data.data;
 };
 
@@ -48,7 +50,6 @@ const findOrCreateChat = async ({ adId, adCategoryId, adBuyerId, adSellerId }) =
     return { data, isNewChat: false };
   } catch (error) {
     if (error.response && error.response.status === 404) {
-      // If chat not found, create a new one
       const { data } = await axios.post(
         `${BASE_URL}/api/ad-chats`,
         {
@@ -74,6 +75,7 @@ const findOrCreateChat = async ({ adId, adCategoryId, adBuyerId, adSellerId }) =
 function SingleAd() {
   const { id: adId, adCategoryId } = useParams();
   const navigate = useNavigate();
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const { data: adData, isLoading, error } = useQuery(
     ['adData', adCategoryId, adId],
     fetchAdData
@@ -87,33 +89,31 @@ function SingleAd() {
       console.log(data);
       
       if (isNewChat) {
-        // For new chats, the structure might be different
         navigate(`/chats/all`, { state: { selectedChatId: data.data.id } });
       } else if (data.data && data.data.ad) {
-        // For existing chats
         navigate(`/chats/all`, { state: { selectedChatId: data.data.ad.id } });
       } else {
-        // If we can't determine the chat ID, just navigate to the chats page
         navigate(`/chats/all`);
       }
     },
     onError: (error) => {
       console.error("Error finding/creating chat:", error);
-      // Handle error (e.g., show an error message to the user)
     }
   });
 
   const handleChatWithSeller = () => {
-    chatMutation.mutate({
-      adId,
-      adCategoryId,
-      adBuyerId: adData.adBuyer.id,
-      adSellerId: adData.adSeller.id
-    });
+    const userToken = localStorage.getItem('UserToken');
+    if (!userToken) {
+      setIsLoginModalOpen(true);
+    } else {
+      chatMutation.mutate({
+        adId,
+        adCategoryId,
+        adBuyerId: adData.adBuyer.id,
+        adSellerId: adData.adSeller.id
+      });
+    }
   };
-
-  const images = adData?.images || [];
-  const imageCount = images.length;
 
   const handlePrevClick = () => {
     setCurrentImageIndex((prevIndex) => (prevIndex === 0 ? imageCount - 1 : prevIndex - 1));
@@ -123,9 +123,11 @@ function SingleAd() {
     setCurrentImageIndex((prevIndex) => (prevIndex === imageCount - 1 ? 0 : prevIndex + 1));
   };
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <div><SkeletonSingleAdPage/></div>;
   if (error) return <div>An error occurred: {error.message}</div>;
 
+  const images = adData?.images || [];
+  const imageCount = images.length;
   const currentImageUrl = imageCount > 0 ? `${BASE_URL}${images[currentImageIndex].url}` : '';
 
   const isCarCategory = adData?.adCategory?.id === 2 && adData?.adSubCategory?.id === 11;
@@ -195,6 +197,7 @@ function SingleAd() {
           <p className='text-sm md:text-base text-gray-500'>{adData?.description}</p>
         </div>
       </div>
+      <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
     </div>
   );
 }

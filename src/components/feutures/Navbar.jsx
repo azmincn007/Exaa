@@ -1,95 +1,23 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Button, IconButton, Select, useDisclosure, Skeleton, SkeletonCircle } from "@chakra-ui/react";
-import { AiOutlineUser, AiOutlineBell, AiOutlineMail, AiOutlineHeart } from "react-icons/ai";
-import { useQuery } from "react-query";
-import axios from "axios";
-import SearchComponent from "../Specific/Navbar/SearchComponent";
-import LoginModal from "../modals/Authentications/LoginModal";
-import { IMAGES } from "../../constants/logoimg";
-import ProfileDropdown from "../Specific/Navbar/ProfileDropdown";
-import { useAuth } from "../../Hooks/AuthContext";
-import { Link, useNavigate } from "react-router-dom";
-import SimpleCountryDropdown from "../forms/dropdown/SimpleLocationDropdown";
+import React, { useState, useEffect, useRef, useContext } from "react";
+import { Button, IconButton, useDisclosure, Skeleton, SkeletonCircle } from "@chakra-ui/react";
+import { AiOutlineUser, AiOutlineBell } from "react-icons/ai";
 import { FaLocationDot } from "react-icons/fa6";
-import StyledLanguageDropdown from "../forms/dropdown/StyledLanguageDropdown";
-import { BASE_URL } from "../../config/config";
-import SellModal from "../modals/othermodals/SellModal";
-import { FaCar } from "react-icons/fa";
 import { MdDoorSliding } from "react-icons/md";
 import { BiMessage } from "react-icons/bi";
+import { Link, useNavigate } from "react-router-dom";
+import { IMAGES } from "../../constants/logoimg";
+import { useAuth } from "../../Hooks/AuthContext";
+import { UserdataContext } from "../../App";
 
-// Custom hook for fetching user data
-const useUserData = (isLoggedIn) => {
-  return useQuery(
-    "userData",
-    async () => {
-      const response = await axios.get(`${BASE_URL}/api/users/me`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("UserToken")}`,
-        },
-      });
-      return response.data.data;
-    },
-    {
-      enabled: isLoggedIn,
-      retry: false,
-      refetchOnWindowFocus: false,
-    }
-  );
-};
+import SearchComponent from "../Specific/Navbar/SearchComponent";
+import LoginModal from "../modals/Authentications/LoginModal";
+import ProfileDropdown from "../Specific/Navbar/ProfileDropdown";
+import SimpleCountryDropdown from "../forms/dropdown/SimpleLocationDropdown";
+import StyledLanguageDropdown from "../forms/dropdown/StyledLanguageDropdown";
+import SellModal from "../modals/othermodals/SellModal";
 
 function SkeletonNavbar() {
-  return (
-    <nav className="bg-exablack text-white">
-      <div className="w-[90%] lg:w-[90%] mx-auto py-4">
-        {/* Large screens layout (above 900px) */}
-        <div className="hidden lg:grid grid-cols-12 gap-4 items-center">
-          <div className="col-span-2 lg:col-span-1">
-            <Skeleton height="40px" width="100px" />
-          </div>
-          <div className="col-span-4">
-            <Skeleton height="40px" />
-          </div>
-          <div className="col-span-3 flex gap-2 items-center justify-around">
-            <Skeleton height="30px" width="150px" />
-            <Skeleton height="30px" width="100px" />
-          </div>
-          <div className="col-span-3 md:col-span-2 lg:col-span-2 text-center">
-            <div className="flex justify-between items-center space-x-2">
-              <SkeletonCircle size="10" />
-              <SkeletonCircle size="10" />
-              <SkeletonCircle size="10" />
-              <SkeletonCircle size="10" />
-            </div>
-          </div>
-          <div className="col-span-1 md:col-span-2 lg:col-span-2">
-            <Skeleton height="40px" />
-          </div>
-        </div>
-        
-        {/* Small screens and tablet layout (below 900px) */}
-        <div className="lg:hidden flex flex-col space-y-4">
-          <div className="flex justify-end items-center mb-2">
-            <Skeleton height="30px" width="100px" className="mr-2" />
-            <Skeleton height="30px" width="100px" />
-          </div>
-          <div className="flex items-center justify-between">
-            <Skeleton height="40px" width="100px" />
-            <div className="flex items-center space-x-2">
-              <SkeletonCircle size="10" />
-              <SkeletonCircle size="10" />
-              <SkeletonCircle size="10" />
-              <SkeletonCircle size="10" />
-              <Skeleton height="40px" width="60px" />
-            </div>
-          </div>
-          <div className="w-full">
-            <Skeleton height="40px" />
-          </div>
-        </div>
-      </div>
-    </nav>
-  );
+  // ... (keep the existing SkeletonNavbar code)
 }
 
 function Navbar({ onShowPackagesAndOrders }) {
@@ -99,12 +27,12 @@ function Navbar({ onShowPackagesAndOrders }) {
   const profileDropdownMobileRef = useRef(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { isLoggedIn, logout } = useAuth();
-  const navigate=useNavigate();
+  const { userData, isLoading } = useContext(UserdataContext);
+  const navigate = useNavigate();
 
-  // Fetch user data using the custom hook
-  const { data: userData, isLoading: isUserDataLoading } = useUserData(isLoggedIn);
   const { isOpen: isSellModalOpen, onOpen: onSellModalOpen, onClose: onSellModalClose } = useDisclosure();
   const { isOpen: isLoginModalOpen, onOpen: onLoginModalOpen, onClose: onLoginModalClose } = useDisclosure();
+
   const handleSellClick = () => {
     if (isLoggedIn) {
       onSellModalOpen();
@@ -154,7 +82,7 @@ function Navbar({ onShowPackagesAndOrders }) {
       <div className="relative" ref={ref}>
         <IconButton
           aria-label="User Profile"
-          icon={<AiOutlineUser className="text-xl text-white" />}
+          icon={<AiOutlineUser className={`${isMobile ? 'text-lg' : 'text-xl'} text-white`} />}
           className="bg-[#FFFFFF1A] rounded-full"
           onClick={isMobile ? toggleProfileDropdownMobile : toggleProfileDropdown}
         />
@@ -162,22 +90,48 @@ function Navbar({ onShowPackagesAndOrders }) {
           <ProfileDropdown 
             onLogout={handleLogout} 
             onShowPackagesAndOrders={onShowPackagesAndOrders}
-            userData={userData}
-           
           />
         )}
       </div>
     );
   };
 
-  // If the user data is loading, render the skeleton
-  if (isUserDataLoading) {
+  const renderNavIcons = (isMobile) => {
+    const iconSize = isMobile ? 'text-lg' : 'text-xl';
+    const buttonSize = isMobile ? 'sm' : 'md';
+
+    return (
+      <>
+        <IconButton 
+          aria-label="showroom" 
+          icon={<MdDoorSliding onClick={() => navigate('/showroom')} className={`${iconSize} text-white`} />} 
+          className="bg-[#FFFFFF1A] rounded-full" 
+          size={buttonSize}
+        />
+        <IconButton 
+          aria-label="Messages" 
+          icon={<BiMessage onClick={() => navigate('/chats')} className={`${iconSize} text-white`} />} 
+          className="bg-[#FFFFFF1A] rounded-full" 
+          size={buttonSize}
+        />
+        <IconButton 
+          aria-label="Notifications" 
+          icon={<AiOutlineBell className={`${iconSize} text-white`} />} 
+          className="bg-[#FFFFFF1A] rounded-full" 
+          size={buttonSize}
+        />
+        {renderProfileDropdown(isMobile)}
+      </>
+    );
+  };
+
+  if (isLoading) {
     return <SkeletonNavbar />;
   }
 
   return (
     <nav className="bg-exablack text-white">
-      <div className="w-[90%] lg:w-[90%] mx-auto py-4">
+      <div className="w-[90%] mx-auto py-4">
         {/* Large screens layout (above 900px) */}
         <div className="hidden lg:grid grid-cols-12 gap-4 items-center">
           <div className="col-span-2 lg:col-span-1">
@@ -198,22 +152,19 @@ function Navbar({ onShowPackagesAndOrders }) {
           </div>
           <div className="col-span-3 md:col-span-2 lg:col-span-2 text-center">
             {isLoggedIn ? (
-              <div className="flex justify-between items-center space-x-0">
-                <IconButton aria-label="showroom" icon={<MdDoorSliding  onClick={()=>navigate('/showroom')} className="text-xl text-white" />} className="bg-[#FFFFFF1A] rounded-full" />
-                <IconButton aria-label="Messages" icon={<BiMessage onClick={()=>navigate('/chats')}  className="text-xl text-white" />} className="bg-[#FFFFFF1A] rounded-full" />
-                <IconButton aria-label="Notifications" icon={<AiOutlineBell className="text-xl text-white" />} className="bg-[#FFFFFF1A] rounded-full" />
-                {renderProfileDropdown(false)}
+              <div className="flex justify-between items-center space-x-2">
+                {renderNavIcons(false)}
               </div>
             ) : (
               <span className="text-lg underline cursor-pointer" onClick={onLoginModalOpen}>
-              Login Now
-            </span>
+                Login Now
+              </span>
             )}
           </div>
           <div className="col-span-1 md:col-span-2 lg:col-span-2">
-          <Button colorScheme="blue" className="w-full" onClick={handleSellClick}>
-  Sell
-</Button>
+            <Button colorScheme="blue" className="w-full" onClick={handleSellClick}>
+              Sell
+            </Button>
           </div>
         </div>
         
@@ -221,30 +172,25 @@ function Navbar({ onShowPackagesAndOrders }) {
         <div className="lg:hidden flex flex-col space-y-4">
           <div className="flex justify-end items-center mb-2">
             <div className="pr-1 flex gap-2 items-center">
-            <FaLocationDot /> <SimpleCountryDropdown />
+              <FaLocationDot /> <SimpleCountryDropdown />
             </div>
             <div className="pl-1">
-            <StyledLanguageDropdown />
+              <StyledLanguageDropdown />
             </div>
           </div>
           <div className="flex items-center justify-between">
             <Link to={"/"}>
-              <img className="h-[40px]" src={IMAGES.ExaLogo} alt="Logo" />
+              <img className="h-[30px]" src={IMAGES.ExaLogo} alt="Logo" />
             </Link>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1">
               {isLoggedIn ? (
-                <>
-                  <IconButton aria-label="Favorites" icon={<MdDoorSliding  className="text-xl text-white" />} className="bg-[#FFFFFF1A] rounded-full" />
-                  <IconButton aria-label="Messages" icon={<AiOutlineMail className="text-xl text-white" />} className="bg-[#FFFFFF1A] rounded-full" />
-                  <IconButton aria-label="Notifications" icon={<AiOutlineBell className="text-xl text-white" />} className="bg-[#FFFFFF1A] rounded-full" />
-                  {renderProfileDropdown(true)}
-                </>
+                renderNavIcons(true)
               ) : (
-                <Button variant="ghost" colorScheme="whiteAlpha" onClick={onLoginModalOpen}>
-                Login
-              </Button>
+                <Button variant="ghost" colorScheme="whiteAlpha" onClick={onLoginModalOpen} size="sm">
+                  Login
+                </Button>
               )}
-              <Button colorScheme="blue">Sell</Button>
+              <Button colorScheme="blue" onClick={handleSellClick} size="sm">Sell</Button>
             </div>
           </div>
           <div className="w-full">

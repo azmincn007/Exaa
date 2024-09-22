@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { FiPackage, FiShoppingBag, FiHelpCircle, FiSettings, FiLogOut, FiUser } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { BASE_URL } from '../../../config/config';
 import { MdFavoriteBorder } from 'react-icons/md';
+import { UserdataContext } from '../../../App';
 
-const ProfileDropdown = ({ onLogout, userData }) => {
+const ProfileDropdown = ({ onLogout }) => {
   const navigate = useNavigate();
+  const { userData, isLoading } = useContext(UserdataContext);
 
   const renderProfileImage = () => {
     if (userData?.profileImage?.url) {
@@ -49,7 +51,7 @@ const ProfileDropdown = ({ onLogout, userData }) => {
         </div>
         <div className='my-2'>
           <button
-            onClick={() => navigate('/profile', { state: { userData } })}
+            onClick={() => navigate('/profile')}
             className="block w-full text-center px-4 py-2 text-sm text-white bg-[#16273C] rounded-md hover:bg-[#0d1b2a] transition-colors"
           >
             View and Edit Profile

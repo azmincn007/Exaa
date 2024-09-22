@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import {
   Box,
   Input,
@@ -15,8 +15,11 @@ import {
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { BASE_URL } from '../../../config/config';
+import { UserdataContext } from '../../../App';
+import axios from 'axios';
 
-const ProfileEditForm = ({ userData }) => {
+const ProfileEditForm = () => {
+  const { userData, setUserData } = useContext(UserdataContext);
   const { register, handleSubmit, formState: { errors } } = useForm({
     defaultValues: {
       name: userData.name,
@@ -28,12 +31,22 @@ const ProfileEditForm = ({ userData }) => {
   const toast = useToast();
   const userToken = localStorage.getItem('UserToken'); // Retrieve token once
 
+  const fetchUserData = async () => {
+    try {
+      const response = await axios.get(`${BASE_URL}/api/users/me`, {
+        headers: { Authorization: `Bearer ${userToken}` },
+      });
+      setUserData(response.data.data); // Update context with the latest user data
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    }
+  };
+
   const onSubmit = async (data) => {
     const formData = new FormData();
     formData.append('name', data.name);
     formData.append('email', data.email);
     formData.append('phone', `+91${data.phone}`);
-    console.log('FormData being sent:', formData);
 
     try {
       const response = await fetch(`${BASE_URL}/api/auth/changeProfile`, {
@@ -41,12 +54,10 @@ const ProfileEditForm = ({ userData }) => {
         headers: {
           'Authorization': `Bearer ${userToken}`,
         },
-        body: formData
+        body: formData,
       });
 
-      console.log('Full response:', response);
       const responseData = await response.json();
-      console.log('Response data:', responseData);
       if (response.ok) {
         toast({
           title: "Profile updated successfully",
@@ -54,7 +65,8 @@ const ProfileEditForm = ({ userData }) => {
           duration: 3000,
           isClosable: true,
         });
-        navigate('/'); // Removed window.location.reload()
+        fetchUserData(); // Fetch latest user data immediately after successful update
+        navigate('/'); // Navigate to the desired route
       } else {
         let errorMessage = responseData?.message || 'Failed to update profile';
         throw new Error(errorMessage);
@@ -94,9 +106,7 @@ const ProfileEditForm = ({ userData }) => {
                   />
                 </FormControl>
               </GridItem>
-              <GridItem colSpan={{ base: 12, md: 7 }}>
-                {/* No error message for name field */}
-              </GridItem>
+              <GridItem colSpan={{ base: 12, md: 7 }} />
             </Grid>
           </Box>
           <Box>

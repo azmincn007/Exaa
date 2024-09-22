@@ -1,6 +1,5 @@
 import React from 'react';
 
-
 const Rest = ({ adData }) => {
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('en-US', {
@@ -8,11 +7,10 @@ const Rest = ({ adData }) => {
           month: 'long',
           day: 'numeric'
         });
-      };
+    };
     
-      // Create a key-value pair data structure for specific fields
-      const keyValuePairs = [
-       
+    // Create a key-value pair data structure for specific fields
+    const keyValuePairs = [
         { label: 'Brand', value: adData?.brand },
         { label: 'Model', value: adData?.model },
         { label: 'Variant', value: adData?.variant },
@@ -50,46 +48,43 @@ const Rest = ({ adData }) => {
         { label: 'Qualification', value: adData?.qualification },
         { label: 'Experience', value: adData?.experience },
         { label: 'Location', value: adData?.locationDistrict && adData?.locationTown 
-          ? `${adData.locationDistrict.name}, ${adData.locationTown.name}` 
-          : adData?.locationDistrict?.name || adData?.locationTown?.name || 'Location not available' 
-      },
-
+            ? `${adData.locationDistrict.name}, ${adData.locationTown.name}` 
+            : adData?.locationDistrict?.name || adData?.locationTown?.name || 'Location not available' 
+        },
         { label: 'Posting Date', value: adData?.createdAt ? formatDate(adData.createdAt) : undefined },
     ];
    
-    
-  return (
-    <div className="col-span-12 md:col-span-8 bg-white rounded-lg p-4 font-Inter">
-  <div>
-    <div className='font-semibold text-base md:text-2xl'>{adData?.title}</div>
-    <div className='text-gray-500 text-xs md:text-base'>{adData?.variant || adData.type}</div>
-    <div className='font-semibold my-2 text-base md:text-xl'>
-  {adData?.price ? (
-    `₹ ${new Intl.NumberFormat('en-IN').format(adData.price)}`
-  ) : adData?.monthlyRent ? (
-    `₹ ${new Intl.NumberFormat('en-IN').format(adData.monthlyRent)} /mon`
-  ) : adData?.salary ? (
-    `₹ ${new Intl.NumberFormat('en-IN').format(adData.salary)} /mon`
-  ) : null}
-</div>
-  </div>
-  <div className="grid grid-cols-12 gap-0 mt-8">
-    {keyValuePairs.map(({ label, value }) => (
-      value ? (
-        <React.Fragment key={label}>
-          <div className="col-span-3 flex justify-start mb-2">
-            <span className="text-12 text-exagrey md:text-base">{label}:</span>
-          </div>
-          <div className="col-span-3 flex justify-start mb-2">
-            <span className="text-xs md:text-base">{value}</span>
-          </div>
-        </React.Fragment>
-      ) : null
-    ))}
-  </div>
-</div>
-
-  );
+    return (
+        <div className="col-span-12 md:col-span-8 bg-white rounded-lg p-4 font-Inter">
+            <div>
+                <div className='font-semibold text-base md:text-2xl'>{adData?.title}</div>
+                <div className='text-gray-500 text-xs md:text-base'>{adData?.variant || adData.type}</div>
+                <div className='font-semibold my-2 text-base md:text-xl'>
+                    {adData?.price ? (
+                        `₹ ${new Intl.NumberFormat('en-IN').format(adData.price)}`
+                    ) : adData?.monthlyRent ? (
+                        `₹ ${new Intl.NumberFormat('en-IN').format(adData.monthlyRent)} /mon`
+                    ) : adData?.salary ? (
+                        `₹ ${new Intl.NumberFormat('en-IN').format(adData.salary)} /mon`
+                    ) : null}
+                </div>
+            </div>
+            <div className="grid grid-cols-12 gap-x-2 gap-y-2 mt-8">
+                {keyValuePairs.map(({ label, value }) => (
+                    value ? (
+                        <React.Fragment key={label}>
+                            <div className={`col-span-6 sm:col-span-3 flex justify-start ${label === 'Location' ? 'col-span-12 sm:col-span-6' : ''}`}>
+                                <span className="text-[10px] text-exagrey md:text-base font-semibold">{label}:</span>
+                            </div>
+                            <div className={`col-span-6 sm:col-span-3 flex justify-start ${label === 'Location' ? 'col-span-12 sm:col-span-6' : ''}`}>
+                                <span className="text-[10px] md:text-base break-words">{value}</span>
+                            </div>
+                        </React.Fragment>
+                    ) : null
+                ))}
+            </div>
+        </div>
+    );
 };
 
 export default Rest;
