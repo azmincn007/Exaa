@@ -47,7 +47,7 @@ const fetchShowroomAds = async (showroomId) => {
       },
     }
   );
-  console.log(response.data.data);
+  
 
   return response.data.data;
 };

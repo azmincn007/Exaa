@@ -1,3 +1,5 @@
+import { FaTelegram } from "react-icons/fa";
+
 const ChatInput = ({ message, setMessage, onSend }) => (
     <div className="p-4 bg-white flex gap-2 m-2 items-center">
       <input

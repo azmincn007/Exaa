@@ -1,3 +1,6 @@
+import { MoreVertical, Phone } from "lucide-react";
+import { BASE_URL } from "../../../config/config";
+
 const ChatHeader = ({ chat }) => (
     <div className="bg-[#0071BC] text-white p-4 flex justify-between items-center rounded-md">
       <div className='flex items-center gap-4'>

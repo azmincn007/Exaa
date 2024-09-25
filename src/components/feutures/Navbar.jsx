@@ -76,6 +76,7 @@ function Navbar({ onShowPackagesAndOrders }) {
   };
 
   const renderProfileDropdown = (isMobile) => {
+    const buttonSize = isMobile ? 'sm' : 'md';
     const isOpen = isMobile ? isProfileDropdownOpenMobile : isProfileDropdownOpen;
     const ref = isMobile ? profileDropdownMobileRef : profileDropdownRef;
     return (
@@ -85,6 +86,7 @@ function Navbar({ onShowPackagesAndOrders }) {
           icon={<AiOutlineUser className={`${isMobile ? 'text-lg' : 'text-xl'} text-white`} />}
           className="bg-[#FFFFFF1A] rounded-full"
           onClick={isMobile ? toggleProfileDropdownMobile : toggleProfileDropdown}
+          size={buttonSize}
         />
         {isOpen && (
           <ProfileDropdown 

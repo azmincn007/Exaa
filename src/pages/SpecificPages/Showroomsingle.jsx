@@ -41,7 +41,6 @@ function Showroomsingle() {
     () => fetchShowroomData(id),
     {
       onSuccess: (data) => {
-        console.log("Showroom Data:", data);
       },
       onError: (error) => {
         console.error("Error fetching showroom data:", error);
@@ -54,7 +53,6 @@ function Showroomsingle() {
     () => fetchOtherShowroomAds(id),
     {
       onSuccess: (data) => {
-        console.log("Other Showroom Ads:", data);
       },
       onError: (error) => {
         console.error("Error fetching other showroom ads:", error);

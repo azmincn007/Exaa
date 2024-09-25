@@ -52,7 +52,6 @@ const fetchSubCategoryDetails = async (userToken, subCategoryId) => {
   const { data } = await axios.get(`${BASE_URL}/api/ad-find-one-sub-category/${subCategoryId}`, {
     headers: { 'Authorization': `Bearer ${userToken}` },
   });
-  console.log(data.data);
   
   return data.data;
 };

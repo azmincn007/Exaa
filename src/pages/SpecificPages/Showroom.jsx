@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from 'react-query';
 import axios from 'axios';
 import { Button, Select, Skeleton, Box } from '@chakra-ui/react';
 import { BiLocationPlus } from 'react-icons/bi';
 import { BASE_URL } from '../../config/config';
+import { MapPin, ShoppingBag } from 'lucide-react';
 
+// Fetching showrooms
 const fetchShowrooms = async () => {
   const token = localStorage.getItem('UserToken');
   const response = await axios.get(`${BASE_URL}/api/find-other-ad-showrooms`, {
@@ -13,10 +15,21 @@ const fetchShowrooms = async () => {
       Authorization: `Bearer ${token}`,
     },
   });
-  console.log(response.data.data);
   return response.data.data;
 };
 
+// Fetching categories
+const fetchCategories = async () => {
+  const token = localStorage.getItem('UserToken');
+  const response = await axios.get(`${BASE_URL}/api/find-showroom-categories`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.data.data;
+};
+
+// Skeleton for Showroom Cards
 const ShowroomSkeleton = () => (
   <Box className="bg-[#0071BC26] rounded-lg shadow-md overflow-hidden">
     <Skeleton height="150px" />
@@ -28,10 +41,25 @@ const ShowroomSkeleton = () => (
   </Box>
 );
 
+// Skeleton for Category Select
+const CategorySkeleton = () => (
+  <Skeleton height="40px" width="160px" borderRadius="md" />
+);
+
 const Showroom = () => {
   const navigate = useNavigate();
-  const { data: showrooms, isLoading, isError, error } = useQuery('showrooms', fetchShowrooms);
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [visibleItems, setVisibleItems] = useState(12);
+
+  // Fetch showrooms and categories with react-query
+  const { data: showrooms, isLoading: isShowroomsLoading } = useQuery('showrooms', fetchShowrooms);
+  const { data: categories, isLoading: isCategoriesLoading } = useQuery('categories', fetchCategories);
+
+  const storedTownName = localStorage.getItem('selectedTownName');
+
+  useEffect(() => {
+    console.log('Selected Category:', selectedCategory);
+  }, [selectedCategory]);
 
   const handleShowroomClick = (id) => {
     navigate(`/showroom/${id}`);
@@ -41,56 +69,83 @@ const Showroom = () => {
     setVisibleItems(prevItems => prevItems + 12);
   };
 
-  if (isError) {
-    return <div>Error: {error.message}</div>;
-  }
+  // Filter showrooms by category
+  const filteredShowrooms = showrooms?.filter(showroom => 
+    selectedCategory === 'all' || showroom.adCategory?.id === parseInt(selectedCategory)
+  );
 
-  const isMobile = window.innerWidth < 640; // SM breakpoint in Tailwind
+  // New component for displaying "No ads" message
+  const NoAdsMessage = () => (
+    <div className="col-span-full flex flex-col items-center justify-center p-8 bg-gray-100 rounded-lg">
+      <ShoppingBag className="w-16 h-16 text-gray-400 mb-4" />
+      <h3 className="text-xl font-semibold text-gray-700 mb-2">No Ads to Show</h3>
+      <p className="text-gray-500 text-center">There are no showrooms available for the selected category.</p>
+    </div>
+  );
 
   return (
     <div className="container mx-auto p-2 sm:p-4 font-Inter">
+      {/* Header with Select and Location */}
       <div className='flex flex-col sm:flex-row justify-between py-2 space-y-2 sm:space-y-0'>
         <h2 className='font-semibold text-16 sm:text-18'>Showroom</h2>
         <div className='flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4'>
-          <Select 
-            variant='filled' 
-            placeholder='Filled' 
-            className='bg-[#D2BA8580] text-sm'
-            size="sm"
-          />
-          <Button 
-            leftIcon={<BiLocationPlus />} 
-            className='bg-[#D2BA8580] px-4 sm:px-12 text-sm' 
+          {/* Category Select - Show loading if categories are loading */}
+          {isCategoriesLoading ? (
+            <CategorySkeleton />
+          ) : (
+            <Select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className='bg-[#D2BA8580] text-sm'
+              size="sm"
+            >
+              <option value="all">All Categories</option>
+              {categories?.map(category => (
+                <option key={category.id} value={category.id}>{category.name}</option>
+              ))}
+            </Select>
+          )}
+
+          {/* Location Button */}
+          <Button
+            leftIcon={<MapPin className="text-12" />}
+            className='bg-[#D2BA8580] px-4 sm:px-12 text-sm'
             variant='solid'
             size="sm"
           >
-            Email
+            {storedTownName || 'Select Location'}
           </Button>
         </div>
       </div>
+
+      {/* Showrooms Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
-        {isLoading
-          ? Array(8).fill(0).map((_, index) => <ShowroomSkeleton key={index} />)
-          : showrooms?.slice(0, visibleItems).map((item) => (
-              <div
-                key={item.id}
-                className="bg-[#0071BC26] rounded-lg shadow-md overflow-hidden cursor-pointer"
-                onClick={() => handleShowroomClick(item.id)}
-              >
-                <img src={`${BASE_URL}${item.images.url}`} alt="" className='p-1 sm:p-2 w-full h-32 sm:h-48 object-cover' />
-                <div className="p-2 sm:p-4 flex flex-col gap-1 sm:gap-2">
-                  <h3 className="font-bold text-14 sm:text-16">{item.name}</h3>
-                  <p className="text-10 sm:text-12 text-gray-600">Category: {item.adShowroomCategory.name}</p>
-                  <p className="text-10 sm:text-12 text-gray-600">Created On: {new Date(item.createdAt).toLocaleDateString()}</p>
+        {isShowroomsLoading
+          ? Array.from({ length: 12 }).map((_, idx) => <ShowroomSkeleton key={idx} />)
+          : filteredShowrooms?.length > 0
+            ? filteredShowrooms.slice(0, visibleItems).map((item) => (
+                <div
+                  key={item.id}
+                  className="bg-[#0071BC26] rounded-lg shadow-md overflow-hidden cursor-pointer"
+                  onClick={() => handleShowroomClick(item.id)}
+                >
+                  <img src={`${BASE_URL}${item.images.url}`} alt="" className='p-1 sm:p-2 w-full h-32 sm:h-48 object-cover' />
+                  <div className="p-2 sm:p-4 flex flex-col gap-1 sm:gap-2">
+                    <h3 className="font-bold text-14 sm:text-16">{item.name}</h3>
+                    <p className="text-10 sm:text-12 text-gray-600">Category: {item.adShowroomCategory.name}</p>
+                    <p className="text-10 sm:text-12 text-gray-600">Created On: {new Date(item.createdAt).toLocaleDateString()}</p>
+                  </div>
                 </div>
-              </div>
-            ))
+              ))
+            : <NoAdsMessage />
         }
       </div>
-      {showrooms && showrooms.length > visibleItems && (
+
+      {/* Load More Button */}
+      {filteredShowrooms && filteredShowrooms.length > visibleItems && (
         <div className="flex justify-center mt-4">
-          <Button 
-            onClick={loadMore} 
+          <Button
+            onClick={loadMore}
             className='bg-[#0071BC] text-white px-6 py-2'
             size="md"
           >

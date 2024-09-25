@@ -12,6 +12,8 @@ import { SkeletonChatDetails, SkeletonChatList } from '../../components/Skelton/
 import EmptyChatList from '../../components/Specific/chat/EmptyChatList';
 import ChatInfo from '../../components/Specific/chat/ChatInfo';
 import ChatInput from '../../components/Specific/chat/ChatInput';
+import ChatHeader from '../../components/Specific/chat/ChatHeader';
+import ChatListItem from '../../components/Specific/chat/ChatListitem';
 
 const ChatComponent = () => {
   const navigate = useNavigate();
@@ -100,7 +102,7 @@ const ChatComponent = () => {
         </div>
         
         {/* Chat list drawer for mobile */}
-        <div className={`md:hidden fixed inset-y-0 left-0 transform ${isDrawerOpen ? 'translate-x-0' : '-translate-x-full'} w-full bg-white transition-transform duration-300 ease-in-out z-20`}>
+        <div className={`md:hidden fixed inset-y-0 left-0 transform ${isDrawerOpen ? 'translate-x-0' : '-translate-x-full'} w-[50%] min-w-[300px] bg-white transition-transform duration-300 ease-in-out z-20`}>
           <div className="h-full flex flex-col pt-16">
             <div className="p-4 bg-[#0071BC] text-white flex justify-between items-center">
               <h2 className="font-semibold">Chat List</h2>
@@ -157,27 +159,7 @@ const ChatList = ({ chats, isLoading, activeTab, onSelectChat, selectedChatId })
   );
 };
 
-const ChatListItem = ({ chat, isSelected, onSelect }) => (
-  <div
-    className={`flex border-2 cursor-pointer hover:bg-gray-100 rounded-lg overflow-hidden ${isSelected ? 'bg-blue-100 border-blue-500' : 'border-black'}`}
-    onClick={onSelect}
-  >
-    <div className="w-1/2 h-40 overflow-hidden p-2">
-      <img 
-        src={`${BASE_URL}${chat?.adSeller.profileImage.url}`} 
-        alt={chat.adSeller.name} 
-        className="w-full h-full object-cover rounded-lg"
-      />
-    </div>
-    <div className="w-1/2 p-4 h-40 flex flex-col justify-around">
-      <h3 className="font-semibold truncate">{chat?.adSeller.name}</h3>
-      <div className='flex flex-col gap-2'>
-        <p className="text-sm text-gray-600 truncate">{chat?.ad?.title}</p>
-        <p className="text-sm text-gray-500 truncate">hi</p>
-      </div>
-    </div>
-  </div>
-);
+
 
 const ChatDetailsContainer = ({ selectedChat, isLoading }) => (
   <div className="w-full h-full flex flex-col">

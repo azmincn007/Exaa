@@ -1,8 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { 
-  Box, VStack, Text, Grid, GridItem, SimpleGrid, useBreakpointValue, 
-  Select, Button, Drawer, DrawerBody, DrawerHeader, DrawerOverlay, 
-  DrawerContent, DrawerCloseButton, useDisclosure, IconButton
+import {  Box, VStack, Text, Grid, GridItem, SimpleGrid, useBreakpointValue, Select, Button, Drawer, 
+  DrawerBody, DrawerHeader, DrawerOverlay,  DrawerContent, DrawerCloseButton, useDisclosure, 
+  IconButton,Skeleton, SkeletonCircle, SkeletonText
 } from '@chakra-ui/react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from 'react-query';
@@ -11,7 +10,7 @@ import { BASE_URL } from '../../../config/config';
 import CardUser from '../../common/Cards/CardUser';
 import { TownContext } from '../../../App';
 import PriceSlider from '../Catgorybased/PriceSlider';
-import { Filter } from 'lucide-react'; // Import the Filter icon
+import { Filter } from 'lucide-react'; 
 import CategoryDropdown from '../Catgorybased/CategoryDropdown';
 
 const fetchSubCategories = async (categoryId) => {
@@ -128,7 +127,19 @@ const CategoryBasedGrid = () => {
         )}
         <GridItem>
           {isLoadingSubCategories || isLoadingAdsData ? (
-            <Text fontSize={["sm", "md"]}>Loading...</Text>
+            <Box>
+              <Skeleton height="40px" mb={4} />
+              <SimpleGrid columns={cardColumns} spacing={[3, 4, 6]}>
+                {[...Array(cardColumns * 3)].map((_, i) => (
+                  <Box key={i}>
+                    <SkeletonCircle size="80px" mb={2} />
+                    <SkeletonText noOfLines={2} mb={2} />
+                    <Skeleton height="20px" width="80%" mb={2} />
+                    <Skeleton height="20px" width="60%" />
+                  </Box>
+                ))}
+              </SimpleGrid>
+            </Box>
           ) : (
             <>
               <Box className='flex justify-between mb-4'>
