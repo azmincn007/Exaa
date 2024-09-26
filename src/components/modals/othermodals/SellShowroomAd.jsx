@@ -53,6 +53,7 @@ console.log(showroomid);
   const fontSize = useBreakpointValue({ base: "sm", md: "md" });
   const headingSize = useBreakpointValue({ base: "xl", md: "2xl" });
   const imageBoxSize = useBreakpointValue({ base: "100px", md: "150px" });
+  const [showCongratulations, setShowCongratulations] = useState(false);
 
   const { data: subCategoryData, isLoading: isSubCategoryLoading, isError: isSubCategoryError } = useQuery(
     ['subCategoryDetails', getUserToken, subCategoryId],
@@ -140,7 +141,8 @@ console.log(showroomid);
         });
         clearForm();
         onClose();
-        onAdCreated();  // Call the callback function after successful submission
+        onAdCreated();
+        setShowCongratulations(true);  // Show the congratulations modal
       } else {
         throw new Error('Failed to add ad');
       }
@@ -324,6 +326,7 @@ console.log(showroomid);
   );
 
   return (
+      <>
     <Modal isOpen={isOpen} onClose={onClose} size={modalSize}>
       <ModalOverlay />
       <ModalContent 
@@ -374,7 +377,7 @@ console.log(showroomid);
                   accept="image/*"
                   style={{ display: 'none' }}
                   onChange={handleImageUpload}
-                />
+                  />
               </Flex>
             </FormControl>
             
@@ -386,6 +389,14 @@ console.log(showroomid);
         </ModalFooter>
       </ModalContent>
     </Modal>
+
+    {showCongratulations && (
+        <CongratulationsModal
+          adType="Showroom Ad"
+          onClose={() => setShowCongratulations(false)}
+        />
+      )}
+</>
   );
 };
 

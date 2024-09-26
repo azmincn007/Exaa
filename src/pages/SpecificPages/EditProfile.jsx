@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useContext } from "react";
-import { Box, Flex, Text, Grid, GridItem } from "@chakra-ui/react";
-import { useLocation } from "react-router-dom";
+import { Box, Flex, Text, Grid, GridItem, Button } from "@chakra-ui/react";
+import { useLocation, useNavigate } from "react-router-dom";
 import ProfileEditForm from "../../components/Specific/Profile/ProfileEdit";
 import ProfilePictureUpload from "../../components/Specific/Profile/ProfilePictureUpload";
 import { UserdataContext } from "../../App";
 
 const EditProfile = () => {
   const [activeSection, setActiveSection] = useState("profile");
+  const navigate=useNavigate()
  
   const { userData, isLoading } = useContext(UserdataContext);
 
@@ -58,6 +59,9 @@ const EditProfile = () => {
             >
               Profile Picture
             </Text>
+
+            <Button onClick={()=>navigate(-1)} className="border-blue-500 border-2 bg-transparent text-bluw-500"> View Profile</Button>
+
           </div>
         </GridItem>
 

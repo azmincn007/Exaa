@@ -16,6 +16,7 @@ import axios from 'axios';
 import { BASE_URL } from '../../../config/config';
 import { BiLeftArrowAlt } from 'react-icons/bi';
 import { FaChevronRight } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
 const fetchCategories = async () => {
   const token = localStorage.getItem('UserToken');
@@ -39,6 +40,7 @@ const fetchSubcategories = async (categoryId) => {
 
 function CategoryModal({ isOpen, onClose }) {
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const navigate = useNavigate();
 
   const { data: categories, isLoading: isLoadingCategories } = useQuery('categories', fetchCategories);
 
@@ -50,8 +52,15 @@ function CategoryModal({ isOpen, onClose }) {
     }
   );
 
-  const handleCategoryClick = (categoryId) => {
+  const handleCategoryClick = (categoryId, categoryName) => {
     setSelectedCategory(categoryId);
+    navigate(`/category/${categoryId}/${categoryName}`);
+    onClose();
+  };
+
+  const handleSubcategoryClick = (categoryId, categoryName, subcategoryId, subcategoryName) => {
+    navigate(`/category/${categoryId}/${categoryName}/${subcategoryId}`);
+    onClose();
   };
 
   return (
@@ -92,7 +101,7 @@ function CategoryModal({ isOpen, onClose }) {
                     bg: "blue.100",
                     boxShadow: "sm",
                   }}
-                  onClick={() => handleCategoryClick(category.id)}
+                  onClick={() => handleCategoryClick(category.id, category.name)}
                 >
                   <HStack width="100%" justifyContent="space-between">
                     <Text>{category.name}</Text>
@@ -148,6 +157,7 @@ function CategoryModal({ isOpen, onClose }) {
                         bg: "blue.100",
                         boxShadow: "sm",
                       }}
+                      onClick={() => handleSubcategoryClick(selectedCategory, categories.find(cat => cat.id === selectedCategory)?.name, subcategory.id, subcategory.name)}
                     >
                       {subcategory.name}
                     </Button>

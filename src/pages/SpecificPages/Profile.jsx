@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Box, Button, Grid, GridItem, useBreakpointValue, Skeleton, SkeletonCircle } from "@chakra-ui/react";
+import { Box, Button, Grid, GridItem, useBreakpointValue, Skeleton, SkeletonCircle, useDisclosure } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import { FaGoogle, FaUser } from "react-icons/fa";
 import { IoLogoWhatsapp } from "react-icons/io5";
@@ -7,10 +7,24 @@ import { IoIosMail } from "react-icons/io";
 import { BASE_URL } from "../../config/config";
 import emptyillus from "../../assets/empty.png";
 import { UserdataContext } from "../../App";
+import SellModal from "../../components/modals/othermodals/SellModal";
+import { useAuth } from "../../Hooks/AuthContext";
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { isLoggedIn } = useAuth();
   const { userData, isLoading } = useContext(UserdataContext);
+  
+  const { isOpen: isSellModalOpen, onOpen: onSellModalOpen, onClose: onSellModalClose } = useDisclosure();
+  
+  const handleSellClick = () => {
+    if (isLoggedIn) {
+      onSellModalOpen();
+    } else {
+      onLoginModalOpen();
+    }
+  };
+
 
   // Responsive text sizes
   const textSize = useBreakpointValue({ base: 'sm', md: 'md', lg: 'lg' });
@@ -85,6 +99,7 @@ const Profile = () => {
   };
 
   return (
+    <>
     <Box maxWidth="container" margin="auto" padding={8} className="font-Inter">
       <Grid templateColumns={{ base: "repeat(12, 1fr)", md: "repeat(6, 1fr)", lg: "repeat(12, 1fr)" }} gap={6}>
         <GridItem colSpan={{ base: 12, md: 6, lg: 4 }} className="min-h-[300px] bg-[#0071BC1A] py-2">
@@ -97,15 +112,18 @@ const Profile = () => {
               alt="Empty state illustration"
               className="max-h-[200px] w-auto mb-4 md:max-h-[250px] md:max-w-[250px]"
             />
-            <h2 className={`text-${titleSize} font-semibold mb-2`}>You haven't listed anything yet</h2>
-            <p className={`text-${textSize} text-gray-600 mb-4`}>Lorem ipsum dolor sit amet consectetur.</p>
-            <Button colorScheme="blue" className="text-white font-medium py-6 px-16 rounded">
+      
+            <Button  onClick={handleSellClick} colorScheme="blue" className="text-white font-medium py-6 px-16 rounded">
               Start Selling
             </Button>
           </div>
         </GridItem>
       </Grid>
     </Box>
+    
+    <SellModal isOpen={isSellModalOpen} onClose={onSellModalClose} />
+
+              </>
   );
 };
 

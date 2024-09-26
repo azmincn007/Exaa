@@ -16,6 +16,8 @@ const fetchShowroomData = async (id) => {
       Authorization: `Bearer ${token}`,
     },
   });
+  console.log(response.data.data);
+  
   return response.data.data;
 };
 
@@ -35,12 +37,14 @@ function Showroomsingle() {
   const { id } = useParams();
   const [sortOrder, setSortOrder] = useState("");
   const [budgetFilter, setBudgetFilter] = useState("");
+  const [dateSort, setDateSort] = useState(false);
 
   const { data: showroomData, isLoading: isLoadingShowroom, error: showroomError } = useQuery(
     ['showroom', id],
     () => fetchShowroomData(id),
     {
       onSuccess: (data) => {
+        // You can add any additional logic here if needed
       },
       onError: (error) => {
         console.error("Error fetching showroom data:", error);
@@ -53,6 +57,7 @@ function Showroomsingle() {
     () => fetchOtherShowroomAds(id),
     {
       onSuccess: (data) => {
+        // You can add any additional logic here if needed
       },
       onError: (error) => {
         console.error("Error fetching other showroom ads:", error);
@@ -66,6 +71,10 @@ function Showroomsingle() {
 
   const handleBudgetChange = (event) => {
     setBudgetFilter(event.target.value);
+  };
+
+  const handleDateSort = () => {
+    setDateSort(!dateSort);
   };
 
   const sortedAndFilteredAds = useMemo(() => {
@@ -87,8 +96,13 @@ function Showroomsingle() {
       filteredAds.sort((a, b) => b.title.localeCompare(a.title));
     }
 
+    // Apply date sort if active
+    if (dateSort) {
+      filteredAds.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }
+
     return filteredAds;
-  }, [otherAds, sortOrder, budgetFilter]);
+  }, [otherAds, sortOrder, budgetFilter, dateSort]);
 
   if (isLoadingShowroom || isLoadingOtherAds) {
     return <div>Loading...</div>;
@@ -120,7 +134,7 @@ function Showroomsingle() {
         </div>
       </div>
       <div className="py-2 ">
-        <h1 className="font-semibold py-2">ALL ads</h1>
+        <h1 className="font-semibold py-2">ALL Ads</h1>
         <div className="bg-[#0071BC1A] flex justify-between items-center">
           <div className="flex gap-4 items-center">
             <div className="w-24 py-2">
@@ -152,20 +166,29 @@ function Showroomsingle() {
             </div>
           </div>
           <div>
-            <MdDateRange className="h-10 w-10"/> 
+            <button
+              onClick={handleDateSort}
+              className={`flex items-center justify-center p-2 rounded-full transition-colors ${
+                dateSort ? 'bg-blue-500 text-white' : 'bg-transparent text-black'
+              }`}
+            >
+              <MdDateRange className="h-6 w-6" />
+            </button>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
           {sortedAndFilteredAds.map((ad) => (
             <CardShowroom
               key={ad.id}
-              imageUrl={ad.images && ad.images.length > 0 ? `${BASE_URL}${ad.images[0].url}` : Showroomsingleimg}
+              imageUrl={`${BASE_URL}${ad.images.url}`}
               status={ad.status}
               title={ad.title}
               price={ad.price}
               views={ad.views}
               likes={ad.likes}
-              location={ad.location}
+              adCategory={ad.adCategory?.id}
+              id={ad.id}
+              location={ad.locationTown.name}
               postedDate={new Date(ad.createdAt).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })}
             />
           ))}

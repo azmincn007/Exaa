@@ -36,7 +36,7 @@ const SellInput = ({
         fontSize="sm"
         fontWeight="medium"
         color="black.300"
-        bg="white"
+        bg="#F1F1F1"
         zIndex={2}
       >
         {label}

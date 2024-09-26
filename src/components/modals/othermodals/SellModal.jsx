@@ -28,6 +28,7 @@ import {
 import { BASE_URL } from '../../../config/config';
 import { IoAddOutline, IoClose } from 'react-icons/io5';
 import SellInput from '../../../components/forms/Input/SellInput.jsx';
+import CongratulationsModal from './SellSuccessmodal.jsx';
 
 const fetchCategories = async (userToken) => {
   if (!userToken) throw new Error('No user token found');
@@ -79,6 +80,8 @@ const SellModal = ({ isOpen, onClose }) => {
   const [selectedDistrictId, setSelectedDistrictId] = useState(null);
   const [uploadedImages, setUploadedImages] = useState([]);
   const [subCategoryDetails, setSubCategoryDetails] = useState(null);
+  const [showCongratulations, setShowCongratulations] = useState(false);
+  const [submittedAdType, setSubmittedAdType] = useState('');
   
   const { register, handleSubmit, control, formState: { errors }, setValue, reset, getValues } = useForm();
   const getUserToken = useCallback(() => localStorage.getItem('UserToken'), []);
@@ -215,15 +218,10 @@ const SellModal = ({ isOpen, onClose }) => {
       });
 
       if (response.status === 200 || response.status === 201) {
-        toast({
-          title: "Ad added successfully",
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
+        setSubmittedAdType(subCategoryDetails.name); // Set the submitted ad type
+        setShowCongratulations(true); // Show the congratulations modal
         clearForm(); // Clear the form after successful submission
-        onClose();
-      
+        onClose(); // Close the sell modal
       } else {
         throw new Error('Failed to add ad');
       }
@@ -272,39 +270,54 @@ const SellModal = ({ isOpen, onClose }) => {
       case 'model':
       case 'variant':
       case 'transmission':
-      case 'rtoCode':
       case 'listedBy':
-      case 'typeOfAccomodation':
       case 'facing':
-      case 'projectName':
       case 'qualification':
         return { type: 'text', label: fieldName.charAt(0).toUpperCase() + fieldName.slice(1), rules: commonRules };
       case 'price':
       case 'year':
-      case 'kmDriven':
-      case 'noOfOwners':
       case 'bedrooms':
       case 'bathrooms':
-      case 'totalFloors':
-      case 'floorNo':
-      case 'carParking':
-      case 'type':
-      case 'carpetArea':
       case 'maintenance':
-      case 'securityAmount':
-      case 'monthlyRent':
-      case 'plotArea':
       case 'length':
       case 'breadth':
-      case 'totalLandArea':
-      case 'engineCC':
-      case 'motorPower':
-      case 'buyYear':
       case 'experience':
       case 'salary':
         return { type: 'number', label: fieldName.charAt(0).toUpperCase() + fieldName.slice(1), rules: numberRules };
+      case 'plotArea':
+        return { type: 'number', label: "Plot Area", rules: numberRules };
+      case 'carpetArea':
+        return { type: 'number', label: "Carpet Area", rules: numberRules };
+      case 'projectName':
+        return { type: 'text', label: "Project Name", rules: commonRules };
+      case 'rtoCode':
+        return { type: 'text', label: "RTO Code", rules: commonRules };
+      case 'typeOfAccomodation':
+        return { type: 'text', label: "Type of Accommodation", rules: commonRules };
+      case 'totalFloors':
+        return { type: 'number', label: "Total Floors", rules: numberRules };
+      case 'carParking':
+        return { type: 'number', label: "Car Parking", rules: numberRules };
+      case 'floorNo':
+        return { type: 'number', label: "Floor No.", rules: numberRules };
+      case 'kmDriven':
+        return { type: 'number', label: "KM Driven", rules: numberRules };
+      case 'noOfOwners':
+        return { type: 'number', label: "Number of Owners", rules: numberRules };
+      case 'totalLandArea':
+        return { type: 'number', label: "Total Land Area", rules: numberRules };
+      case 'engineCC':
+        return { type: 'number', label: "Engine CC", rules: numberRules };
+      case 'motorPower':
+        return { type: 'number', label: "Motor Power", rules: numberRules };
+      case 'buyYear':
+        return { type: 'number', label: "Buy Year", rules: numberRules };
+      case 'monthlyRent':
+        return { type: 'number', label: "Monthly Rent", rules: numberRules };
       case 'superBuiltupArea':
         return { type: 'number', label: "Super Built Up Area", rules: numberRules };
+      case 'securityAmount':
+        return { type: 'number', label: "Security Amount", rules: numberRules };
       case 'isActiveAd':
       case 'isShowroomAd':
         return { type: 'checkbox', label: fieldName.charAt(0).toUpperCase() + fieldName.slice(1), rules: {} };
@@ -326,6 +339,7 @@ const SellModal = ({ isOpen, onClose }) => {
         return null;
     }
   };
+  
 
   const renderField = (fieldName) => {
     const config = getFieldConfig(fieldName);
@@ -419,6 +433,7 @@ const SellModal = ({ isOpen, onClose }) => {
     );
   
     return (
+        <>
       <Modal isOpen={isOpen} onClose={onClose} size={modalSize}>
         <ModalOverlay />
         <ModalContent 
@@ -509,6 +524,14 @@ const SellModal = ({ isOpen, onClose }) => {
           </ModalFooter>
         </ModalContent>
       </Modal>
+
+      {showCongratulations && (
+        <CongratulationsModal 
+          adType={submittedAdType}
+          onClose={() => setShowCongratulations(false)}
+        />
+      )}
+      </>
     );
   };
   

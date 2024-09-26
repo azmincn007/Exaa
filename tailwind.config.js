@@ -10,6 +10,8 @@ module.exports = {
       fontFamily: {
         'Inter': ['Inter', 'sans-serif'],
         'Roboto': ["Roboto", 'sans-serif'],
+        'Hahmlet': ["Hahmlet", "serif"]
+        
       },
       fontWeights: {
         lean:300,

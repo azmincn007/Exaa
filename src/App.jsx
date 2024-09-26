@@ -63,6 +63,7 @@ function App() {
                 <Route path="/packages-and-orders/:section" element={<Layout><PackagesAndOrders /></Layout>} />
                 <Route path="/buy-packages/myorders" element={<BuyPackagesAndMyorders />} />
                 <Route path="/category/:categoryId/:categoryName" element={<Layout><CategoryBasedGrid /></Layout>} />
+                <Route path="/category/:categoryId/:categoryName/:subCategoryId" element={<Layout><CategoryBasedGrid /></Layout>} /> 
                 <Route path="/details/:id/:adCategoryId" element={<Layout><SingleAd /></Layout>} />
                 <Route path="/profile" element={<Layout><Profile /></Layout>} />
                 <Route path="/profile/edit-profile" element={<Layout><EditProfile /></Layout>} />

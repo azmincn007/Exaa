@@ -5,12 +5,16 @@ import { IoLocationOutline } from 'react-icons/io5';
 import { Link } from 'react-router-dom';
 import { BASE_URL } from '../../../config/config';
 
-function CardShowroom({ id, imageUrl, price, title, location, postedDate, adBoostTag, adCategoryId, views, likes }) {
+function CardShowroom({  imageUrl, price, title, location, postedDate, adBoostTag,  views, likes,id,adCategory }) {
+  console.log(adCategory);
+  
+  console.log(imageUrl);
+  
   
   const isActive = adBoostTag === "Active";
 
   return (
-    <Link to={`/details/${id}/${adCategoryId}`}>
+    <Link to={`/details/${id}/${adCategory}`}>
       <Box borderWidth="1px" borderRadius="lg" overflow="hidden" bg="white" boxShadow="md">
         <Flex>
           {/* Left side - Image */}

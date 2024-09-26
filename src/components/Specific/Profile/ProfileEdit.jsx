@@ -22,9 +22,9 @@ const ProfileEditForm = () => {
   const { userData, setUserData } = useContext(UserdataContext);
   const { register, handleSubmit, formState: { errors } } = useForm({
     defaultValues: {
-      name: userData.name,
-      phone: userData.phone?.slice(-10) || '',
-      email: userData.email,
+      name: userData?.name,
+      phone: userData?.phone?.slice(-10) || '',
+      email: userData?.email,
     }
   });
   const navigate = useNavigate();
@@ -98,7 +98,7 @@ const ProfileEditForm = () => {
                 <FormControl>
                   <Input
                     {...register("name")}
-                    placeholder={userData.name}
+                    placeholder={userData?.name}
                     border="1px"
                     borderColor="black"
                     _hover={{ borderColor: 'black' }}
@@ -131,7 +131,7 @@ const ProfileEditForm = () => {
                           message: "Phone number must be 10 digits"
                         }
                       })}
-                      placeholder={userData.phone.slice(-10)}
+                      placeholder={userData?.phone.slice(-10)}
                       border="1px"
                       borderColor="black"
                       borderLeft="none"
@@ -156,7 +156,7 @@ const ProfileEditForm = () => {
                         message: "Invalid email address"
                       }
                     })}
-                    placeholder={userData.email}
+                    placeholder={userData?.email}
                     border="1px"
                     borderColor="black"
                     _hover={{ borderColor: 'black' }}

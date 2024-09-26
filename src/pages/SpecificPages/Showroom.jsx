@@ -6,6 +6,8 @@ import { Button, Select, Skeleton, Box } from '@chakra-ui/react';
 import { BiLocationPlus } from 'react-icons/bi';
 import { BASE_URL } from '../../config/config';
 import { MapPin, ShoppingBag } from 'lucide-react';
+import { RiGhostLine } from 'react-icons/ri';
+import { FaChevronRight } from 'react-icons/fa6';
 
 // Fetching showrooms
 const fetchShowrooms = async () => {
@@ -143,13 +145,13 @@ const Showroom = () => {
 
       {/* Load More Button */}
       {filteredShowrooms && filteredShowrooms.length > visibleItems && (
-        <div className="flex justify-center mt-4">
+        <div className="flex justify-end mt-4">
           <Button
             onClick={loadMore}
-            className='bg-[#0071BC] text-white px-6 py-2'
-            size="md"
+            className='bg-[#0071BC] text-white px-4  flex gap-4 font-Inter font-400 rounded-lg'
+            size="sm"
           >
-            Load More
+            <span className='text-12'>See all</span> <FaChevronRight />
           </Button>
         </div>
       )}
