@@ -3,7 +3,7 @@ import { Image, Text, Badge } from '@chakra-ui/react';
 import { Eye, Heart, MapPin } from 'lucide-react';
 import { BASE_URL } from '../../../config/config';
 
-const AdListing = ({ isActive, image, title, price, views, likes, location, postedDate, category, description }) => {
+const AdListing = ({ isActive, image, title, price, views, likes, location, postedDate, adCategory, description ,adSubcategory}) => {
   console.log(likes);
   
   return (
@@ -28,7 +28,7 @@ const AdListing = ({ isActive, image, title, price, views, likes, location, post
             <Text className="text-18 font-bold font-Inter">
               {title}
             </Text>
-            <Badge className="bg-yellow-400 text-white font-semibold">{category}</Badge>
+            <Badge className="bg-yellow-400 text-white font-semibold">{adCategory}</Badge>
           </div>
           <Text>{description}</Text>
           <Text className="text-20 font-bold text-blue-500">

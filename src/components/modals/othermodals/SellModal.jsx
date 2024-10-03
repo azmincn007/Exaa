@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { useQuery } from 'react-query';
+import { useQuery, useQueryClient } from 'react-query';
 import axios from 'axios';
 import { useForm, Controller } from 'react-hook-form';
 import {
@@ -29,6 +29,7 @@ import { BASE_URL } from '../../../config/config';
 import { IoAddOutline, IoClose } from 'react-icons/io5';
 import SellInput from '../../../components/forms/Input/SellInput.jsx';
 import CongratulationsModal from './SellSuccessmodal.jsx';
+import getFieldConfig from '../../common/config/GetField.jsx';
 
 const fetchCategories = async (userToken) => {
   if (!userToken) throw new Error('No user token found');
@@ -74,7 +75,8 @@ const fetchTowns = async (userToken, districtId) => {
   return data.data;
 };
 
-const SellModal = ({ isOpen, onClose }) => {
+const SellModal = ({ isOpen, onClose ,onSuccessfulSubmit }) => {
+  const queryClient = useQueryClient();
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [selectedSubCategoryId, setSelectedSubCategoryId] = useState(null);
   const [selectedDistrictId, setSelectedDistrictId] = useState(null);
@@ -218,10 +220,18 @@ const SellModal = ({ isOpen, onClose }) => {
       });
 
       if (response.status === 200 || response.status === 201) {
-        setSubmittedAdType(subCategoryDetails.name); // Set the submitted ad type
-        setShowCongratulations(true); // Show the congratulations modal
-        clearForm(); // Clear the form after successful submission
-        onClose(); // Close the sell modal
+        setSubmittedAdType(subCategoryDetails.name);
+        setShowCongratulations(true);
+        clearForm();
+        onClose();
+        
+        // Invalidate and refetch userAds query
+        queryClient.invalidateQueries("userAds");
+        
+        // Call the onSuccessfulSubmit callback
+        if (onSuccessfulSubmit) {
+          onSuccessfulSubmit();
+        }
       } else {
         throw new Error('Failed to add ad');
       }
@@ -259,90 +269,9 @@ const SellModal = ({ isOpen, onClose }) => {
     setUploadedImages(prevImages => prevImages.filter((_, i) => i !== index));
   };
 
-  const getFieldConfig = (fieldName) => {
-    const commonRules = { required: `${fieldName} is required` };
-    const numberRules = { ...commonRules, min: { value: 0, message: `${fieldName} must be positive` } };
-    
-    switch(fieldName) {
-      case 'title':
-      case 'description':
-      case 'brand':
-      case 'model':
-      case 'variant':
-      case 'transmission':
-      case 'listedBy':
-      case 'facing':
-      case 'qualification':
-        return { type: 'text', label: fieldName.charAt(0).toUpperCase() + fieldName.slice(1), rules: commonRules };
-      case 'price':
-      case 'year':
-      case 'bedrooms':
-      case 'bathrooms':
-      case 'maintenance':
-      case 'length':
-      case 'breadth':
-      case 'experience':
-      case 'salary':
-        return { type: 'number', label: fieldName.charAt(0).toUpperCase() + fieldName.slice(1), rules: numberRules };
-      case 'plotArea':
-        return { type: 'number', label: "Plot Area", rules: numberRules };
-      case 'carpetArea':
-        return { type: 'number', label: "Carpet Area", rules: numberRules };
-      case 'projectName':
-        return { type: 'text', label: "Project Name", rules: commonRules };
-      case 'rtoCode':
-        return { type: 'text', label: "RTO Code", rules: commonRules };
-      case 'typeOfAccomodation':
-        return { type: 'text', label: "Type of Accommodation", rules: commonRules };
-      case 'totalFloors':
-        return { type: 'number', label: "Total Floors", rules: numberRules };
-      case 'carParking':
-        return { type: 'number', label: "Car Parking", rules: numberRules };
-      case 'floorNo':
-        return { type: 'number', label: "Floor No.", rules: numberRules };
-      case 'kmDriven':
-        return { type: 'number', label: "KM Driven", rules: numberRules };
-      case 'noOfOwners':
-        return { type: 'number', label: "Number of Owners", rules: numberRules };
-      case 'totalLandArea':
-        return { type: 'number', label: "Total Land Area", rules: numberRules };
-      case 'engineCC':
-        return { type: 'number', label: "Engine CC", rules: numberRules };
-      case 'motorPower':
-        return { type: 'number', label: "Motor Power", rules: numberRules };
-      case 'buyYear':
-        return { type: 'number', label: "Buy Year", rules: numberRules };
-      case 'monthlyRent':
-        return { type: 'number', label: "Monthly Rent", rules: numberRules };
-      case 'superBuiltupArea':
-        return { type: 'number', label: "Super Built Up Area", rules: numberRules };
-      case 'securityAmount':
-        return { type: 'number', label: "Security Amount", rules: numberRules };
-      case 'isActiveAd':
-      case 'isShowroomAd':
-        return { type: 'checkbox', label: fieldName.charAt(0).toUpperCase() + fieldName.slice(1), rules: {} };
-      case 'furnishing':
-        return { type: 'select', label: "Furnishing", options: ["Furnished", "Semi-Furnished", "Unfurnished"], rules: commonRules };
-      case 'constructionStatus':
-        return { type: 'select', label: "Construction Status", options: ["Under Construction", "Ready to Move"], rules: commonRules };
-      case 'salaryPeriod':
-        return { type: 'select', label: "Salary Period", options: ["Monthly", "Annual"], rules: commonRules };
-      case 'fuel':
-        return { type: 'radio', label: "Fuel", options: ["Petrol", "Diesel"], rules: commonRules };
-      case 'locationDistrict':
-        return { type: 'select', label: "District", options: districts || [], rules: commonRules };
-      case 'locationTown':
-        return { type: 'select', label: "Town", options: towns || [], rules: commonRules };
-      case 'adShowroom':
-        return null; // This will prevent rendering a field for adShowroom
-      default:
-        return null;
-    }
-  };
   
-
   const renderField = (fieldName) => {
-    const config = getFieldConfig(fieldName);
+    const config = getFieldConfig(fieldName, districts, towns);
     
     if (!config) return null;
     

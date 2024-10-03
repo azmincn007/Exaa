@@ -15,20 +15,20 @@ import ProfileDropdown from "../Specific/Navbar/ProfileDropdown";
 import SimpleCountryDropdown from "../forms/dropdown/SimpleLocationDropdown";
 import StyledLanguageDropdown from "../forms/dropdown/StyledLanguageDropdown";
 import SellModal from "../modals/othermodals/SellModal";
+import SkeletonNavbar from "../Skelton/SkwltonNavbar";
+import { useQueryClient } from "react-query";
 
-function SkeletonNavbar() {
-  // ... (keep the existing SkeletonNavbar code)
-}
+
 
 function Navbar({ onShowPackagesAndOrders }) {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isProfileDropdownOpenMobile, setIsProfileDropdownOpenMobile] = useState(false);
   const profileDropdownRef = useRef(null);
   const profileDropdownMobileRef = useRef(null);
-  const { isOpen, onOpen, onClose } = useDisclosure();
   const { isLoggedIn, logout } = useAuth();
   const { userData, isLoading } = useContext(UserdataContext);
   const navigate = useNavigate();
+  const queryClient = useQueryClient(); // Access the query client
 
   const { isOpen: isSellModalOpen, onOpen: onSellModalOpen, onClose: onSellModalClose } = useDisclosure();
   const { isOpen: isLoginModalOpen, onOpen: onLoginModalOpen, onClose: onLoginModalClose } = useDisclosure();
@@ -43,11 +43,10 @@ function Navbar({ onShowPackagesAndOrders }) {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      const isOutsideClick = !(
-        (profileDropdownRef.current && profileDropdownRef.current.contains(event.target)) ||
-        (profileDropdownMobileRef.current && profileDropdownMobileRef.current.contains(event.target))
-      );
-      if (isOutsideClick) {
+      if (
+        profileDropdownRef.current && !profileDropdownRef.current.contains(event.target) &&
+        profileDropdownMobileRef.current && !profileDropdownMobileRef.current.contains(event.target)
+      ) {
         setIsProfileDropdownOpen(false);
         setIsProfileDropdownOpenMobile(false);
       }
@@ -61,18 +60,26 @@ function Navbar({ onShowPackagesAndOrders }) {
 
   const handleLogout = () => {
     logout();
-    setIsProfileDropdownOpen(false);
-    setIsProfileDropdownOpenMobile(false);
+    closeProfileDropdown();
   };
 
-  const toggleProfileDropdown = () => {
-    setIsProfileDropdownOpen((prev) => !prev);
-    setIsProfileDropdownOpenMobile(false);
+  const handleSuccessfulSubmit = () => {
+    queryClient.invalidateQueries('userAds'); // Invalidate the 'userAds' query, causing a refetch
   };
 
-  const toggleProfileDropdownMobile = () => {
-    setIsProfileDropdownOpenMobile((prev) => !prev);
+  const toggleProfileDropdown = (isMobile) => {
+    if (isMobile) {
+      setIsProfileDropdownOpenMobile(prev => !prev);
+      setIsProfileDropdownOpen(false);
+    } else {
+      setIsProfileDropdownOpen(prev => !prev);
+      setIsProfileDropdownOpenMobile(false);
+    }
+  };
+
+  const closeProfileDropdown = () => {
     setIsProfileDropdownOpen(false);
+    setIsProfileDropdownOpenMobile(false);
   };
 
   const renderProfileDropdown = (isMobile) => {
@@ -85,13 +92,14 @@ function Navbar({ onShowPackagesAndOrders }) {
           aria-label="User Profile"
           icon={<AiOutlineUser className={`${isMobile ? 'text-lg' : 'text-xl'} text-white`} />}
           className="bg-[#FFFFFF1A] rounded-full"
-          onClick={isMobile ? toggleProfileDropdownMobile : toggleProfileDropdown}
+          onClick={() => toggleProfileDropdown(isMobile)}
           size={buttonSize}
         />
         {isOpen && (
           <ProfileDropdown 
             onLogout={handleLogout} 
             onShowPackagesAndOrders={onShowPackagesAndOrders}
+            onClose={closeProfileDropdown}
           />
         )}
       </div>
@@ -201,8 +209,11 @@ function Navbar({ onShowPackagesAndOrders }) {
         </div>
       </div>
       <LoginModal isOpen={isLoginModalOpen} onClose={onLoginModalClose} />
-      <SellModal isOpen={isSellModalOpen} onClose={onSellModalClose} />
-    </nav>
+      <SellModal 
+        isOpen={isSellModalOpen} 
+        onClose={onSellModalClose} 
+        onSuccessfulSubmit={handleSuccessfulSubmit} // Trigger refetch when submission is successful
+      />    </nav>
   );
 }
 

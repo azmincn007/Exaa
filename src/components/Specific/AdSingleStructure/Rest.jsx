@@ -1,6 +1,8 @@
 import React from 'react';
 
 const Rest = ({ adData }) => {
+    console.log(adData);
+    
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('en-US', {
           year: 'numeric',
@@ -47,10 +49,7 @@ const Rest = ({ adData }) => {
         { label: 'Salary Period', value: adData?.salaryPeriod },
         { label: 'Qualification', value: adData?.qualification },
         { label: 'Experience', value: adData?.experience },
-        { label: 'Location', value: adData?.locationDistrict && adData?.locationTown 
-            ? `${adData.locationDistrict.name}, ${adData.locationTown.name}` 
-            : adData?.locationDistrict?.name || adData?.locationTown?.name || 'Location not available' 
-        },
+        { label: 'Location', value: adData?.locationDistrict?.name || adData?.locationTown?.name || 'Location not available' },
         { label: 'Posting Date', value: adData?.createdAt ? formatDate(adData.createdAt) : undefined },
     ];
    
@@ -73,10 +72,10 @@ const Rest = ({ adData }) => {
                 {keyValuePairs.map(({ label, value }) => (
                     value ? (
                         <React.Fragment key={label}>
-                            <div className={`col-span-6 sm:col-span-3 flex justify-start ${label === 'Location' ? 'col-span-12 sm:col-span-6' : ''}`}>
+                            <div className="col-span-6 sm:col-span-3 flex justify-start">
                                 <span className="text-[10px] text-exagrey md:text-base font-semibold">{label}:</span>
                             </div>
-                            <div className={`col-span-6 sm:col-span-3 flex justify-start ${label === 'Location' ? 'col-span-12 sm:col-span-6' : ''}`}>
+                            <div className="col-span-6 sm:col-span-3 flex justify-start">
                                 <span className="text-[10px] md:text-base break-words">{value}</span>
                             </div>
                         </React.Fragment>

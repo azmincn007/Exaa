@@ -2,6 +2,8 @@ import React from 'react';
 import { BASE_URL } from '../../../config/config';
 
 const ChatListItem = ({ chat, isSelected, onSelect }) => {
+  console.log(chat?.adSeller.profileImage?.url);
+  
   const isMobile = window.innerWidth <= 768; // Simple mobile detection
 
   return (
@@ -15,7 +17,7 @@ const ChatListItem = ({ chat, isSelected, onSelect }) => {
         // Mobile layout
         <div className="flex items-center w-full p-2">
           <img 
-            src={`${BASE_URL}${chat?.adSeller.profileImage.url}`} 
+            src={`${BASE_URL}${chat?.adSeller.profileImage?.url}`} 
             alt={chat.adSeller.name} 
             className="w-10 h-10 rounded-full mr-3"
           />
@@ -30,7 +32,7 @@ const ChatListItem = ({ chat, isSelected, onSelect }) => {
         <>
           <div className="w-1/2 h-40 overflow-hidden p-2">
             <img 
-              src={`${BASE_URL}${chat?.adSeller.profileImage.url}`} 
+              src={`${BASE_URL}${chat?.adSeller?.profileImage?.url}`} 
               alt={chat.adSeller.name} 
               className="w-full h-full object-cover rounded-lg"
             />

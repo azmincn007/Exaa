@@ -28,6 +28,7 @@ import {
 import { BASE_URL } from '../../../config/config';
 import { IoAddOutline, IoClose } from 'react-icons/io5';
 import SellInput from '../../../components/forms/Input/SellInput.jsx';
+import CongratulationsModal from './SellSuccessmodal.jsx';
 
 const fetchSubCategoryDetails = async (userToken, subCategoryId) => {
   if (!userToken) throw new Error('No user token found');
@@ -40,7 +41,6 @@ const fetchSubCategoryDetails = async (userToken, subCategoryId) => {
 };
 
 const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId, townId, showroomid ,onAdCreated }) => {
-console.log(showroomid);
   
   const [uploadedImages, setUploadedImages] = useState([]);
   const [subCategoryDetails, setSubCategoryDetails] = useState(null);

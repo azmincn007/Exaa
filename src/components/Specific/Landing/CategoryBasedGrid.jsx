@@ -1,7 +1,8 @@
 import React, { useContext, useEffect, useState } from 'react';
-import {  Box, VStack, Text, Grid, GridItem, SimpleGrid, useBreakpointValue, Select, Button, Drawer, 
+import {
+  Box, VStack, Text, Grid, GridItem, SimpleGrid, useBreakpointValue, Select, Button, Drawer, 
   DrawerBody, DrawerHeader, DrawerOverlay,  DrawerContent, DrawerCloseButton, useDisclosure, 
-  IconButton,Skeleton, SkeletonCircle, SkeletonText
+  IconButton, Skeleton, SkeletonCircle, SkeletonText
 } from '@chakra-ui/react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from 'react-query';
@@ -18,8 +19,12 @@ const fetchSubCategories = async (categoryId) => {
   return response.data.data;
 };
 
-const fetchAdsData = async (subCategoryId, selectedTownId) => {
-  const response = await axios.get(`${BASE_URL}/api/find-sub-category-ads/${subCategoryId}?locationTownId=${selectedTownId}`);
+const fetchAdsData = async (subCategoryId, selectedTownId, selectedDistrictId) => {
+  const url = `${BASE_URL}/api/find-sub-category-ads/${subCategoryId}?locationDistrictId="${selectedDistrictId}"&locationTownId="${selectedTownId}"`;
+  const response = await axios.get(url);
+  console.log(response.data);
+  console.log(response.data);
+  
   return response.data;
 };
 
@@ -28,7 +33,7 @@ const CategoryBasedGrid = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [sortOption, setSortOption] = useState('relevance');
   const [visibleCount, setVisibleCount] = useState(16);
-  const [selectedTown] = useContext(TownContext);
+  const [selectedTown, selectedDistrict] = useContext(TownContext);
   const [priceRange, setPriceRange] = useState([1, 100000]);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -45,9 +50,9 @@ const CategoryBasedGrid = () => {
   }, [subCategories]);
 
   const { data: adsData, isLoading: isLoadingAdsData } = useQuery(
-    ['adsData', selectedCategory?.id, selectedTown],
-    () => fetchAdsData(selectedCategory?.id, selectedTown),
-    { enabled: !!selectedCategory?.id && !!selectedTown }
+    ['adsData', selectedCategory?.id, selectedTown, selectedDistrict],
+    () => fetchAdsData(selectedCategory?.id, selectedTown || "all", selectedDistrict || "all"),
+    { enabled: !!selectedCategory?.id }
   );
 
   const handleItemClick = (clickedItem) => {

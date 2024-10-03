@@ -5,13 +5,14 @@ import { SimpleGrid, Box, Button, Center, useBreakpointValue, Skeleton, Skeleton
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { BASE_URL } from '../../../config/config';
 import CardUser from '../../../components/common/Cards/CardUser.jsx';
-import { TownContext } from '../../../App';
+import { DistrictContext, TownContext } from '../../../App';
 import 'swiper/css';
 
 const MemoizedCardUser = memo(CardUser);
 
 function RecommendedAdsGrid() {
   const [selectedTown] = useContext(TownContext);
+  const [selectedDistrict, setSelectedDistrict] = useContext(DistrictContext);
   const [visibleAds, setVisibleAds] = useState(8);
   const isSmallMobile = useBreakpointValue({ base: true, sm: false });
   const columns = useBreakpointValue({ base: 1, sm: 2, md: 2, lg: 3, xl: 4 });
@@ -21,9 +22,19 @@ function RecommendedAdsGrid() {
     const endpoint = `${BASE_URL}/api/find-latest-recommended-ads`;
     const params = {
       adLimit: 30,
-      locationTownId: selectedTown,
+      locationTownId: selectedTown === "all" ? '"all"' : String(selectedTown),
+      locationDistrictId: selectedDistrict === "all" ? '"all"' : String(selectedDistrict)
     };
-    const response = await axios.get(endpoint, { params });
+    
+    const config = {};
+    const token = localStorage.getItem('UserToken');
+    if (token) {
+      config.headers = {
+        Authorization: `Bearer ${token}`
+      };
+    }
+
+    const response = await axios.get(endpoint, { params, ...config });
     return response.data.data;
   };
 
@@ -99,8 +110,8 @@ function RecommendedAdsGrid() {
           slidesPerView={1.2}
           spaceBetween={10}
           centeredSlides={true}
-          pagination={false} // Disable pagination dots
-          modules={[]} // No pagination module needed
+          pagination={false}
+          modules={[]}
           className="mySwiper"
         >
           {isLoading ? (

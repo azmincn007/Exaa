@@ -1,5 +1,4 @@
-// LocationModal.jsx
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useQuery } from 'react-query';
 import axios from 'axios';
 import {
@@ -15,25 +14,51 @@ import {
   Heading,
   Text,
   VStack,
+  useToast,
 } from '@chakra-ui/react';
 import { IMAGES } from '../../../constants/logoimg';
 import { BASE_URL } from '../../../config/config';
 import TownModal from './TownModal';
+import { TownContext } from '../../../App';
+import { DistrictContext } from '../../../App';
 
 const fetchLocationDistricts = async () => {
-  const response = await axios.get(`${BASE_URL}/api/location-districts`);
+  const response = await axios.get(`${BASE_URL}/api/find-current-districts-web`);
   return response.data.data;
 };
 
 function LocationModal({ isOpen, onClose, onLocationSet }) {
   const [selectedDistrict, setSelectedDistrict] = useState(null);
   const [isTownModalOpen, setIsTownModalOpen] = useState(false);
+  const [, setSelectedTown] = useContext(TownContext);
+  const [, setSelectedDistrictContext] = useContext(DistrictContext);
+  const toast = useToast();
 
   const { data, isLoading, error } = useQuery('locationDistricts', fetchLocationDistricts);
 
   const handleDistrictSelect = (district) => {
-    setSelectedDistrict(district);
-    setIsTownModalOpen(true);
+    if (district.id === 'all') {
+      setSelectedDistrictContext('all');
+      setSelectedTown('all');
+      localStorage.setItem('selectedDistrictId', 'all');
+      localStorage.setItem('selectedTownId', 'all');
+      localStorage.setItem('selectedDistrictName', district.name);
+      localStorage.setItem('selectedTownName', 'All');
+      
+      toast({
+        title: "Location Selected",
+        description: `You have selected ${district.name}.`,
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+
+      onClose();
+      onLocationSet();
+    } else {
+      setSelectedDistrict(district);
+      setIsTownModalOpen(true);
+    }
   };
 
   const handleTownModalClose = () => {
@@ -75,7 +100,7 @@ function LocationModal({ isOpen, onClose, onLocationSet }) {
                 <Grid templateColumns="repeat(3, 1fr)" gap={2} width="100%">
                   {data.map((district) => (
                     <GridItem
-                   
+                      key={district.id}
                       w="100%"
                       h="40px"
                       bg={selectedDistrict?.id === district.id ? "blue.500" : "white"}
@@ -109,7 +134,7 @@ function LocationModal({ isOpen, onClose, onLocationSet }) {
         </ModalContent>
       </Modal>
 
-      {selectedDistrict && (
+      {selectedDistrict && selectedDistrict.id !== 'all' && (
         <TownModal
           isOpen={isTownModalOpen}
           onClose={handleTownModalClose}

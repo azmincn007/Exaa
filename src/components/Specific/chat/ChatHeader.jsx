@@ -5,7 +5,7 @@ const ChatHeader = ({ chat }) => (
     <div className="bg-[#0071BC] text-white p-4 flex justify-between items-center rounded-md">
       <div className='flex items-center gap-4'>
         <div className='rounded-full'>
-          <img className='rounded-full w-[70px] h-[70px] object-cover' src={`${BASE_URL}${chat.adSeller.profileImage.url}`} alt="" />
+          <img className='rounded-full w-[70px] h-[70px] object-cover' src={`${BASE_URL}${chat?.adSeller?.profileImage?.url}`} alt="" />
         </div>
         <div>
           <h2 className="font-semibold">{chat.adSeller?.name}</h2>

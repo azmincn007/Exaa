@@ -22,7 +22,7 @@ import { IoArrowBack } from 'react-icons/io5';
 import { TownContext } from '../../../App';
 
 const fetchTowns = async (districtId) => {
-  const response = await axios.get(`${BASE_URL}/api/location-find-district-towns/${districtId}`);
+  const response = await axios.get(`${BASE_URL}/api/find-current-district-towns-web/${districtId}`);
   return response.data.data;
 };
 

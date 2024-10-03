@@ -3,9 +3,10 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "react-query";
 import axios from "axios";
 import Showroomsingleimg from "../../assets/showroomsingle.png";
-import { Select } from "@chakra-ui/react";
+import { Select, Button } from "@chakra-ui/react";
 import { VscSettings } from "react-icons/vsc";
 import { MdDateRange } from "react-icons/md";
+import { FaChevronRight } from "react-icons/fa";
 import CardShowroom from "../../components/common/Cards/CardShowroom";
 import { BASE_URL } from "../../config/config";
 
@@ -38,6 +39,7 @@ function Showroomsingle() {
   const [sortOrder, setSortOrder] = useState("");
   const [budgetFilter, setBudgetFilter] = useState("");
   const [dateSort, setDateSort] = useState(false);
+  const [visibleCards, setVisibleCards] = useState(6);
 
   const { data: showroomData, isLoading: isLoadingShowroom, error: showroomError } = useQuery(
     ['showroom', id],
@@ -104,6 +106,10 @@ function Showroomsingle() {
     return filteredAds;
   }, [otherAds, sortOrder, budgetFilter, dateSort]);
 
+  const loadMore = () => {
+    setVisibleCards(prevVisibleCards => prevVisibleCards + 6);
+  };
+
   if (isLoadingShowroom || isLoadingOtherAds) {
     return <div>Loading...</div>;
   }
@@ -134,7 +140,7 @@ function Showroomsingle() {
         </div>
       </div>
       <div className="py-2 ">
-        <h1 className="font-semibold py-2">ALL Ads</h1>
+        <h1 className="font-semibold py-2">All Ads</h1>
         <div className="bg-[#0071BC1A] flex justify-between items-center">
           <div className="flex gap-4 items-center">
             <div className="w-24 py-2">
@@ -177,7 +183,7 @@ function Showroomsingle() {
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-          {sortedAndFilteredAds.map((ad) => (
+          {sortedAndFilteredAds.slice(0, visibleCards).map((ad) => (
             <CardShowroom
               key={ad.id}
               imageUrl={`${BASE_URL}${ad.images.url}`}
@@ -193,6 +199,17 @@ function Showroomsingle() {
             />
           ))}
         </div>
+        {visibleCards < sortedAndFilteredAds.length && (
+          <div className="flex justify-end mt-4">
+            <Button
+              onClick={loadMore}
+              className='bg-[#0071BC] text-white px-4 flex gap-4 font-Inter font-400 rounded-lg'
+              size="sm"
+            >
+              <span className='text-12'>See all</span> <FaChevronRight />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -18,8 +18,8 @@ function CardShowroom({  imageUrl, price, title, location, postedDate, adBoostTa
       <Box borderWidth="1px" borderRadius="lg" overflow="hidden" bg="white" boxShadow="md">
         <Flex>
           {/* Left side - Image */}
-          <Box position="relative" width="40%">
-            <Image src={imageUrl} alt={title} objectFit="cover" h="100%" w="100%" />
+          <Box position="relative" width="40%" className='rounded-lg'>
+            <Image src={imageUrl} alt={title} objectFit="cover" className='h-[200px] p-2 rounded-lg' h="100%" w="100%" />
             {isActive && (
               <Box position="absolute" top="2" left="2" bg="green.500" color="white" fontSize="xs" fontWeight="bold" px="2" py="1" borderRadius="full">
                 Active

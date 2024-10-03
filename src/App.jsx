@@ -22,9 +22,12 @@ import { BASE_URL } from './config/config';
 export const TownContext = createContext();
 export const UserdataContext = createContext();
 
+export const DistrictContext = createContext();
+
 function App() {
   const queryClient = new QueryClient();
   const [selectedTown, setSelectedTown] = useState(localStorage.getItem('selectedTownId'));
+  const [selectedDistrict, setSelectedDistrict] = useState(localStorage.getItem('selectedDistrictId'));
   const [userData, setUserData] = useState(null);
   const [isLoading, setIsLoading] = useState(true); // Loading state
 
@@ -52,10 +55,17 @@ function App() {
     }
   }, [selectedTown]);
 
+  useEffect(() => {
+    if (selectedDistrict) {
+      localStorage.setItem('selectedDistrictId', selectedDistrict);
+    }
+  }, [selectedDistrict]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <UserdataContext.Provider value={{ userData, setUserData, isLoading }}>
+        <DistrictContext.Provider value={[selectedDistrict, setSelectedDistrict]}>
           <TownContext.Provider value={[selectedTown, setSelectedTown]}>
             <Router>
               <Routes>
@@ -80,6 +90,7 @@ function App() {
               </Routes>
             </Router>
           </TownContext.Provider>
+          </DistrictContext.Provider>
         </UserdataContext.Provider>
       </AuthProvider>
     </QueryClientProvider>

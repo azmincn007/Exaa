@@ -1,7 +1,8 @@
 import React from 'react';
-import { Box, Image, Text, Flex, Badge, Icon, Grid, GridItem, IconButton } from '@chakra-ui/react';
-import { FaMapMarkerAlt, FaPencilAlt } from 'react-icons/fa';
+import { Box, Image, Text, Flex, Badge, Icon, Grid, GridItem, useToast } from '@chakra-ui/react';
+import { FaMapMarkerAlt, FaPencilAlt, FaTrash } from 'react-icons/fa';
 import { Eye, Heart, Calendar } from 'lucide-react';
+import axios from 'axios';
 import { BASE_URL } from '../../../config/config';
 
 const formatDate = (dateString) => {
@@ -9,78 +10,141 @@ const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString(undefined, options);
 };
 
-const CarListingCard = ({ data }) => {
+const ActionButton = ({ icon: Icon, onClick, backgroundColor }) => (
+  <Box
+    as="button"
+    p={2}
+    borderRadius="md"
+    bg={backgroundColor}
+    color="white"
+    onClick={onClick}
+  >
+    <Icon />
+  </Box>
+);
+
+const ShowroomuserAdCard = ({ data, onEdit, onDelete }) => {
+  const toast = useToast();
   const formattedDate = formatDate(data.createdAt);
 
+  const handleDelete = async () => {
+    const token = localStorage.getItem('UserToken');
+    if (!token) {
+      toast({
+        title: "Authentication Error",
+        description: "You need to be logged in to delete an ad.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    try {
+      const subCategoryResponse = await axios.get(
+        `${BASE_URL}/api/ad-find-one-sub-category/${data.adSubCategory.id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      const apiUrl = subCategoryResponse.data.data.apiUrl;
+
+      await axios.delete(
+        `${BASE_URL}/api/${apiUrl}/${data.id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      toast({
+        title: "Ad Deleted",
+        description: "The ad has been successfully deleted.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+
+      if (onDelete) onDelete(data.id);
+
+    } catch (error) {
+      console.error("Error deleting ad:", error);
+      toast({
+        title: "Error",
+        description: "There was an error deleting the ad. Please try again.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
   return (
-    <Box borderWidth="2px" borderRadius="lg" borderColor="black" overflow="hidden" position="relative" className='font-Inter'>
-      <Grid templateColumns="repeat(12, 1fr)" className='max-h-[250px] bg-[#0071BC1A]'>
-        <GridItem colSpan={4} position="relative" className='p-2'>
-          <Box height="200px" display="flex" alignItems="center" justifyContent="center">
-            <Image
-              src={`${BASE_URL}${data.images?.url}`}
-              alt={data.title}
-              objectFit="cover"
-              maxHeight="100%"
-              width="100%"
-              className='rounded-lg'
-            />
-          </Box>
-          <Badge
-            className='bg-[#06B706] text-white rounded-sm text-[10px] font-[400]'
-            position="absolute"
-            top={4}
-            left={4}
-            zIndex={1}
+    <Box borderWidth="1px" borderRadius="lg" overflow="hidden" p={1} mb={4} className='border-2 border-black'>
+      <Grid templateColumns="repeat(12, 1fr)" gap={4} className=''>
+        <GridItem colSpan={3} position="relative">
+          <Image src={`${BASE_URL}${data.images?.url}`} alt={data.title} objectFit="cover" w="100%" h="100%" />
+          <Badge 
+            position="absolute" 
+            top="2" 
+            left="2" 
+            colorScheme="green"
+            p={1} 
+            borderRadius="md"
           >
             Active
           </Badge>
         </GridItem>
-        
-        <GridItem colSpan={8} p={4}>
-          <Text fontWeight="semibold" fontSize="lg" mb={2}>{data.title}</Text>
-          <Text fontSize="sm" color="gray.600" mb={2}>{`${data.description} KM`}</Text>
-          <Text fontWeight="bold" fontSize="sm" mb={4}>₹{data.price.toLocaleString()}</Text>
-          
-          <Flex gap={4} mb={4} alignItems="center">
-            <Flex alignItems="center">
-              <Eye className="mr-1" />
-              <Text fontSize="sm">{data.adViewCount}</Text>
-            </Flex>
-            
-            <Box className='w-[1px] h-[15px] bg-black' />
-            
-            <Flex alignItems="center">
-              <Heart className="mr-1" />
-              <Text fontSize="sm">{data.adFavouriteCount}</Text>
-            </Flex>
+
+        {/* Content Section */}
+        <GridItem colSpan={9} position="relative">
+          {/* Top right icons for Edit and Delete */}
+          <Flex justifyContent="flex-end" position="absolute" top="2" right="2">
+            <ActionButton
+              icon={FaPencilAlt}
+              onClick={() => onEdit(data)}
+              backgroundColor="#4B7294"
+            />
+            <Box width={2} />
+            <ActionButton
+              icon={FaTrash}
+              onClick={handleDelete}
+              backgroundColor="red.500"
+            />
           </Flex>
-          
-          <Flex className='justify-between'>
-            <Flex alignItems="center">
-              <Icon as={FaMapMarkerAlt} mr={1} />
-              <Text fontSize="sm">{data.locationTown?.name}</Text>
+
+          {/* Content Area */}
+          <div >
+            <Box>
+              <Text fontWeight="bold" fontSize="xl" mb={2}>{data.title}</Text>
+              <Text fontSize="md" mb={2}>{`${data.description} KM`}</Text>
+              <Text fontWeight="bold" fontSize="lg" mb={2}>₹{data.price.toLocaleString()}</Text>
+              <Flex alignItems="center" mb={2}>
+                <Icon as={Eye} mr={2} />
+                <Text mr={4}>{data.adViewCount}</Text>
+                <Icon as={Heart} mr={2} />
+                <Text>{data.adFavouriteCount}</Text>
+              </Flex>
+
+               {/* Location and Posted Date Flex */}
+            <Flex justifyContent="space-between" >
+              <Flex alignItems="center">
+                <Icon as={FaMapMarkerAlt} mr={2} />
+                <Text>{data.locationTown?.name}</Text>
+              </Flex>
+              <Flex alignItems="center">
+                <Icon as={Calendar} mr={2} />
+                <Text>Posted on: {formattedDate}</Text>
+              </Flex>
             </Flex>
-            
-            <Flex alignItems="center">
-             
-              <Text fontSize="sm" >Posted on: {formattedDate}</Text>
-            </Flex>
-          </Flex>
+            </Box>
+
+           
+          </div>
         </GridItem>
       </Grid>
-      
-      <IconButton
-        icon={<FaPencilAlt className='text-white'/>}
-        aria-label="Edit"
-        size="sm"
-        position="absolute"
-        top={2}
-        right={2}
-        className='bg-[#4B7294] rounded-full'
-      />
     </Box>
   );
 };
 
-export default CarListingCard;
+export default ShowroomuserAdCard;

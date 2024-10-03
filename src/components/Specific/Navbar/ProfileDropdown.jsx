@@ -1,13 +1,13 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { FiPackage, FiShoppingBag, FiHelpCircle, FiSettings, FiLogOut, FiUser } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { BASE_URL } from '../../../config/config';
 import { MdFavoriteBorder } from 'react-icons/md';
 import { UserdataContext } from '../../../App';
 
-const ProfileDropdown = ({ onLogout }) => {
+const ProfileDropdown = ({ onLogout, onClose, onShowPackagesAndOrders }) => {
   const navigate = useNavigate();
-  const { userData, isLoading } = useContext(UserdataContext);
+  const { userData } = React.useContext(UserdataContext);
 
   const renderProfileImage = () => {
     if (userData?.profileImage?.url) {
@@ -27,14 +27,51 @@ const ProfileDropdown = ({ onLogout }) => {
     }
   };
 
+  const handleItemClick = (action) => {
+    action();
+    onClose();
+  };
+
   const menuItems = [
-    { label: 'Buy Packages & My Orders', icon: FiPackage, onClick: () => navigate('/buy-packages/myorders'), className: 'bg-[#0071BC66]' },
-    { label: 'Bought Packages & Billings', icon: FiPackage, onClick: () => navigate('/packages-and-orders/packages') },
-    { label: 'Favourites', icon: MdFavoriteBorder, onClick: () => navigate('/my-ads') },
-    { label: 'My Showroom', icon: FiShoppingBag, onClick: () => navigate('/my-showroom') },
-    { label: 'Help & Support', icon: FiHelpCircle },
-    { label: 'Settings', icon: FiSettings },
-    { label: 'Logout', icon: FiLogOut, onClick: onLogout },
+    { 
+      label: 'Buy Packages & My Orders', 
+      icon: FiPackage, 
+      onClick: () => handleItemClick(() => {
+        onShowPackagesAndOrders();
+        navigate('/buy-packages/myorders');
+      }), 
+      className: 'bg-[#0071BC66]' 
+    },
+    { 
+      label: 'Bought Packages & Billings', 
+      icon: FiPackage, 
+      onClick: () => handleItemClick(() => navigate('/packages-and-orders/packages')) 
+    },
+    { 
+      label: 'Favourites', 
+      icon: MdFavoriteBorder, 
+      onClick: () => handleItemClick(() => navigate('/my-ads')) 
+    },
+    { 
+      label: 'My Showroom', 
+      icon: FiShoppingBag, 
+      onClick: () => handleItemClick(() => navigate('/my-showroom')) 
+    },
+    { 
+      label: 'Help & Support', 
+      icon: FiHelpCircle, 
+      onClick: () => handleItemClick(() => {/* Add help & support action */}) 
+    },
+    { 
+      label: 'Settings', 
+      icon: FiSettings, 
+      onClick: () => handleItemClick(() => {/* Add settings action */}) 
+    },
+    { 
+      label: 'Logout', 
+      icon: FiLogOut, 
+      onClick: () => handleItemClick(onLogout) 
+    },
   ];
 
   return (
@@ -51,7 +88,7 @@ const ProfileDropdown = ({ onLogout }) => {
         </div>
         <div className='my-2'>
           <button
-            onClick={() => navigate('/profile')}
+            onClick={() => handleItemClick(() => navigate('/profile'))}
             className="block w-full text-center px-4 py-2 text-sm text-white bg-[#16273C] rounded-md hover:bg-[#0d1b2a] transition-colors"
           >
             View and Edit Profile

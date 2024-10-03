@@ -1,3 +1,4 @@
+// MyShowroom.jsx
 import React, { useState, useEffect } from "react";
 import {
   Box,
@@ -8,8 +9,8 @@ import {
   Text,
   Image,
   VStack,
-  Spinner,
   Center,
+  useToast,
 } from "@chakra-ui/react";
 import { MdAddCircleOutline } from "react-icons/md";
 import { useQuery, useQueryClient } from "react-query";
@@ -22,67 +23,73 @@ import emptyillus from '../../assets/empty.png';
 import { CiLocationOn } from "react-icons/ci";
 import SellShowroomAd from "../../components/modals/othermodals/SellShowroomAd";
 import ShowroomUserdata from "../../components/common/Cards/ShowroomuserAdCard";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../Hooks/AuthContext";
+import ShowroomSkeleton from "../../components/Skelton/ShowroomSkleton";
+import ShowroomContentCard from "../../components/common/Cards/ShowroomContentCard";
+import ShowroomEditModal from "../../components/modals/othermodals/Showroomeditmodal";
+import CarListingCard from "../../components/common/Cards/ShowroomuserAdCard";
+import ShowroomuserAdCard from "../../components/common/Cards/ShowroomuserAdCard";
 
-const fetchShowrooms = async () => {
-  const userToken = localStorage.getItem("UserToken");
+const fetchShowrooms = async (token) => {
   const response = await axios.get(
     `${BASE_URL}/api/find-user-ad-showrooms`,
     {
       headers: {
-        Authorization: `Bearer ${userToken}`,
+        Authorization: `Bearer ${token}`,
       },
     }
   );
-  
   return response.data.data;
 };
 
-const fetchShowroomAds = async (showroomId) => {
-  const userToken = localStorage.getItem("UserToken");
+const fetchShowroomAds = async (showroomId, token) => {
   const response = await axios.get(
     `${BASE_URL}/api/find-user-showroom-ads/${showroomId}`,
     {
       headers: {
-        Authorization: `Bearer ${userToken}`,
+        Authorization: `Bearer ${token}`,
       },
     }
   );
-  
-
   return response.data.data;
 };
 
 const MyShowroom = () => {
+  const navigate = useNavigate();
+  const toast = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [isSellModalOpen, setIsSellModalOpen] = useState(false);
   const [selectedShowroom, setSelectedShowroom] = useState(null);
-  const [selectedLocation, setSelectedLocation] = useState('Select Location');
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [showroomToEdit, setShowroomToEdit] = useState(null);
 
+  const { isLoggedIn, isInitialized, token } = useAuth();
   const queryClient = useQueryClient();
   const isMobile = useBreakpointValue({ base: true, md: false });
 
   useEffect(() => {
-    const storedTownName = localStorage.getItem('selectedTownName');
-    if (storedTownName) {
-      setSelectedLocation(storedTownName);
+    if (isInitialized && !isLoggedIn) {
+      navigate('/');
     }
-  }, []);
+  }, [isInitialized, isLoggedIn, navigate]);
 
   const { data: showrooms, isLoading: showroomsLoading, error: showroomsError } = useQuery(
-    "showrooms",
-    fetchShowrooms,
+    ["showrooms", token],
+    () => fetchShowrooms(token),
     {
       retry: 3,
       retryDelay: 1000,
       refetchOnWindowFocus: false,
+      enabled: !!token,
     }
   );
 
   const { data: showroomAds, isLoading: adsLoading, error: adsError } = useQuery(
-    ["showroomAds", selectedShowroom?.id],
-    () => fetchShowroomAds(selectedShowroom?.id),
+    ["showroomAds", selectedShowroom?.id, token],
+    () => fetchShowroomAds(selectedShowroom?.id, token),
     {
-      enabled: !!selectedShowroom?.id,
+      enabled: !!selectedShowroom?.id && !!token,
       retry: 3,
       retryDelay: 1000,
       refetchOnWindowFocus: false,
@@ -90,10 +97,10 @@ const MyShowroom = () => {
   );
 
   useEffect(() => {
-    if (showrooms && showrooms.length > 0) {
+    if (showrooms && showrooms.length > 0 && !selectedShowroom) {
       setSelectedShowroom(showrooms[0]);
     }
-  }, [showrooms]);
+  }, [showrooms, selectedShowroom]);
 
   const handleOpen = () => setIsOpen(true);
   const handleClose = () => setIsOpen(false);
@@ -105,39 +112,78 @@ const MyShowroom = () => {
     setSelectedShowroom(showroom);
   };
 
+  const handleShowroomDelete = async (deletedShowroomId) => {
+    // Get current showrooms from cache
+    const currentShowrooms = queryClient.getQueryData(["showrooms"]) || [];
+    
+    // Optimistically update the showrooms list
+    const updatedShowrooms = currentShowrooms.filter(s => s.id !== deletedShowroomId);
+    queryClient.setQueryData(["showrooms"], updatedShowrooms);
+
+    // If the deleted showroom was selected, select the first available showroom
+    if (selectedShowroom?.id === deletedShowroomId) {
+      const nextShowroom = updatedShowrooms[0] || null;
+      setSelectedShowroom(nextShowroom);
+    }
+
+    // Invalidate the queries to ensure consistency
+    await Promise.all([
+      queryClient.invalidateQueries(["showrooms"]),
+      queryClient.invalidateQueries(["showroomAds", deletedShowroomId])
+    ]);
+
+    toast({
+      title: "Showroom deleted successfully",
+      status: "success",
+      duration: 3000,
+      isClosable: true,
+    });
+  };
   const handleAdCreated = () => {
     queryClient.invalidateQueries(["showroomAds", selectedShowroom?.id]);
+    handleSellModalClose();
+    
+    toast({
+      title: "Ad created successfully",
+      status: "success",
+      duration: 3000,
+      isClosable: true,
+    });
   };
 
-  const renderShowroomContent = (showroom) => (
-    <Box
-      borderRadius="xl"
-      overflow="hidden"
-      bg={selectedShowroom?.id === showroom.id ? "#4F7598" : "#23496C"}
-      color="white"
-      className="p-4"
-      height="100%"
-    >
-      <Image
-        src={`${BASE_URL}${showroom.images?.url}`}
-        alt={showroom.name}
-        objectFit="cover"
-        height="100px"
-        width="100%"
-        bg="black"
-        className="rounded-xl"
-      />
-      <Box p={2}>
-        <Text fontSize="xl" fontWeight="bold" mb={2}>
-          {showroom.name}
-        </Text>
-        <Text fontSize="sm">Category: {showroom.adCategory?.name}</Text>
-        <Text fontSize="sm">
-          Created On: {new Date(showroom.createdAt).toLocaleDateString()}
-        </Text>
-      </Box>
-    </Box>
-  );
+  const handleShowroomEdit = (showroom) => {
+    setShowroomToEdit(showroom);
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditModalClose = () => {
+    setIsEditModalOpen(false);
+    setShowroomToEdit(null);
+  };
+
+  const handleEditSuccess = () => {
+    queryClient.invalidateQueries("showrooms");
+    handleEditModalClose();
+    
+    toast({
+      title: "Showroom updated successfully",
+      status: "success",
+      duration: 3000,
+      isClosable: true,
+    });
+  };
+
+  if (showroomsLoading || !isInitialized || adsLoading) {
+    return <ShowroomSkeleton />;
+  }
+
+  if (showroomsError || adsError) {
+    return (
+      <Center height="100vh">
+        <Text>Error loading data. Please try again later.</Text>
+      </Center>
+    );
+  }
 
   return (
     <Box maxWidth="container" margin="auto" padding={8} className="font-Inter">
@@ -156,6 +202,7 @@ const MyShowroom = () => {
           overflowY={{ base: "visible", md: "auto" }}
           overflowX="hidden"
           position="relative"
+          className="rounded-xl"
           css={{
             '&::-webkit-scrollbar': {
               width: '4px',
@@ -169,35 +216,37 @@ const MyShowroom = () => {
             },
           }}
         >
-          <VStack 
-            spacing={4} 
-            align="stretch" 
-            p={4}
-          >
+          <VStack spacing={4} align="stretch" p={4}>
             {showrooms && showrooms.length > 0 ? (
               isMobile ? (
                 <Swiper
-                className="w-full"
+                  className="w-full"
                   spaceBetween={30}
                   slidesPerView={1}
                   onSlideChange={(swiper) => handleShowroomSelect(showrooms[swiper.activeIndex])}
                 >
                   {showrooms.map((showroom) => (
                     <SwiperSlide key={showroom.id}>
-                      {renderShowroomContent(showroom)}
+                      <ShowroomContentCard
+                        showroom={showroom}
+                        isSelected={selectedShowroom?.id === showroom.id}
+                        onClick={handleShowroomSelect}
+                        onEdit={handleShowroomEdit}
+                        onDeleteSuccess={handleShowroomDelete}
+                      />
                     </SwiperSlide>
                   ))}
                 </Swiper>
               ) : (
-                // Desktop view remains unchanged
                 showrooms.map((showroom) => (
-                  <Box
+                  <ShowroomContentCard
                     key={showroom.id}
-                    onClick={() => handleShowroomSelect(showroom)}
-                    cursor="pointer"
-                  >
-                    {renderShowroomContent(showroom)}
-                  </Box>
+                    showroom={showroom}
+                    isSelected={selectedShowroom?.id === showroom.id}
+                    onClick={handleShowroomSelect}
+                    onEdit={handleShowroomEdit}
+                    onDeleteSuccess={handleShowroomDelete}
+                  />
                 ))
               )
             ) : (
@@ -239,24 +288,24 @@ const MyShowroom = () => {
         >
           {selectedShowroom ? (
             <VStack spacing={4} align="stretch" height="100%">
-              <div className="flex justify-between">
-                <h2 className="font-semibold text-20">My Showroom - {selectedShowroom.name}</h2>
-                <Button leftIcon={<CiLocationOn />} className="bg-[#D2BA8580]" variant='solid'>
-                  {selectedShowroom.locationTown?.name}
+              <div className="flex justify-between items-center">
+                <h2 className="font-semibold text-xl">
+                  My Showroom - {selectedShowroom.name}
+                </h2>
+                <Button 
+                  leftIcon={<CiLocationOn />} 
+                  className="bg-[#D2BA8580]" 
+                  variant='solid'
+                  size="sm"
+                >
+                  {selectedShowroom.locationTown?.name || "Location not set"}
                 </Button>
               </div>
-              {adsLoading ? (
-                <Center flex={1}>
-                  <Spinner size="xl" />
-                </Center>
-              ) : adsError ? (
-                <Center flex={1}>
-                  <Text color="red.500">Error loading showroom ads: {adsError.message}</Text>
-                </Center>
-              ) : showroomAds && showroomAds.length > 0 ? (
+
+              {showroomAds && showroomAds.length > 0 ? (
                 <VStack spacing={4} align="stretch">
                   {showroomAds.map((ad) => (
-                    <ShowroomUserdata key={ad.id} data={ad} />
+                    <ShowroomuserAdCard key={ad.id} data={ad} />
                   ))}
                   <Button
                     leftIcon={<MdAddCircleOutline />}
@@ -297,14 +346,21 @@ const MyShowroom = () => {
           ) : (
             <Center height="100%">
               <Text fontSize="lg" fontWeight="medium">
-                Select a showroom to view details
+                Please select or create a showroom
               </Text>
             </Center>
           )}
         </GridItem>
       </Grid>
 
-      <ShowroomCreateModal isOpen={isOpen} onClose={handleClose} />
+      <ShowroomCreateModal 
+        isOpen={isOpen} 
+        onClose={handleClose} 
+        onSuccess={() => {
+          queryClient.invalidateQueries("showrooms");
+          handleClose();
+        }}
+      />
       
       {selectedShowroom && (
         <SellShowroomAd
@@ -316,6 +372,15 @@ const MyShowroom = () => {
           townId={selectedShowroom.locationTown?.id}
           showroomid={selectedShowroom.id}
           onAdCreated={handleAdCreated}
+        />
+      )}
+
+      {showroomToEdit && (
+        <ShowroomEditModal
+          isOpen={isEditModalOpen}
+          onClose={handleEditModalClose}
+          showroom={showroomToEdit}
+          onSuccess={handleEditSuccess}
         />
       )}
     </Box>

@@ -17,27 +17,27 @@ function OtpVerify({ isOpen, onClose, verificationType, contactInfo, onEdit, onL
     (otpData) => axios.post(`${BASE_URL}/api/auth/verifyOtp`, otpData),
     {
       onSuccess: (data) => {
-        if (data.data && data.data.data.jwt) {
-          localStorage.setItem('UserToken', data.data.data.jwt);
+        const jwtToken = data.data.data.jwt;
+        if (jwtToken) {
+          console.log("Login Response JWT:", jwtToken);
+          login(jwtToken);  // Use the login function from AuthContext
+
+          toast({
+            title: "Login Successful",
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+          });
+
+          // Call onLoginSuccess to close both modals
+          if (typeof onLoginSuccess === 'function') {
+            onLoginSuccess(data.data);
+          } else {
+            console.warn("onLoginSuccess is not defined");
+            onClose(); // Fallback to just closing the OTP modal
+          }
         } else {
           console.warn("JWT token not found in the response");
-        }
-
-        toast({
-          title: "Login Successful",
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
-
-        // Call onLoginSuccess to close both modals
-        if (typeof onLoginSuccess === 'function') {
-          onLoginSuccess(data.data);
-          login()
-          
-        } else {
-          console.warn("onLoginSuccess is not defined");
-          onClose(); // Fallback to just closing the OTP modal
         }
       },
       onError: (error) => {

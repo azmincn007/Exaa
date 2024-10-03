@@ -4,15 +4,31 @@ import { useLocation, useNavigate } from "react-router-dom";
 import ProfileEditForm from "../../components/Specific/Profile/ProfileEdit";
 import ProfilePictureUpload from "../../components/Specific/Profile/ProfilePictureUpload";
 import { UserdataContext } from "../../App";
+import { useAuth } from "../../Hooks/AuthContext";
+import EditProfileSkeleton from "../../components/Skelton/ProfileEditSkelton";
 
 const EditProfile = () => {
   const [activeSection, setActiveSection] = useState("profile");
   const navigate=useNavigate()
+  const { isLoggedIn,isInitialized } = useAuth();
+  useEffect(() => {
+    if (isInitialized && !isLoggedIn) {
+      navigate('/');
+    }
+  }, [isInitialized, isLoggedIn, navigate]);
+
  
   const { userData, isLoading } = useContext(UserdataContext);
 
 
   console.log(userData);
+
+  if (!isInitialized || isLoading) {
+    return <EditProfileSkeleton />;
+  }
+
+
+
   
 
   return (
