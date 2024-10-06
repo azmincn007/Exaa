@@ -79,11 +79,14 @@ const ShowroomuserAdCard = ({ data, onEdit, onDelete }) => {
     }
   };
 
+
+
+
   return (
     <Box borderWidth="1px" borderRadius="lg" overflow="hidden" p={1} mb={4} className='border-2 border-black'>
       <Grid templateColumns="repeat(12, 1fr)" gap={4} className=''>
         <GridItem colSpan={3} position="relative">
-          <Image src={`${BASE_URL}${data.images?.url}`} alt={data.title} objectFit="cover" w="100%" h="100%" />
+          <Image src={`${BASE_URL}${data.images?.url}`} alt={data.title} objectFit="cover" w="100%" className='h-[200px]' />
           <Badge 
             position="absolute" 
             top="2" 

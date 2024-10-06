@@ -41,6 +41,8 @@ const fetchSubCategoryDetails = async (userToken, subCategoryId) => {
 };
 
 const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId, townId, showroomid ,onAdCreated }) => {
+  console.log(showroomid);
+  
   
   const [uploadedImages, setUploadedImages] = useState([]);
   const [subCategoryDetails, setSubCategoryDetails] = useState(null);
@@ -118,6 +120,10 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
       formData.append('images', file);
     });
   
+    // Log the data being sent to the API
+    console.log('Data being sent to API:', Object.fromEntries(formData.entries())); // Check the final data here
+    ;
+  
     try {
       const apiUrl = `${BASE_URL}/api/${subCategoryDetails.apiUrl}`;
       const token = getUserToken();
@@ -132,6 +138,9 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
         }
       });
   
+      // Log the API response
+      console.log('API Response:', response.data);
+  
       if (response.status === 200 || response.status === 201) {
         toast({
           title: "Ad added successfully",
@@ -142,11 +151,14 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
         clearForm();
         onClose();
         onAdCreated();
-        setShowCongratulations(true);  // Show the congratulations modal
+        setShowCongratulations(true);
       } else {
         throw new Error('Failed to add ad');
       }
     } catch (error) {
+      // Log any errors
+      console.error('API Error:', error);
+
       let errorMessage = 'Error adding ad';
       if (error.response && error.response.data && error.response.data.message) {
         errorMessage = error.response.data.message;
@@ -162,10 +174,9 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
         isClosable: true,
       });
     }
-    clearForm()
-    onClose()
+    clearForm();
+    onClose();
   };
-
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file && uploadedImages.length < 4) {

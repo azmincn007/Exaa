@@ -1,11 +1,13 @@
 import React from 'react';
 
-const textFields = ['title','type', 'description', 'brand', 'model', 'variant', 'transmission', 'listedBy', 'facing', 'qualification'];
+const textFields = ['title','type', 'description', 'transmission', 'listedBy', 'facing', 'qualification'];
 const numberFields = ['price', 'year', 'bedrooms', 'bathrooms', 'maintenance', 'length', 'breadth', 'experience', 'salary'];
 
 const specialFields = {
-  plotArea: { type: 'number', label: "Plot Area" },
-  carpetArea: { type: 'number', label: "Carpet Area" },
+  brand: { type: 'select', label: "Brand" },
+  model: { type: 'select', label: "Model" },
+  variant: { type: 'select', label: "Variant" },
+    carpetArea: { type: 'number', label: "Carpet Area" },
   projectName: { type: 'text', label: "Project Name" },
   type: { type: 'text', label: "Type" },
   rtoCode: { type: 'text', label: "RTO Code" },
@@ -29,8 +31,7 @@ const specialFields = {
   salaryPeriod: { type: 'select', label: "Salary Period", options: ["Monthly", "Annual"] },
   fuel: { type: 'radio', label: "Fuel", options: ["Petrol", "Diesel"] },
 };
-
-export const getFieldConfig = (fieldName, districts, towns) => {
+export const getFieldConfig = (fieldName, districts, towns, brands, models, variants) => {
   const commonRules = { required: `${fieldName} is required` };
   const numberRules = { ...commonRules, min: { value: 0, message: `${fieldName} must be positive` } };
 
@@ -43,9 +44,29 @@ export const getFieldConfig = (fieldName, districts, towns) => {
   }
 
   if (fieldName in specialFields) {
+    if (fieldName === 'brand') {
+      return { 
+        ...specialFields[fieldName], 
+        options: brands || [],
+        rules: commonRules 
+      };
+    }
+    if (fieldName === 'model') {
+      return { 
+        ...specialFields[fieldName], 
+        options: models || [],
+        rules: commonRules 
+      };
+    }
+    if (fieldName === 'variant') {
+      return { 
+        ...specialFields[fieldName], 
+        options: variants || [],
+        rules: commonRules 
+      };
+    }
     return { ...specialFields[fieldName], rules: specialFields[fieldName].type === 'number' ? numberRules : commonRules };
   }
-
   if (fieldName === 'locationDistrict') {
     return { type: 'select', label: "District", options: districts || [], rules: commonRules };
   }

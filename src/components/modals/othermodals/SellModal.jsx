@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { useQuery, useQueryClient } from 'react-query';
+import { useQueryClient } from 'react-query';
 import axios from 'axios';
 import { useForm, Controller } from 'react-hook-form';
 import {
@@ -30,52 +30,12 @@ import { IoAddOutline, IoClose } from 'react-icons/io5';
 import SellInput from '../../../components/forms/Input/SellInput.jsx';
 import CongratulationsModal from './SellSuccessmodal.jsx';
 import getFieldConfig from '../../common/config/GetField.jsx';
+import {useCategories, useSubCategories, useDistricts, useTowns, fetchSubCategoryDetails } from '../../common/config/SellModalQueries.jsx';
+import { useBrands } from '../../common/config/Api/UseBrands.jsx';
+import { useModels } from '../../common/config/Api/UseModels.jsx';
+import { useVariants } from '../../common/config/Api/UseVarient.jsx';
 
-const fetchCategories = async (userToken) => {
-  if (!userToken) throw new Error('No user token found');
-  const { data } = await axios.get(`${BASE_URL}/api/ad-categories`, {
-    headers: { 'Authorization': `Bearer ${userToken}` },
-  });
-  return data.data;
-};
-
-const fetchSubCategories = async (userToken, categoryId) => {
-  if (!userToken) throw new Error('No user token found');
-  if (!categoryId) throw new Error('No category selected');
-  const { data } = await axios.get(`${BASE_URL}/api/ad-find-category-sub-categories/${categoryId}`, {
-    headers: { 'Authorization': `Bearer ${userToken}` },
-  });
-  return data.data;
-};
-
-const fetchSubCategoryDetails = async (userToken, subCategoryId) => {
-  if (!userToken) throw new Error('No user token found');
-  if (!subCategoryId) throw new Error('No subcategory selected');
-  const { data } = await axios.get(`${BASE_URL}/api/ad-find-one-sub-category/${subCategoryId}`, {
-    headers: { 'Authorization': `Bearer ${userToken}` },
-  });
-  
-  return data.data;
-};
-
-const fetchDistricts = async (userToken) => {
-  if (!userToken) throw new Error('No user token found');
-  const { data } = await axios.get(`${BASE_URL}/api/location-districts`, {
-    headers: { 'Authorization': `Bearer ${userToken}` },
-  });
-  return data.data;
-};
-
-const fetchTowns = async (userToken, districtId) => {
-  if (!userToken) throw new Error('No user token found');
-  if (!districtId) throw new Error('No district selected');
-  const { data } = await axios.get(`${BASE_URL}/api/location-find-district-towns/${districtId}`, {
-    headers: { 'Authorization': `Bearer ${userToken}` },
-  });
-  return data.data;
-};
-
-const SellModal = ({ isOpen, onClose ,onSuccessfulSubmit }) => {
+const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
   const queryClient = useQueryClient();
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [selectedSubCategoryId, setSelectedSubCategoryId] = useState(null);
@@ -84,8 +44,10 @@ const SellModal = ({ isOpen, onClose ,onSuccessfulSubmit }) => {
   const [subCategoryDetails, setSubCategoryDetails] = useState(null);
   const [showCongratulations, setShowCongratulations] = useState(false);
   const [submittedAdType, setSubmittedAdType] = useState('');
+  const [selectedBrandId, setSelectedBrandId] = useState(null);
+  const [selectedModelId, setSelectedModelId] = useState(null);
   
-  const { register, handleSubmit, control, formState: { errors }, setValue, reset, getValues } = useForm();
+  const { register, handleSubmit, control, formState: { errors }, setValue, reset, getValues,watch } = useForm();
   const getUserToken = useCallback(() => localStorage.getItem('UserToken'), []);
   const toast = useToast();
 
@@ -94,29 +56,13 @@ const SellModal = ({ isOpen, onClose ,onSuccessfulSubmit }) => {
   const headingSize = useBreakpointValue({ base: "xl", md: "2xl" });
   const imageBoxSize = useBreakpointValue({ base: "100px", md: "150px" });
 
-  const { data: categories, isLoading: isCategoriesLoading, isError: isCategoriesError, error: categoriesError } = useQuery(
-    ['adCategories', getUserToken],
-    () => fetchCategories(getUserToken()),
-    { enabled: isOpen && !!getUserToken(), retry: (failureCount, error) => error.message !== 'No user token found' && failureCount < 3 }
-  );
-
-  const { data: subCategories, isLoading: isSubCategoriesLoading, isError: isSubCategoriesError, error: subCategoriesError } = useQuery(
-    ['adSubCategories', getUserToken, selectedCategoryId],
-    () => fetchSubCategories(getUserToken(), selectedCategoryId),
-    { enabled: isOpen && !!getUserToken() && !!selectedCategoryId, retry: (failureCount, error) => error.message !== 'No category selected' && failureCount < 3 }
-  );
-
-  const { data: districts, isLoading: isDistrictsLoading, isError: isDistrictsError } = useQuery(
-    ['districts', getUserToken],
-    () => fetchDistricts(getUserToken()),
-    { enabled: isOpen && !!getUserToken() }
-  );
-
-  const { data: towns, isLoading: isTownsLoading, isError: isTownsError } = useQuery(
-    ['towns', getUserToken, selectedDistrictId],
-    () => fetchTowns(getUserToken(), selectedDistrictId),
-    { enabled: isOpen && !!getUserToken() && !!selectedDistrictId }
-  );
+  const { data: categories, isLoading: isCategoriesLoading, isError: isCategoriesError, error: categoriesError } = useCategories(isOpen, getUserToken);
+  const { data: subCategories, isLoading: isSubCategoriesLoading, isError: isSubCategoriesError, error: subCategoriesError } = useSubCategories(isOpen, getUserToken, selectedCategoryId);
+  const { data: districts, isLoading: isDistrictsLoading, isError: isDistrictsError } = useDistricts(isOpen, getUserToken);
+  const { data: towns, isLoading: isTownsLoading, isError: isTownsError } = useTowns(isOpen, getUserToken, selectedDistrictId);
+  const { data: brands, isLoading: isBrandsLoading, isError: isBrandsError } = useBrands(isOpen, getUserToken,selectedSubCategoryId);
+  const { data: models, isLoading:isModelsLoading , error } = useModels(isOpen, getUserToken, selectedBrandId, selectedSubCategoryId);
+  const { data: variants, isLoading: isVariantsLoading, isError: isVariantsError } = useVariants(isOpen, getUserToken, selectedModelId,selectedSubCategoryId);
 
   const clearForm = useCallback(() => {
     reset();
@@ -185,7 +131,6 @@ const SellModal = ({ isOpen, onClose ,onSuccessfulSubmit }) => {
         return obj;
       }, {});
 
-    // Add adShowroom as an empty array
     filteredData.adShowroom = [];
 
     const formData = new FormData();
@@ -197,10 +142,7 @@ const SellModal = ({ isOpen, onClose ,onSuccessfulSubmit }) => {
       }
     });
 
-    // Create an array to hold all image files
     const imageFiles = uploadedImages.map(image => image.file);
-
-    // Append the image files as an array
     imageFiles.forEach((file) => {
       formData.append('images', file);
     });
@@ -225,10 +167,8 @@ const SellModal = ({ isOpen, onClose ,onSuccessfulSubmit }) => {
         clearForm();
         onClose();
         
-        // Invalidate and refetch userAds query
         queryClient.invalidateQueries("userAds");
         
-        // Call the onSuccessfulSubmit callback
         if (onSuccessfulSubmit) {
           onSuccessfulSubmit();
         }
@@ -269,35 +209,73 @@ const SellModal = ({ isOpen, onClose ,onSuccessfulSubmit }) => {
     setUploadedImages(prevImages => prevImages.filter((_, i) => i !== index));
   };
 
+    // Watch the brand field
+    const watchBrand = watch('brand');
+    const watchModel = watch('model');
+
+    useEffect(() => {
+      if (watchBrand) {
+        setSelectedBrandId(watchBrand);
+        // Reset the model and variant fields when brand changes
+        setValue('model', '');
+        setValue('variant', '');
+        setSelectedModelId(null);
+      }
+    }, [watchBrand, setValue]);
   
-  const renderField = (fieldName) => {
-    const config = getFieldConfig(fieldName, districts, towns);
+    // Update selectedModelId when model changes
+    useEffect(() => {
+      if (watchModel) {
+        setSelectedModelId(watchModel);
+        // Reset the variant field when model changes
+        setValue('variant', '');
+      }
+    }, [watchModel, setValue]);
+
     
-    if (!config) return null;
-    
-    switch(config.type) {
-      case 'select':
-        return (
-          <FormControl key={fieldName} isInvalid={errors[fieldName]} fontSize={fontSize}>
-            <FormLabel>{config.label}</FormLabel>
-            <Select 
-              {...register(fieldName, config.rules)}
-              isDisabled={fieldName === 'locationDistrict' ? isDistrictsLoading : (fieldName === 'locationTown' ? isTownsLoading || !selectedDistrictId : false)}
-              onChange={(e) => {
-                if (fieldName === 'locationDistrict') {
-                  setSelectedDistrictId(e.target.value);
-                  setValue('locationTown', '');
+    const renderField = (fieldName) => {
+      const config = getFieldConfig(fieldName, districts, towns, brands, models, variants);
+      
+      if (!config) return null;
+      
+      switch(config.type) {
+        case 'select':
+          return (
+            <FormControl key={fieldName} isInvalid={errors[fieldName]} fontSize={fontSize}>
+              <FormLabel>{config.label}</FormLabel>
+              <Select 
+                {...register(fieldName, config.rules)}
+                isDisabled={
+                  fieldName === 'locationDistrict' ? isDistrictsLoading : 
+                  fieldName === 'locationTown' ? isTownsLoading || !selectedDistrictId :
+                  fieldName === 'brand' ? isBrandsLoading :
+                  fieldName === 'model' ? isModelsLoading || !selectedBrandId :
+                  fieldName === 'variant' ? isVariantsLoading || !selectedModelId :
+                  false
                 }
-              }}
-            >
-              <option value="">Select {config.label}</option>
-              {config.options.map(option => (
-                <option key={option.id || option} value={option.id || option}>{option.name || option}</option>
-              ))}
-            </Select>
-            <FormErrorMessage>{errors[fieldName] && errors[fieldName].message}</FormErrorMessage>
-          </FormControl>
-        );
+                onChange={(e) => {
+                  if (fieldName === 'locationDistrict') {
+                    setSelectedDistrictId(e.target.value);
+                    setValue('locationTown', '');
+                  } else if (fieldName === 'brand') {
+                    setSelectedBrandId(e.target.value);
+                    setValue('model', '');
+                    setValue('variant', '');
+                    setSelectedModelId(null);
+                  } else if (fieldName === 'model') {
+                    setSelectedModelId(e.target.value);
+                    setValue('variant', '');
+                  }
+                }}
+              >
+                <option value="">Select {config.label}</option>
+                {config.options.map(option => (
+                  <option key={option.id || option} value={option.id || option}>{option.name || option}</option>
+                ))}
+              </Select>
+              <FormErrorMessage>{errors[fieldName] && errors[fieldName].message}</FormErrorMessage>
+            </FormControl>
+          );
       case 'radio':
         return (
           <FormControl key={fieldName} isInvalid={errors[fieldName]} fontSize={fontSize}>
@@ -319,50 +297,50 @@ const SellModal = ({ isOpen, onClose ,onSuccessfulSubmit }) => {
             <FormErrorMessage>{errors[fieldName] && errors[fieldName].message}</FormErrorMessage>
           </FormControl>
         );
-        case 'checkbox':
-          return (
-            <FormControl key={fieldName} fontSize={fontSize}>
-              <Checkbox {...register(fieldName)}>{config.label}</Checkbox>
-            </FormControl>
-          );
-        default:
-          return (
-            <SellInput
-              key={fieldName}
-              label={config.label}
-              type={config.type}
-              name={fieldName}
-              register={register}
-              rules={config.rules}
-              error={errors[fieldName]}
-              fontSize={fontSize}
-            />
-          );
-      }
-    };
-  
-    const ImageUploadBox = ({ onClick, children }) => (
-      <Box
-        w={imageBoxSize}
-        h={imageBoxSize}
-        backgroundColor='#4F7598'
-        border="2px"
-        borderColor="gray.300"
-        borderRadius="md"
-        display="flex"
-        flexDirection="column"
-        alignItems="center"
-        justifyContent="center"
-        cursor="pointer"
-        color='white'
-        onClick={onClick}
-      >
-        {children}
-      </Box>
-    );
-  
-    return (
-        <>
+      case 'checkbox':
+        return (
+          <FormControl key={fieldName} fontSize={fontSize}>
+            <Checkbox {...register(fieldName)}>{config.label}</Checkbox>
+          </FormControl>
+        );
+      default:
+        return (
+          <SellInput
+            key={fieldName}
+            label={config.label}
+            type={config.type}
+            name={fieldName}
+            register={register}
+            rules={config.rules}
+            error={errors[fieldName]}
+            fontSize={fontSize}
+          />
+        );
+    }
+  };
+
+  const ImageUploadBox = ({ onClick, children }) => (
+    <Box
+      w={imageBoxSize}
+      h={imageBoxSize}
+      backgroundColor='#4F7598'
+      border="2px"
+      borderColor="gray.300"
+      borderRadius="md"
+      display="flex"
+      flexDirection="column"
+      alignItems="center"
+      justifyContent="center"
+      cursor="pointer"
+      color='white'
+      onClick={onClick}
+    >
+      {children}
+    </Box>
+  );
+
+  return (
+    <>
       <Modal isOpen={isOpen} onClose={onClose} size={modalSize}>
         <ModalOverlay />
         <ModalContent 
@@ -387,7 +365,7 @@ const SellModal = ({ isOpen, onClose ,onSuccessfulSubmit }) => {
                 <FormErrorMessage>{errors.adCategory && errors.adCategory.message}</FormErrorMessage>
               </FormControl>
               {isCategoriesError && <div className="text-red-500 text-sm">Error: {categoriesError.message}</div>}
-  
+
               <FormControl isInvalid={errors.adSubCategory} fontSize={fontSize}>
                 <FormLabel>Sub-Category</FormLabel>
                 <Select 
@@ -426,6 +404,7 @@ const SellModal = ({ isOpen, onClose ,onSuccessfulSubmit }) => {
                         </Text>
                       </Box>
                     ))}
+                   
                     {uploadedImages.length < 4 && (
                       <ImageUploadBox onClick={() => document.getElementById('imageUpload').click()}>
                         <Icon as={IoAddOutline} w={5} h={5} />

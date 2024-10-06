@@ -30,6 +30,8 @@ import ShowroomContentCard from "../../components/common/Cards/ShowroomContentCa
 import ShowroomEditModal from "../../components/modals/othermodals/Showroomeditmodal";
 import CarListingCard from "../../components/common/Cards/ShowroomuserAdCard";
 import ShowroomuserAdCard from "../../components/common/Cards/ShowroomuserAdCard";
+import EditShowroomModal from "../../components/modals/othermodals/EditShowroomAd";
+import EditShowroomad from "../../components/modals/othermodals/EditShowroomAd";
 
 const fetchShowrooms = async (token) => {
   const response = await axios.get(
@@ -63,6 +65,31 @@ const MyShowroom = () => {
   const [selectedShowroom, setSelectedShowroom] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [showroomToEdit, setShowroomToEdit] = useState(null);
+  const [isEditAdModalOpen, setIsEditAdModalOpen] = useState(false);
+  const [adToEdit, setAdToEdit] = useState(null);
+  const handleAdEdit = (ad) => {
+    setAdToEdit(ad);
+    setIsEditAdModalOpen(true);
+  };
+
+  const handleEditAdModalClose = () => {
+    setIsEditAdModalOpen(false);
+    setAdToEdit(null);
+  };
+
+  const handleEditAdSuccess = () => {
+    queryClient.invalidateQueries(["showroomAds", selectedShowroom?.id]);
+    handleEditAdModalClose();
+    
+    toast({
+      title: "Ad updated successfully",
+      status: "success",
+      duration: 3000,
+      isClosable: true,
+    });
+  };
+
+  
 
   const { isLoggedIn, isInitialized, token } = useAuth();
   const queryClient = useQueryClient();
@@ -305,7 +332,11 @@ const MyShowroom = () => {
               {showroomAds && showroomAds.length > 0 ? (
                 <VStack spacing={4} align="stretch">
                   {showroomAds.map((ad) => (
-                    <ShowroomuserAdCard key={ad.id} data={ad} />
+                    <ShowroomuserAdCard 
+                    key={ad.id} 
+                    data={ad} 
+                    onEdit={handleAdEdit}
+                  />
                   ))}
                   <Button
                     leftIcon={<MdAddCircleOutline />}
@@ -381,6 +412,20 @@ const MyShowroom = () => {
           onClose={handleEditModalClose}
           showroom={showroomToEdit}
           onSuccess={handleEditSuccess}
+        />
+      )}
+
+{adToEdit && (
+  <EditShowroomad
+          isOpen={isEditAdModalOpen}
+          onClose={handleEditAdModalClose}
+          ad={adToEdit}
+          onSuccess={handleEditAdSuccess}
+          categoryId={selectedShowroom.adCategory?.id}
+          subCategoryId={selectedShowroom.adSubCategory?.id}
+          districtId={selectedShowroom.locationDistrict?.id}
+          townId={selectedShowroom.locationTown?.id}
+          showroomId={selectedShowroom.id}
         />
       )}
     </Box>

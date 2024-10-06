@@ -29,60 +29,10 @@ import { IoAddOutline, IoClose } from 'react-icons/io5';
 import { BASE_URL } from '../../../config/config';
 import SellInput from '../../../components/forms/Input/SellInput.jsx';
 import getFieldConfig from '../../common/config/GetField.jsx';
-
-// API functions
-const fetchCategories = async (userToken) => {
-  if (!userToken) throw new Error('No user token found');
-  const { data } = await axios.get(`${BASE_URL}/api/ad-categories`, {
-    headers: { 'Authorization': `Bearer ${userToken}` },
-  });
-  return data.data;
-};
-
-const fetchSubCategories = async (userToken, categoryId) => {
-  if (!userToken) throw new Error('No user token found');
-  if (!categoryId) throw new Error('No category selected');
-  const { data } = await axios.get(`${BASE_URL}/api/ad-find-category-sub-categories/${categoryId}`, {
-    headers: { 'Authorization': `Bearer ${userToken}` },
-  });
-  return data.data;
-};
-
-const fetchSubCategoryDetails = async (userToken, subCategoryId) => {
-  if (!userToken) throw new Error('No user token found');
-  if (!subCategoryId) throw new Error('No subcategory selected');
-  const { data } = await axios.get(`${BASE_URL}/api/ad-find-one-sub-category/${subCategoryId}`, {
-    headers: { 'Authorization': `Bearer ${userToken}` },
-  });
-  return data.data;
-};
-
-const fetchDistricts = async (userToken) => {
-  if (!userToken) throw new Error('No user token found');
-  const { data } = await axios.get(`${BASE_URL}/api/location-districts`, {
-    headers: { 'Authorization': `Bearer ${userToken}` },
-  });
-  return data.data;
-};
-
-const fetchTowns = async (userToken, districtId) => {
-  if (!userToken) throw new Error('No user token found');
-  if (!districtId) throw new Error('No district selected');
-  const { data } = await axios.get(`${BASE_URL}/api/location-find-district-towns/${districtId}`, {
-    headers: { 'Authorization': `Bearer ${userToken}` },
-  });
-  return data.data;
-};
-
-const fetchCompleteAdData = async (userToken, adCategoryId, adId) => {
-  if (!userToken) throw new Error('No user token found');
-  if (!adCategoryId) throw new Error('No category ID provided');
-  if (!adId) throw new Error('No ad ID provided');
-  const { data } = await axios.get(`${BASE_URL}/api/find-one-ad/${adCategoryId}/${adId}`, {
-    headers: { 'Authorization': `Bearer ${userToken}` },
-  });
-  return data.data;
-};
+import { useCategories, useDistricts, useSubCategories,fetchSubCategoryDetails, useTowns  } from '../../common/config/SellModalQueries.jsx';
+import { useBrands } from '../../common/config/Api/UseBrands.jsx';
+import { useModels } from '../../common/config/Api/UseModels.jsx';
+import { useVariants } from '../../common/config/Api/UseVarient.jsx';
 
 const SellModalEdit = ({ isOpen, onClose, listingData }) => {
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
@@ -91,9 +41,10 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
   const [uploadedImages, setUploadedImages] = useState([]);
   const [subCategoryDetails, setSubCategoryDetails] = useState(null);
   const [completeAdData, setCompleteAdData] = useState(null);
-
-  
-  const { register, handleSubmit, control, formState: { errors }, setValue, reset, getValues } = useForm();
+  const [selectedBrandId, setSelectedBrandId] = useState(null);
+  const [selectedModelId, setSelectedModelId] = useState(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const { register, handleSubmit, control, formState: { errors }, setValue, reset, getValues, watch } = useForm();
   const getUserToken = useCallback(() => localStorage.getItem('UserToken'), []);
   const toast = useToast();
 
@@ -102,40 +53,66 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
   const headingSize = useBreakpointValue({ base: "xl", md: "2xl" });
   const imageBoxSize = useBreakpointValue({ base: "100px", md: "150px" });
 
-  const { data: categories, isLoading: isCategoriesLoading } = useQuery(
-    ['adCategories', getUserToken()],
-    () => fetchCategories(getUserToken()),
-    { enabled: isOpen && !!getUserToken() }
-  );
+  const { data: categories, isLoading: isCategoriesLoading, isError: isCategoriesError } = useCategories(isOpen, getUserToken);
+  const { data: subCategories, isLoading: isSubCategoriesLoading, isError: isSubCategoriesError } = useSubCategories(isOpen, getUserToken, selectedCategoryId);
+  const { data: districts, isLoading: isDistrictsLoading, isError: isDistrictsError } = useDistricts(isOpen, getUserToken);
+  const { data: towns, isLoading: isTownsLoading, isError: isTownsError } = useTowns(isOpen, getUserToken, selectedDistrictId);
+  const { data: brands, isLoading: isBrandsLoading } = useBrands(isOpen, getUserToken,selectedSubCategoryId);
+  const { data: models, isLoading: isModelsLoading } = useModels(isOpen, getUserToken, selectedBrandId,selectedSubCategoryId);
+  const { data: variants, isLoading: isVariantsLoading } = useVariants(isOpen, getUserToken, selectedModelId,selectedSubCategoryId);   
 
-  const { data: subCategories, isLoading: isSubCategoriesLoading } = useQuery(
-    ['adSubCategories', getUserToken(), selectedCategoryId],
-    () => fetchSubCategories(getUserToken(), selectedCategoryId),
-    { enabled: isOpen && !!getUserToken() && !!selectedCategoryId }
-  );
-
-  const { data: districts, isLoading: isDistrictsLoading } = useQuery(
-    ['districts', getUserToken()],
-    () => fetchDistricts(getUserToken()),
-    { enabled: isOpen && !!getUserToken() }
-  );
-
-  const { data: towns, isLoading: isTownsLoading } = useQuery(
-    ['towns', getUserToken(), selectedDistrictId],
-    () => fetchTowns(getUserToken(), selectedDistrictId),
-    { enabled: isOpen && !!getUserToken() && !!selectedDistrictId }
-  );
-
-  const { data: completeAd, isLoading: isCompleteAdLoading } = useQuery(
-    ['completeAd', getUserToken(), listingData?.adCategory?.id, listingData?.id],
-    () => fetchCompleteAdData(getUserToken(), listingData?.adCategory?.id, listingData?.id),
-    { 
-      enabled: isOpen && !!getUserToken() && !!listingData?.adCategory?.id && !!listingData?.id,
-      onSuccess: (data) => {
-        setCompleteAdData(data);
+    // Watch brand and model fields
+    const watchBrand = watch('brand');
+    const watchModel = watch('model');
+  
+    useEffect(() => {
+      if (!isInitialLoad && watchBrand) {
+        setSelectedBrandId(watchBrand);
+        setValue('model', '');
+        setValue('variant', '');
+        setSelectedModelId(null);
       }
-    }
-  );
+    }, [watchBrand, setValue, isInitialLoad]);
+  
+    // Handle model changes
+    useEffect(() => {
+      if (!isInitialLoad && watchModel) {
+        setSelectedModelId(watchModel);
+        setValue('variant', '');
+      }
+    }, [watchModel, setValue, isInitialLoad]);
+
+    const fetchCompleteAdData = async (userToken, adCategoryId, adId) => {
+      if (!userToken || !adCategoryId || !adId) return null;
+      const { data } = await axios.get(`${BASE_URL}/api/find-one-ad/${adCategoryId}/${adId}`, {
+        headers: { 'Authorization': `Bearer ${userToken}` },
+      });
+      console.log(data.data);
+      
+      return data.data;
+    };
+  
+    const { data: completeAd, isLoading: isCompleteAdLoading } = useQuery(
+      ['completeAd', getUserToken(), listingData?.adCategory?.id, listingData?.id],
+      () => fetchCompleteAdData(getUserToken(), listingData?.adCategory?.id, listingData?.id),
+      { 
+        enabled: isOpen && !!getUserToken() && !!listingData?.adCategory?.id && !!listingData?.id,
+        onSuccess: (data) => {
+          setCompleteAdData(data);
+          if (data?.brand) {
+            setSelectedBrandId(data.brand.id);
+            setValue('brand', data.brand.id);
+          }
+          if (data?.model) {
+            setSelectedModelId(data.model.id);
+            setValue('model', data.model.id);
+          }
+          if (data?.variant) {
+            setValue('variant', data.variant.id);
+          }
+        }
+      }
+    );
 
   useEffect(() => {
     if (listingData) {
@@ -159,15 +136,34 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
 
   useEffect(() => {
     if (completeAdData) {
+      setIsInitialLoad(true);
       Object.entries(completeAdData).forEach(([key, value]) => {
         if (typeof value !== 'object') {
           setValue(key, value);
         }
       });
+      
+      // Set form values for nested objects
       setValue('adCategory', completeAdData.adCategory?.id);
       setValue('adSubCategory', completeAdData.adSubCategory?.id);
       setValue('locationDistrict', completeAdData.locationDistrict?.id);
       setValue('locationTown', completeAdData.locationTown?.id);
+      
+      // Set brand, model, and variant with a slight delay to ensure proper loading
+      setTimeout(() => {
+        if (completeAdData.brand?.id) {
+          setSelectedBrandId(completeAdData.brand.id);
+          setValue('brand', completeAdData.brand.id);
+        }
+        if (completeAdData.model?.id) {
+          setSelectedModelId(completeAdData.model.id);
+          setValue('model', completeAdData.model.id);
+        }
+        if (completeAdData.variant?.id) {
+          setValue('variant', completeAdData.variant.id);
+        }
+        setIsInitialLoad(false);
+      }, 100);
     }
   }, [completeAdData, setValue]);
 
@@ -220,17 +216,14 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
 
       formData.append('adShowroom', JSON.stringify([]));
 
-      // Handle image uploads
       if (uploadedImages.length === 0) {
         throw new Error('At least one image is required');
       }
 
       const imagePromises = uploadedImages.map(async (image, index) => {
         if (image.file) {
-          // New image upload
           return image.file;
         } else if (image.isExisting) {
-          // Existing image
           const response = await fetch(image.preview);
           const blob = await response.blob();
           return new File([blob], `existing_image_${index}.jpg`, { type: 'image/jpeg' });
@@ -245,11 +238,6 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
 
       const token = getUserToken();
       if (!token) throw new Error('No authentication token found');
-
-      console.log('Data being sent to update ad API:');
-      for (let [key, value] of formData.entries()) {
-        console.log(key, value);
-      }
 
       const apiEndpoint = subCategoryDetails?.apiUrl 
         ? `${BASE_URL}/api/${subCategoryDetails.apiUrl}/${listingData.id}`
@@ -287,7 +275,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
   };
 
   const renderField = (fieldName) => {
-    const config = getFieldConfig(fieldName, districts, towns);
+    const config = getFieldConfig(fieldName, districts, towns, brands, models, variants);
     if (!config) return null;
 
     switch(config.type) {
@@ -297,17 +285,35 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
             <FormLabel>{config.label}</FormLabel>
             <Select 
               {...register(fieldName, config.rules)}
-              isDisabled={fieldName === 'locationDistrict' ? isDistrictsLoading : (fieldName === 'locationTown' ? isTownsLoading || !selectedDistrictId : false)}
+              isDisabled={
+                fieldName === 'locationDistrict' ? isDistrictsLoading : 
+                fieldName === 'locationTown' ? isTownsLoading || !selectedDistrictId :
+                fieldName === 'brand' ? isBrandsLoading :
+                fieldName === 'model' ? isModelsLoading || !selectedBrandId :
+                fieldName === 'variant' ? isVariantsLoading || !selectedModelId :
+                false
+              }
               onChange={(e) => {
                 if (fieldName === 'locationDistrict') {
                   setSelectedDistrictId(e.target.value);
                   setValue('locationTown', '');
+                } else if (fieldName === 'brand') {
+                  setSelectedBrandId(e.target.value);
+                  setValue('model', '');
+                  setValue('variant', '');
+                  setSelectedModelId(null);
+                } else if (fieldName === 'model') {
+                  setSelectedModelId(e.target.value);
+                  setValue('variant', '');
                 }
               }}
+              value={getValues(fieldName) || ''}
             >
               <option value="">Select {config.label}</option>
-              {config.options.map(option => (
-                <option key={option.id || option} value={option.id || option}>{option.name || option}</option>
+              {config.options?.map(option => (
+                <option key={option.id || option} value={option.id || option}>
+                  {option.name || option}
+                </option>
               ))}
             </Select>
             <FormErrorMessage>{errors[fieldName]?.message}</FormErrorMessage>
@@ -401,7 +407,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
               
               {subCategoryDetails && subCategoryDetails.requiredFields?.map(fieldName => renderField(fieldName))}
               
-                 <FormControl fontSize={fontSize}>
+              <FormControl fontSize={fontSize}>
                 <FormLabel>Images (Max 4)</FormLabel>
                 <Flex gap={3} flexWrap="wrap" justifyContent="center">
                   {uploadedImages.map((image, index) => (

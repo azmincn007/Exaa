@@ -156,9 +156,7 @@ function Navbar({ onShowPackagesAndOrders }) {
             <div className="flex items-center gap-4">
               <FaLocationDot /> <SimpleCountryDropdown />
             </div>
-            <div className="flex">
-              <StyledLanguageDropdown />
-            </div>
+         
           </div>
           <div className="col-span-3 md:col-span-2 lg:col-span-2 text-center">
             {isLoggedIn ? (
@@ -184,9 +182,7 @@ function Navbar({ onShowPackagesAndOrders }) {
             <div className="pr-1 flex gap-2 items-center">
               <FaLocationDot /> <SimpleCountryDropdown />
             </div>
-            <div className="pl-1">
-              <StyledLanguageDropdown />
-            </div>
+           
           </div>
           <div className="flex items-center justify-between">
             <Link to={"/"}>
