@@ -178,34 +178,56 @@ const ChatDetails = ({ chat }) => {
   const [chatDetails, setChatDetails] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const fetchChatDetails = async () => {
+    try {
+      const userToken = localStorage.getItem('UserToken');
+      const response = await axios.get(
+        `${BASE_URL}/api/find-one-chat/${chat.ad.id}/${chat.adCategory.id}/${chat.adBuyer.id}/${chat.adSeller.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${userToken}`,
+          },
+        }
+      );
+      
+      setChatDetails(response.data);
+    } catch (error) {
+      console.error('Error fetching chat details:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchChatDetails = async () => {
-      setLoading(true);
-      try {
-        const userToken = localStorage.getItem('UserToken');
-        const response = await axios.get(
-          `${BASE_URL}/api/find-one-chat/${chat.ad.id}/${chat.adCategory.id}/${chat.adBuyer.id}/${chat.adSeller.id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${userToken}`,
-            },
-          }
-        );
-        setChatDetails(response.data);
-      } catch (error) {
-        console.error('Error fetching chat details:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     if (chat) {
+      setLoading(true);
       fetchChatDetails();
     }
   }, [chat]);
 
-  const handleSendMessage = () => {
-    // Implement send message logic here
-    setMessage('');
+  // Handle immediate message updates
+  const handleMessageSent = async (newMessage) => {
+    if (chatDetails && chatDetails.data) {
+      // Create a temporary message object
+      const tempMessage = {
+        message: newMessage.message || message,
+        adBuyer: chat.adBuyer,
+        adSeller: chat.adSeller,
+        createdAt: new Date().toISOString(),
+      };
+
+      // Update the local state immediately
+      setChatDetails(prevDetails => ({
+        ...prevDetails,
+        data: {
+          ...prevDetails.data,
+          messages: [...prevDetails.data.messages, tempMessage]
+        }
+      }));
+
+      // Fetch the updated chat details to ensure synchronization
+      await fetchChatDetails();
+    }
   };
 
   if (loading) {
@@ -213,21 +235,40 @@ const ChatDetails = ({ chat }) => {
   }
   
   if (!chatDetails) {
-    return <div className="flex-1 flex items-center justify-center">Failed to load chat details</div>;
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        Failed to load chat details
+      </div>
+    );
   }
   
   return (
-    <div className="flex flex-col h-full bg-[#0071BC1A] p-2 gap-4">
-      <ChatHeader chat={chat} />
-      <ChatInfo chat={chat} />
-      <ChatMessages />
-      <ChatInput message={message} setMessage={setMessage} onSend={handleSendMessage} />
+    <div className="flex flex-col h-screen max-h-screen overflow-hidden bg-[#0071BC1A]">
+      <div className="flex-none p-2">
+        <ChatHeader chat={chat} />
+      </div>
+      
+      <div className="flex-none p-2">
+        <ChatInfo chat={chat} />
+      </div>
+      
+      <div className="flex-1 min-h-0 p-2 overflow-hidden">
+        <ChatMessages chats={chatDetails} />
+      </div>
+      
+      <div className="flex-none">
+        <ChatInput
+          message={message}
+          setMessage={setMessage}
+          adId={chat?.ad.id}
+          adCategoryId={chat.adCategory.id}
+          adBuyerId={chat.adBuyer.id}
+          onMessageSent={handleMessageSent}
+        />
+      </div>
     </div>
   );
 };
-
-
-
 
 
 

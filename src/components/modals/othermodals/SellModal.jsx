@@ -34,6 +34,7 @@ import {useCategories, useSubCategories, useDistricts, useTowns, fetchSubCategor
 import { useBrands } from '../../common/config/Api/UseBrands.jsx';
 import { useModels } from '../../common/config/Api/UseModels.jsx';
 import { useVariants } from '../../common/config/Api/UseVarient.jsx';
+import { useTypes } from '../../common/config/Api/UseTypes.jsx';
 
 const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
   const queryClient = useQueryClient();
@@ -46,7 +47,7 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
   const [submittedAdType, setSubmittedAdType] = useState('');
   const [selectedBrandId, setSelectedBrandId] = useState(null);
   const [selectedModelId, setSelectedModelId] = useState(null);
-  
+  const [selectedTypeId, setSelectedTypeId] = useState(null);
   const { register, handleSubmit, control, formState: { errors }, setValue, reset, getValues,watch } = useForm();
   const getUserToken = useCallback(() => localStorage.getItem('UserToken'), []);
   const toast = useToast();
@@ -63,7 +64,7 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
   const { data: brands, isLoading: isBrandsLoading, isError: isBrandsError } = useBrands(isOpen, getUserToken,selectedSubCategoryId);
   const { data: models, isLoading:isModelsLoading , error } = useModels(isOpen, getUserToken, selectedBrandId, selectedSubCategoryId);
   const { data: variants, isLoading: isVariantsLoading, isError: isVariantsError } = useVariants(isOpen, getUserToken, selectedModelId,selectedSubCategoryId);
-
+  const { data: types, isLoading: isTypesLoading, isError: isTypesError } = useTypes(isOpen, getUserToken, selectedSubCategoryId);
   const clearForm = useCallback(() => {
     reset();
     setSelectedCategoryId(null);
@@ -234,7 +235,7 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
 
     
     const renderField = (fieldName) => {
-      const config = getFieldConfig(fieldName, districts, towns, brands, models, variants);
+      const config = getFieldConfig(fieldName, districts, towns, brands, models, variants, types);
       
       if (!config) return null;
       
@@ -251,6 +252,7 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
                   fieldName === 'brand' ? isBrandsLoading :
                   fieldName === 'model' ? isModelsLoading || !selectedBrandId :
                   fieldName === 'variant' ? isVariantsLoading || !selectedModelId :
+                
                   false
                 }
                 onChange={(e) => {
@@ -265,6 +267,8 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
                   } else if (fieldName === 'model') {
                     setSelectedModelId(e.target.value);
                     setValue('variant', '');
+                  } else if (fieldName === 'type') {
+                    setSelectedTypeId(e.target.value);
                   }
                 }}
               >

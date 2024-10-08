@@ -29,7 +29,7 @@ import { IoAddOutline, IoClose } from 'react-icons/io5';
 import { BASE_URL } from '../../../config/config';
 import SellInput from '../../../components/forms/Input/SellInput.jsx';
 import getFieldConfig from '../../common/config/GetField.jsx';
-import { useCategories, useDistricts, useSubCategories,fetchSubCategoryDetails, useTowns  } from '../../common/config/SellModalQueries.jsx';
+import { useCategories, useDistricts, useSubCategories, fetchSubCategoryDetails, useTowns } from '../../common/config/SellModalQueries.jsx';
 import { useBrands } from '../../common/config/Api/UseBrands.jsx';
 import { useModels } from '../../common/config/Api/UseModels.jsx';
 import { useVariants } from '../../common/config/Api/UseVarient.jsx';
@@ -43,7 +43,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
   const [completeAdData, setCompleteAdData] = useState(null);
   const [selectedBrandId, setSelectedBrandId] = useState(null);
   const [selectedModelId, setSelectedModelId] = useState(null);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
   const { register, handleSubmit, control, formState: { errors }, setValue, reset, getValues, watch } = useForm();
   const getUserToken = useCallback(() => localStorage.getItem('UserToken'), []);
   const toast = useToast();
@@ -57,73 +57,71 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
   const { data: subCategories, isLoading: isSubCategoriesLoading, isError: isSubCategoriesError } = useSubCategories(isOpen, getUserToken, selectedCategoryId);
   const { data: districts, isLoading: isDistrictsLoading, isError: isDistrictsError } = useDistricts(isOpen, getUserToken);
   const { data: towns, isLoading: isTownsLoading, isError: isTownsError } = useTowns(isOpen, getUserToken, selectedDistrictId);
-  const { data: brands, isLoading: isBrandsLoading } = useBrands(isOpen, getUserToken,selectedSubCategoryId);
-  const { data: models, isLoading: isModelsLoading } = useModels(isOpen, getUserToken, selectedBrandId,selectedSubCategoryId);
-  const { data: variants, isLoading: isVariantsLoading } = useVariants(isOpen, getUserToken, selectedModelId,selectedSubCategoryId);   
+  const { data: brands, isLoading: isBrandsLoading } = useBrands(isOpen, getUserToken, selectedSubCategoryId);
+  const { data: models, isLoading: isModelsLoading } = useModels(isOpen, getUserToken, selectedBrandId, selectedSubCategoryId);
+  const { data: variants, isLoading: isVariantsLoading } = useVariants(isOpen, getUserToken, selectedModelId, selectedSubCategoryId);   
 
-    // Watch brand and model fields
-    const watchBrand = watch('brand');
-    const watchModel = watch('model');
-  
-    useEffect(() => {
-      if (!isInitialLoad && watchBrand) {
-        setSelectedBrandId(watchBrand);
-        setValue('model', '');
-        setValue('variant', '');
-        setSelectedModelId(null);
-      }
-    }, [watchBrand, setValue, isInitialLoad]);
-  
-    // Handle model changes
-    useEffect(() => {
-      if (!isInitialLoad && watchModel) {
-        setSelectedModelId(watchModel);
-        setValue('variant', '');
-      }
-    }, [watchModel, setValue, isInitialLoad]);
+  const watchBrand = watch('brand');
+  const watchModel = watch('model');
 
-    const fetchCompleteAdData = async (userToken, adCategoryId, adId) => {
-      if (!userToken || !adCategoryId || !adId) return null;
-      const { data } = await axios.get(`${BASE_URL}/api/find-one-ad/${adCategoryId}/${adId}`, {
-        headers: { 'Authorization': `Bearer ${userToken}` },
-      });
-      console.log(data.data);
-      
-      return data.data;
-    };
-  
-    const { data: completeAd, isLoading: isCompleteAdLoading } = useQuery(
-      ['completeAd', getUserToken(), listingData?.adCategory?.id, listingData?.id],
-      () => fetchCompleteAdData(getUserToken(), listingData?.adCategory?.id, listingData?.id),
-      { 
-        enabled: isOpen && !!getUserToken() && !!listingData?.adCategory?.id && !!listingData?.id,
-        onSuccess: (data) => {
-          setCompleteAdData(data);
-          if (data?.brand) {
-            setSelectedBrandId(data.brand.id);
-            setValue('brand', data.brand.id);
-          }
-          if (data?.model) {
-            setSelectedModelId(data.model.id);
-            setValue('model', data.model.id);
-          }
-          if (data?.variant) {
-            setValue('variant', data.variant.id);
-          }
-        }
+  const fetchCompleteAdData = async (userToken, adCategoryId, adId) => {
+    if (!userToken || !adCategoryId || !adId) return null;
+    const { data } = await axios.get(`${BASE_URL}/api/find-one-ad/${adCategoryId}/${adId}`, {
+      headers: { 'Authorization': `Bearer ${userToken}` },
+    });
+    console.log('Fetched complete ad data:', data.data);
+    return data.data;
+  };
+
+  const { data: completeAd, isLoading: isCompleteAdLoading, error: completeAdError } = useQuery(
+    ['completeAd', getUserToken(), listingData?.adCategory?.id, listingData?.id],
+    () => fetchCompleteAdData(getUserToken(), listingData?.adCategory?.id, listingData?.id),
+    { 
+      enabled: isOpen && !!getUserToken() && !!listingData?.adCategory?.id && !!listingData?.id,
+      onSuccess: (data) => {
+        console.log('Complete ad data fetched successfully:', data);
+        setCompleteAdData(data);
+        setIsDataLoaded(true);
+      },
+      onError: (error) => {
+        console.error('Error fetching complete ad data:', error);
+        toast({
+          title: "Error loading ad data",
+          description: "Please try again later",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
       }
-    );
+    }
+  );
 
   useEffect(() => {
-    if (listingData) {
-      setSelectedCategoryId(listingData.adCategory?.id);
-      setSelectedSubCategoryId(listingData.adSubCategory?.id);
-      setSelectedDistrictId(listingData.locationDistrict?.id);
+    if (isDataLoaded && completeAdData) {
+      setSelectedCategoryId(completeAdData.adCategory?.id);
+      setSelectedSubCategoryId(completeAdData.adSubCategory?.id);
+      setSelectedDistrictId(completeAdData.locationDistrict?.id);
+      setSelectedBrandId(completeAdData.brand?.id);
+      setSelectedModelId(completeAdData.model?.id);
+
+      Object.entries(completeAdData).forEach(([key, value]) => {
+        if (typeof value !== 'object') {
+          setValue(key, value);
+        }
+      });
       
-      const images = Array.isArray(listingData.images) 
-        ? listingData.images 
-        : listingData.images 
-          ? [listingData.images] 
+      setValue('adCategory', completeAdData.adCategory?.id);
+      setValue('adSubCategory', completeAdData.adSubCategory?.id);
+      setValue('locationDistrict', completeAdData.locationDistrict?.id);
+      setValue('locationTown', completeAdData.locationTown?.id);
+      setValue('brand', completeAdData.brand?.id);
+      setValue('model', completeAdData.model?.id);
+      setValue('variant', completeAdData.variant?.id);
+
+      const images = Array.isArray(completeAdData.images) 
+        ? completeAdData.images 
+        : completeAdData.images 
+          ? [completeAdData.images] 
           : [];
 
       setUploadedImages(images.map(img => ({ 
@@ -132,40 +130,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
         isExisting: true
       })));
     }
-  }, [listingData]);
-
-  useEffect(() => {
-    if (completeAdData) {
-      setIsInitialLoad(true);
-      Object.entries(completeAdData).forEach(([key, value]) => {
-        if (typeof value !== 'object') {
-          setValue(key, value);
-        }
-      });
-      
-      // Set form values for nested objects
-      setValue('adCategory', completeAdData.adCategory?.id);
-      setValue('adSubCategory', completeAdData.adSubCategory?.id);
-      setValue('locationDistrict', completeAdData.locationDistrict?.id);
-      setValue('locationTown', completeAdData.locationTown?.id);
-      
-      // Set brand, model, and variant with a slight delay to ensure proper loading
-      setTimeout(() => {
-        if (completeAdData.brand?.id) {
-          setSelectedBrandId(completeAdData.brand.id);
-          setValue('brand', completeAdData.brand.id);
-        }
-        if (completeAdData.model?.id) {
-          setSelectedModelId(completeAdData.model.id);
-          setValue('model', completeAdData.model.id);
-        }
-        if (completeAdData.variant?.id) {
-          setValue('variant', completeAdData.variant.id);
-        }
-        setIsInitialLoad(false);
-      }, 100);
-    }
-  }, [completeAdData, setValue]);
+  }, [isDataLoaded, completeAdData, setValue]);
 
   useEffect(() => {
     if (selectedSubCategoryId) {
@@ -174,6 +139,22 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
         .catch(console.error);
     }
   }, [selectedSubCategoryId, getUserToken]);
+
+  useEffect(() => {
+    if (!isDataLoaded && watchBrand) {
+      setSelectedBrandId(watchBrand);
+      setValue('model', '');
+      setValue('variant', '');
+      setSelectedModelId(null);
+    }
+  }, [watchBrand, setValue, isDataLoaded]);
+
+  useEffect(() => {
+    if (!isDataLoaded && watchModel) {
+      setSelectedModelId(watchModel);
+      setValue('variant', '');
+    }
+  }, [watchModel, setValue, isDataLoaded]);
 
   const handleCategoryChange = (e) => {
     const newCategoryId = e.target.value;
@@ -207,6 +188,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
 
   const onSubmit = async (data) => {
     try {
+      console.log('Form submitted with values:', data);
       const formData = new FormData();
       Object.keys(data).forEach(key => {
         if (data[key] !== "") {
@@ -362,6 +344,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
     }
   };
 
+  console.log('Current form values:', getValues());
   return (
     <Modal isOpen={isOpen} onClose={onClose} size={modalSize}>
       <ModalOverlay />
@@ -369,6 +352,8 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
         <ModalBody>
           {isCompleteAdLoading ? (
             <Text>Loading ad data...</Text>
+          ) : completeAdError ? (
+            <Text color="red.500">Error loading ad data. Please try again.</Text>
           ) : (
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-3 py-3'>
               <h3 className={`text-${headingSize} font-bold mb-3`}>Edit your ad</h3>
@@ -388,7 +373,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
                 </Select>
                 <FormErrorMessage>{errors.adCategory?.message}</FormErrorMessage>
               </FormControl>
-
+  
               <FormControl isInvalid={errors.adSubCategory} fontSize={fontSize}>
                 <FormLabel>Sub-Category</FormLabel>
                 <Select 
@@ -483,6 +468,5 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
       </ModalContent>
     </Modal>
   );
-};
-
-export default SellModalEdit;
+}
+  export default SellModalEdit

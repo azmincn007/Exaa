@@ -46,6 +46,21 @@ module.exports = {
         'exagrey': '#696969',
        'exaBluetxt': '#0071BC' // Add this line
       },
+      keyframes: {
+        messageAppear: {
+          '0%': { 
+            transform: 'translateY(20px)',
+            opacity: '0'
+          },
+          '100%': { 
+            transform: 'translateY(0)',
+            opacity: '1'
+          }
+        }
+      },
+      animation: {
+        messageAppear: 'messageAppear 0.3s ease-out forwards'
+      }
     },
   },
   plugins: [],

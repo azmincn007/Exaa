@@ -3,7 +3,6 @@ import axios from "axios";
 import { BASE_URL } from "../../../../config/config";
 
 export const useBrands = (isOpen, getUserToken, subcategoryId) => {
-  console.log(subcategoryId);
 
   return useQuery(
     ["brands", subcategoryId], // Include subcategoryId in the query key to refetch on change

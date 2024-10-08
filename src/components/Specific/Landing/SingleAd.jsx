@@ -1,20 +1,18 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-import { Button } from '@chakra-ui/react';
+import { FaChevronLeft, FaChevronRight, FaCommentDollar, FaComments } from 'react-icons/fa';
 import { MdRemoveRedEye } from 'react-icons/md';
 import { CiHeart } from 'react-icons/ci';
-import { FaCommentDollar, FaComments } from 'react-icons/fa';
+import { ArrowRight } from 'lucide-react';
 import { useQuery, useMutation } from 'react-query';
-import { BASE_URL } from '../../../config/config';
 import axios from 'axios';
+import { Button } from '@chakra-ui/react';
+import { BASE_URL } from '../../../config/config';
 import CarCar from '../AdSingleStructure/CarCar';
 import Rest from '../AdSingleStructure/Rest';
-import { ArrowRight } from 'lucide-react';
 import SkeletonSingleAdPage from '../../Skelton/singleadPageskelton';
 import LoginModal from '../../modals/Authentications/LoginModal';
 import { useAuth } from '../../../Hooks/AuthContext';
-
 
 const fetchAdData = async ({ queryKey }) => {
   const [_, adCategoryId, adId, token] = queryKey;
@@ -28,7 +26,6 @@ const fetchAdData = async ({ queryKey }) => {
   return data.data;
 };
 
-// Function to find or create a chat
 const findOrCreateChat = async ({ adId, adCategoryId, adBuyerId, adSellerId, token }) => {
   try {
     const { data } = await axios.get(
@@ -66,26 +63,23 @@ function SingleAd() {
   const { id: adId, adCategoryId } = useParams();
   const navigate = useNavigate();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  const { isLoggedIn, token } = useAuth(); 
-  // Get isLoggedIn and token from useAuth
+  const { isLoggedIn, token } = useAuth();
 
   const { data: adData, isLoading, error } = useQuery(
-    ['adData', adCategoryId, adId, token], // Include token in the query key
+    ['adData', adCategoryId, adId, token],
     fetchAdData,
     {
-      enabled: !!adCategoryId && !!adId, // Only run the query if adCategoryId and adId are available
+      enabled: !!adCategoryId && !!adId,
     }
   );
-
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const chatMutation = useMutation(findOrCreateChat, {
     onSuccess: (result) => {
       const { data, isNewChat } = result;
-
       if (isNewChat) {
-        navigate(`/chats/all`, { state: { selectedChatId: data.data.id } });
+        navigate(`/chats/all`, { state: { selectedChatId: data.data?.id } });
       } else if (data.data && data.data.ad) {
         navigate(`/chats/all`, { state: { selectedChatId: data.data.ad.id } });
       } else {
@@ -98,23 +92,15 @@ function SingleAd() {
   });
 
   const handleChatWithSeller = () => {
-    console.log('Chat initiation details:', {
-      adId,
-      adCategoryId,
-      adBuyerId: adData?.adBuyer?.id,
-      adSellerId: adData?.adSeller?.id,
-      token: token ? 'Token exists' : 'Token is missing',
-    });
-    // Check if the user is logged in and if the token exists
     if (!isLoggedIn || !token) {
-      setIsLoginModalOpen(true); // Show login modal if not logged in
+      setIsLoginModalOpen(true);
     } else {
       chatMutation.mutate({
         adId,
         adCategoryId,
-        adBuyerId: adData.adBuyer.id,
-        adSellerId: adData.adSeller.id,
-        token, // Use token from useAuth context
+        adBuyerId: adData?.adBuyer?.id,
+        adSellerId: adData?.adSeller?.id,
+        token,
       });
     }
   };
@@ -127,14 +113,15 @@ function SingleAd() {
     setCurrentImageIndex((prevIndex) => (prevIndex === imageCount - 1 ? 0 : prevIndex + 1));
   };
 
-  if (isLoading) return <div><SkeletonSingleAdPage /></div>;
+  if (isLoading) return <SkeletonSingleAdPage />;
   if (error) return <div>An error occurred: {error.message}</div>;
+  if (!adData) return <div>No data available for this ad.</div>;
 
-  const images = adData?.images || [];
+  const images = adData.images || [];
   const imageCount = images.length;
   const currentImageUrl = imageCount > 0 ? `${BASE_URL}${images[currentImageIndex].url}` : '';
 
-  const isCarCategory = adData?.adCategory?.id === 2 && adData?.adSubCategory?.id === 11;
+  const isCarCategory = adData.adCategory?.id === 2 && adData.adSubCategory?.id === 11;
 
   return (
     <div className="my-16 font-Inter">
@@ -174,10 +161,10 @@ function SingleAd() {
               </div>
               <div className="flex gap-4 px-4">
                 <Button className="w-full bg-gray-200 gap-2 text-gray-700 text-sm md:text-base">
-                  <MdRemoveRedEye /> {adData.adViewCount}
+                  <MdRemoveRedEye /> {adData.adViewCount || 0}
                 </Button>
                 <Button className="w-full bg-gray-200 gap-2 text-gray-700 text-sm md:text-base">
-                  <CiHeart /> {adData.adFavouriteCount}
+                  <CiHeart /> {adData.adFavouriteCount || 0}
                 </Button>
               </div>
               <div className="flex justify-between items-end mt-8">
@@ -188,9 +175,15 @@ function SingleAd() {
             <div className="flex items-center justify-between bg-white p-4 rounded-lg shadow-md">
               <div className="flex items-center space-x-4">
                 <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
-                  <img src={`${BASE_URL}${adData.adSeller?.profileImage?.url}`} className="w-full h-full object-cover" alt="Seller" />
+                  {adData.adSeller?.profileImage?.url && (
+                    <img 
+                      src={`${BASE_URL}${adData.adSeller.profileImage.url}`} 
+                      className="w-full h-full object-cover" 
+                      alt="Seller" 
+                    />
+                  )}
                 </div>
-                <h2 className="text-14 font-semibold">{adData.adSeller?.name}</h2>
+                <h2 className="text-14 font-semibold">{adData.adSeller?.name || 'Unknown Seller'}</h2>
               </div>
               <ArrowRight className="text-gray-600" />
             </div>
@@ -198,7 +191,7 @@ function SingleAd() {
         </div>
         <div className="mt-8">
           <div className="font-semibold text-lg md:text-xl">Description</div>
-          <p className="text-sm md:text-base text-gray-500">{adData?.description}</p>
+          <p className="text-sm md:text-base text-gray-500">{adData.description || 'No description available.'}</p>
         </div>
       </div>
       <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />

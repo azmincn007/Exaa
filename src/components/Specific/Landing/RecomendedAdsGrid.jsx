@@ -13,6 +13,9 @@ const MemoizedCardUser = memo(CardUser);
 function RecommendedAdsGrid() {
   const [selectedTown] = useContext(TownContext);
   const [selectedDistrict, setSelectedDistrict] = useContext(DistrictContext);
+
+  
+  
   const [visibleAds, setVisibleAds] = useState(8);
   const isSmallMobile = useBreakpointValue({ base: true, sm: false });
   const columns = useBreakpointValue({ base: 1, sm: 2, md: 2, lg: 3, xl: 4 });

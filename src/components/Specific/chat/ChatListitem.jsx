@@ -1,10 +1,28 @@
 import React from 'react';
 import { BASE_URL } from '../../../config/config';
+import { User } from 'lucide-react';
 
 const ChatListItem = ({ chat, isSelected, onSelect }) => {
-  console.log(chat?.adSeller.profileImage?.url);
-  
   const isMobile = window.innerWidth <= 768; // Simple mobile detection
+  const receiver = chat.adChatReceiver;
+
+  const renderAvatar = () => {
+    if (receiver?.profileImage?.url) {
+      return (
+        <img
+          src={`${BASE_URL}${receiver.profileImage.url}`}
+          alt={receiver.name}
+          className={isMobile ? "w-10 h-10 rounded-full" : "w-full h-full object-cover rounded-lg"}
+        />
+      );
+    } else {
+      return (
+        <div className={`flex items-center justify-center bg-gray-200 ${isMobile ? "w-10 h-10 rounded-full" : "w-full h-full rounded-lg"}`}>
+          <User className="text-gray-500" size={isMobile ? 24 : 48} />
+        </div>
+      );
+    }
+  };
 
   return (
     <div
@@ -16,13 +34,9 @@ const ChatListItem = ({ chat, isSelected, onSelect }) => {
       {isMobile ? (
         // Mobile layout
         <div className="flex items-center w-full p-2">
-          <img 
-            src={`${BASE_URL}${chat?.adSeller.profileImage?.url}`} 
-            alt={chat.adSeller.name} 
-            className="w-10 h-10 rounded-full mr-3"
-          />
+          <div className="mr-3">{renderAvatar()}</div>
           <div className="flex-1">
-            <h3 className="font-semibold text-sm truncate">{chat?.adSeller.name}</h3>
+            <h3 className="font-semibold text-sm truncate">{receiver.name}</h3>
             <p className="text-xs text-gray-600 truncate">{chat?.ad?.title}</p>
             <p className="text-xs text-gray-500 truncate">{chat?.adCategory.name}</p>
           </div>
@@ -31,17 +45,13 @@ const ChatListItem = ({ chat, isSelected, onSelect }) => {
         // Desktop layout
         <>
           <div className="w-1/2 h-40 overflow-hidden p-2">
-            <img 
-              src={`${BASE_URL}${chat?.adSeller?.profileImage?.url}`} 
-              alt={chat.adSeller.name} 
-              className="w-full h-full object-cover rounded-lg"
-            />
+            {renderAvatar()}
           </div>
           <div className="w-1/2 p-4 h-40 flex flex-col justify-around">
-            <h3 className="font-semibold truncate">{chat?.adSeller.name}</h3>
+            <h3 className="font-semibold truncate">{receiver.name}</h3>
             <div className='flex flex-col gap-2'>
               <p className="text-sm text-gray-600 truncate">{chat?.ad?.title}</p>
-              <p className="text-sm text-gray-500 truncate">{chat?.adCategory.name}</p>
+              <p className="text-sm text-gray-500 truncate">{`${chat?.ad.locationTown?.name},${chat?.ad.locationDistrict?.name}`}</p>
             </div>
           </div>
         </>

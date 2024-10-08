@@ -5,10 +5,22 @@ const Rest = ({ adData }) => {
     
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
         });
+    };
+
+    // Helper function to safely render values
+    const safeRender = (value) => {
+        if (value === null || value === undefined) return 'N/A';
+        if (typeof value === 'string' || typeof value === 'number') return value;
+        if (typeof value === 'object') {
+            if (value.name) return value.name;
+            if (value.id) return value.id;
+            return JSON.stringify(value);
+        }
+        return String(value);
     };
     
     // Create a key-value pair data structure for specific fields
@@ -56,8 +68,8 @@ const Rest = ({ adData }) => {
     return (
         <div className="col-span-12 md:col-span-8 bg-white rounded-lg p-4 font-Inter">
             <div>
-                <div className='font-semibold text-base md:text-2xl'>{adData?.title}</div>
-                <div className='text-gray-500 text-xs md:text-base'>{adData?.variant || adData.type}</div>
+                <div className='font-semibold text-base md:text-2xl'>{safeRender(adData?.title)}</div>
+                <div className='text-gray-500 text-xs md:text-base'>{safeRender(adData?.variant || adData?.type)}</div>
                 <div className='font-semibold my-2 text-base md:text-xl'>
                     {adData?.price ? (
                         `₹ ${new Intl.NumberFormat('en-IN').format(adData.price)}`
@@ -65,18 +77,18 @@ const Rest = ({ adData }) => {
                         `₹ ${new Intl.NumberFormat('en-IN').format(adData.monthlyRent)} /mon`
                     ) : adData?.salary ? (
                         `₹ ${new Intl.NumberFormat('en-IN').format(adData.salary)} /mon`
-                    ) : null}
+                    ) : 'Price not available'}
                 </div>
             </div>
             <div className="grid grid-cols-12 gap-x-2 gap-y-2 mt-8">
                 {keyValuePairs.map(({ label, value }) => (
-                    value ? (
+                    value !== undefined && value !== null ? (
                         <React.Fragment key={label}>
                             <div className="col-span-6 sm:col-span-3 flex justify-start">
                                 <span className="text-[10px] text-exagrey md:text-base font-semibold">{label}:</span>
                             </div>
                             <div className="col-span-6 sm:col-span-3 flex justify-start">
-                                <span className="text-[10px] md:text-base break-words">{value}</span>
+                                <span className="text-[10px] md:text-base break-words">{safeRender(value)}</span>
                             </div>
                         </React.Fragment>
                     ) : null
