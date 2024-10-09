@@ -18,6 +18,7 @@ import CategoryBasedGrid from './components/Specific/Landing/CategoryBasedGrid';
 import ChatComponent from './pages/SpecificPages/Chatcomponent';
 import axios from 'axios';
 import { BASE_URL } from './config/config';
+import { SearchProvider } from './Hooks/SearchContext';
 
 export const TownContext = createContext();
 export const UserdataContext = createContext();
@@ -64,6 +65,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+      <SearchProvider>
         <UserdataContext.Provider value={{ userData, setUserData, isLoading }}>
         <DistrictContext.Provider value={[selectedDistrict, setSelectedDistrict]}>
           <TownContext.Provider value={[selectedTown, setSelectedTown]}>
@@ -92,6 +94,7 @@ function App() {
           </TownContext.Provider>
           </DistrictContext.Provider>
         </UserdataContext.Provider>
+        </SearchProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

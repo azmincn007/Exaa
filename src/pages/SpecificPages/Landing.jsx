@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { Box, Image, Skeleton, Text } from '@chakra-ui/react';
 import { useQuery } from 'react-query';
 import axios from 'axios';
@@ -6,6 +6,8 @@ import { BASE_URL } from '../../config/config';
 import Downlaoddiv from '../../components/Specific/Landing/Downlaoddiv';
 import RecommendedAdsGrid from '../../components/Specific/Landing/RecomendedAdsGrid';
 import { TownContext } from '../../App'; // Make sure this path is correct
+import { useSearch } from '../../Hooks/SearchContext';
+import SearchedAdsGrid from '../../components/Specific/Landing/SearchedAdsGrid';
 
 const fetchBanners = async () => {
   const response = await axios.get(`${BASE_URL}/api/home-page`);
@@ -75,6 +77,12 @@ const Carousel = () => {
 
 function Landing() {
   const [selectedTown] = useContext(TownContext);
+  const { hasSearched, searchText, setHasSearched } = useSearch();
+
+  useEffect(() => {
+    // Reset hasSearched when the component mounts
+    setHasSearched(false);
+  }, []);
 
   return (
     <Box className='bg-offwhite py-8 font-Inter'>
@@ -83,9 +91,15 @@ function Landing() {
       </Box>
       
       {selectedTown && (
-        <Box className='w-[90%] md:w-[80%] mx-auto py-4  sm:py-16'>
-          <Box className='font-semibold text-2xl mb-4'>Latest Recommendations</Box>
-          <RecommendedAdsGrid />
+        <Box className='w-[90%] md:w-[80%] mx-auto py-4 sm:py-16'>
+          <Box className='font-semibold text-2xl mb-4'>
+            {hasSearched ? 'Search Results' : 'Latest Recommendations'}
+          </Box>
+          {hasSearched ? (
+            <SearchedAdsGrid />
+          ) : (
+            <RecommendedAdsGrid />
+          )}
         </Box>
       )}
       

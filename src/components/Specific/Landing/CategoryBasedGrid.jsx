@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import {
   Box, VStack, Text, Grid, GridItem, SimpleGrid, useBreakpointValue, Select, Button, Drawer, 
-  DrawerBody, DrawerHeader, DrawerOverlay,  DrawerContent, DrawerCloseButton, useDisclosure, 
+  DrawerBody, DrawerHeader, DrawerOverlay, DrawerContent, DrawerCloseButton, useDisclosure, 
   IconButton, Skeleton, SkeletonCircle, SkeletonText
 } from '@chakra-ui/react';
 import { useParams } from 'react-router-dom';
@@ -10,21 +10,51 @@ import axios from 'axios';
 import { BASE_URL } from '../../../config/config';
 import CardUser from '../../common/Cards/CardUser';
 import { TownContext } from '../../../App';
-import PriceSlider from '../Catgorybased/PriceSlider';
 import { Filter } from 'lucide-react'; 
 import CategoryDropdown from '../Catgorybased/CategoryDropdown';
+import DynamicFilters from '../Catgorybased/DynamicFilterss';
 
 const fetchSubCategories = async (categoryId) => {
   const response = await axios.get(`${BASE_URL}/api/ad-find-category-sub-categories/${categoryId}`);
+  console.log('Fetched subCategories:', response.data.data);
   return response.data.data;
 };
 
-const fetchAdsData = async (subCategoryId, selectedTownId, selectedDistrictId) => {
-  const url = `${BASE_URL}/api/find-sub-category-ads/${subCategoryId}?locationDistrictId="${selectedDistrictId}"&locationTownId="${selectedTownId}"`;
-  const response = await axios.get(url);
-  console.log(response.data);
-  console.log(response.data);
+const fetchAdsData = async (subCategoryId, selectedTownId, selectedDistrictId, filters) => {
+  let url = `${BASE_URL}/api/find-sub-category-ads/${subCategoryId}?locationDistrictId="${selectedDistrictId}"&locationTownId="${selectedTownId}"`;
   
+  // Handle multiple fuel types
+  if (filters.fuel && filters.fuel.length > 0) {
+    const fuelQuery = filters.fuel.map(fuel => `fuel=${encodeURIComponent(fuel)}`).join('&');
+    url += `&${fuelQuery}`;
+  }
+  
+  // Handle multiple years
+  if (filters.year && filters.year.length > 0) {
+    const yearQuery = filters.year.map(year => `year=${encodeURIComponent(year)}`).join('&');
+    url += `&${yearQuery}`;
+  }
+  
+  // Handle transmission
+  if (filters.transmission && filters.transmission.length > 0) {
+    const transmissionQuery = filters.transmission.map(trans => `transmission=${encodeURIComponent(trans)}`).join('&');
+    url += `&${transmissionQuery}`;
+  }
+  
+  // Handle kmDriven
+  if (filters.kmDriven && filters.kmDriven.length > 0) {
+    const kmDrivenQuery = filters.kmDriven.map(km => `kmDriven=${encodeURIComponent(km)}`).join('&');
+    url += `&${kmDrivenQuery}`;
+  }
+  
+  // Handle noOfOwners
+  if (filters.noOfOwners && filters.noOfOwners.length > 0) {
+    const noOfOwnersQuery = filters.noOfOwners.map(owner => `noOfOwners=${encodeURIComponent(owner)}`).join('&');
+    url += `&${noOfOwnersQuery}`;
+  }
+  
+  const response = await axios.get(url);
+  console.log('Fetched adsData:', response.data);
   return response.data;
 };
 
@@ -34,8 +64,9 @@ const CategoryBasedGrid = () => {
   const [sortOption, setSortOption] = useState('relevance');
   const [visibleCount, setVisibleCount] = useState(16);
   const [selectedTown, selectedDistrict] = useContext(TownContext);
-  const [priceRange, setPriceRange] = useState([1, 100000]);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [filters, setFilters] = useState({ fuel: [] ,year:[]});
+
 
   const { data: subCategories, isLoading: isLoadingSubCategories } = useQuery(
     ['subCategories', categoryId],
@@ -49,13 +80,25 @@ const CategoryBasedGrid = () => {
     }
   }, [subCategories]);
 
-  const { data: adsData, isLoading: isLoadingAdsData } = useQuery(
-    ['adsData', selectedCategory?.id, selectedTown, selectedDistrict],
-    () => fetchAdsData(selectedCategory?.id, selectedTown || "all", selectedDistrict || "all"),
-    { enabled: !!selectedCategory?.id }
-  );
+  useEffect(() => {
+    console.log('Selected Category:', selectedCategory);
+  }, [selectedCategory]);
 
+  const { data: adsData, isLoading: isLoadingAdsData } = useQuery(
+    ['adsData', selectedCategory?.id, selectedTown, selectedDistrict, filters],
+    () => fetchAdsData(selectedCategory?.id, selectedTown || "all", selectedDistrict || "all", filters),
+    { 
+      enabled: !!selectedCategory?.id,
+      onSuccess: (data) => {
+        console.log('useQuery adsData success:', data);
+      },
+      onError: (error) => {
+        console.error('Error fetching adsData:', error);
+      }
+    }
+  );
   const handleItemClick = (clickedItem) => {
+    console.log('Category clicked:', clickedItem);
     setSelectedCategory(clickedItem);
     setVisibleCount(16);
     if (isOpen) onClose();
@@ -65,26 +108,23 @@ const CategoryBasedGrid = () => {
     setSortOption(e.target.value);
   };
 
-  const handlePriceRangeApply = (newRange) => {
-    setPriceRange(newRange);
-    setVisibleCount(16);
-    if (isOpen) onClose();
-  };
-
   const filteredAndSortedAdsData = () => {
-    if (!adsData || !adsData.data) return [];
+    if (!adsData || !adsData.data) {
+      console.log('No adsData or adsData.data');
+      return [];
+    }
     
-    return adsData.data
-      .filter(ad => ad.price >= priceRange[0] && ad.price <= priceRange[1])
-      .sort((a, b) => {
-        switch (sortOption) {
-          case 'priceLowToHigh': return a.price - b.price;
-          case 'priceHighToLow': return b.price - a.price;
-          case 'postedDate': return new Date(b.postedDate) - new Date(a.postedDate);
-          case 'relevance':
-          default: return 0;
-        }
-      });
+    const sorted = adsData.data.sort((a, b) => {
+      switch (sortOption) {
+        case 'priceLowToHigh': return a.price - b.price;
+        case 'priceHighToLow': return b.price - a.price;
+        case 'postedDate': return new Date(b.postedDate) - new Date(a.postedDate);
+        case 'relevance':
+        default: return 0;
+      }
+    });
+    
+    return sorted;
   };
 
   const handleShowMore = () => {
@@ -103,11 +143,16 @@ const CategoryBasedGrid = () => {
         selectedItemId={selectedCategory?.id}
         onItemClick={handleItemClick}
       />
-      {categoryName !== 'Jobs' && (
-        <PriceSlider 
-          category={categoryName}
-          onApply={handlePriceRangeApply}
-        />
+      {selectedCategory && (
+        <DynamicFilters
+        subCategoryId={selectedCategory.id}
+        filters={filters}
+        setFilters={setFilters}
+        onFilterChange={(newFilters) => {
+          console.log('Filters changed:', newFilters);
+          setFilters(newFilters);
+        }}
+      />
       )}
     </VStack>
   );
@@ -161,24 +206,26 @@ const CategoryBasedGrid = () => {
 
               {filteredAndSortedAdsData().slice(0, visibleCount).length > 0 ? (
                 <SimpleGrid columns={cardColumns} spacing={[3, 4, 6]}>
-                  {filteredAndSortedAdsData().slice(0, visibleCount).map((ad) => (
-                    <CardUser
-                      key={ad.id}
-                      id={ad.id}
-                      adCategoryId={ad.adCategory.id}
-                      isFeatured={ad.isFeatured}
-                      imageUrl={ad.images?.url || ''}
-                      price={ad.price}
-                      title={ad.title}
-                      location={ad.locationTown.name}
-                      postedDate={ad.postedDate}
-                      adBoostTag={ad.adBoostTag}
-                      isAdFavourite={ad.isAdFavourite}
-                    />
-                  ))}
+                  {filteredAndSortedAdsData().slice(0, visibleCount).map((ad) => {
+                    return (
+                      <CardUser
+                        key={ad.id}
+                        id={ad.id}
+                        adCategoryId={ad.adCategory.id}
+                        isFeatured={ad.isFeatured}
+                        imageUrl={ad.images?.url || ''}
+                        price={ad.price}
+                        title={ad.title}
+                        location={ad.locationTown.name}
+                        postedDate={ad.postedDate}
+                        adBoostTag={ad.adBoostTag}
+                        isAdFavourite={ad.isAdFavourite}
+                      />
+                    );
+                  })}
                 </SimpleGrid>
               ) : (
-                <Text fontSize={["sm", "md"]}>No ads available in this price range for this category.</Text>
+                <Text fontSize={["sm", "md"]}>No ads available for this category.</Text>
               )}
 
               {filteredAndSortedAdsData().length > visibleCount && (

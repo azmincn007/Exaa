@@ -25,6 +25,8 @@ const Rest = ({ adData }) => {
     
     // Create a key-value pair data structure for specific fields
     const keyValuePairs = [
+        { label: 'Category', value: adData?.adCategory.name },
+        { label: 'Sub Category', value: adData?.adSubCategory.name },
         { label: 'Brand', value: adData?.brand },
         { label: 'Model', value: adData?.model },
         { label: 'Variant', value: adData?.variant },
@@ -69,7 +71,11 @@ const Rest = ({ adData }) => {
         <div className="col-span-12 md:col-span-8 bg-white rounded-lg p-4 font-Inter">
             <div>
                 <div className='font-semibold text-base md:text-2xl'>{safeRender(adData?.title)}</div>
-                <div className='text-gray-500 text-xs md:text-base'>{safeRender(adData?.variant || adData?.type)}</div>
+                {(adData?.variant || adData?.type) && (
+                    <div className='text-gray-500 text-xs md:text-base'>
+                        {safeRender(adData?.variant || adData?.type)}
+                    </div>
+                )}
                 <div className='font-semibold my-2 text-base md:text-xl'>
                     {adData?.price ? (
                         `₹ ${new Intl.NumberFormat('en-IN').format(adData.price)}`
@@ -85,10 +91,10 @@ const Rest = ({ adData }) => {
                     value !== undefined && value !== null ? (
                         <React.Fragment key={label}>
                             <div className="col-span-6 sm:col-span-3 flex justify-start">
-                                <span className="text-[10px] text-exagrey md:text-base font-semibold">{label}:</span>
+                                <span className="text-[8px] text-exagrey md:text-[14px] font-semibold">{label}:</span>
                             </div>
                             <div className="col-span-6 sm:col-span-3 flex justify-start">
-                                <span className="text-[10px] md:text-base break-words">{safeRender(value)}</span>
+                                <span className="text-[8px] md:text-[14px] break-words">{safeRender(value)}</span>
                             </div>
                         </React.Fragment>
                     ) : null

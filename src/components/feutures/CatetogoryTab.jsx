@@ -11,9 +11,9 @@ function CategoryTab() {
   };
 
   return (
-    <div className="w-full bg-exagrey relative shadow-md">
+    <div className="w-full bg-exagrey relative shadow-md ">
       <div className="w-full h-4 absolute bottom-0 left-0 shadow-custom"></div>
-      <div className="w-full px-4 md:w-[90%] lg:w-[80%] mx-auto flex flex-row items-center relative z-10 py-2">
+      <div className="w-full px-4 md:w-[90%] lg:w-[80%] mx-auto flex flex-row items-center relative z-5 py-2">
         <div
           className="flex-shrink-0 py-2 md:py-0 flex items-center cursor-pointer text-xs sm:text-sm whitespace-nowrap mr-4"
           onClick={toggleOpen}

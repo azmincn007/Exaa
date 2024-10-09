@@ -6,27 +6,28 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { BASE_URL } from '../../../config/config';
 import CardUser from '../../../components/common/Cards/CardUser.jsx';
 import { DistrictContext, TownContext } from '../../../App';
+import { useSearch } from '../../../Hooks/SearchContext';
 import 'swiper/css';
 
 const MemoizedCardUser = memo(CardUser);
 
-function RecommendedAdsGrid() {
+function SearchedAdsGrid() {
   const [selectedTown] = useContext(TownContext);
-  const [selectedDistrict, setSelectedDistrict] = useContext(DistrictContext);
-
-  
+  const [selectedDistrict] = useContext(DistrictContext);
+  const { searchText } = useSearch();
   
   const [visibleAds, setVisibleAds] = useState(8);
   const isSmallMobile = useBreakpointValue({ base: true, sm: false });
   const columns = useBreakpointValue({ base: 1, sm: 2, md: 2, lg: 3, xl: 4 });
   const skeletonCount = useBreakpointValue({ base: 4, sm: 4, md: 4, lg: 6, xl: 8 });
 
-  const fetchRecommendedAds = async () => {
-    const endpoint = `${BASE_URL}/api/find-latest-recommended-ads`;
+  const fetchSearchedAds = async () => {
+    const endpoint = `${BASE_URL}/api/find-home-page-search-ads`;
     const params = {
       adLimit: 30,
       locationTownId: selectedTown === "all" ? '"all"' : String(selectedTown),
-      locationDistrictId: selectedDistrict === "all" ? '"all"' : String(selectedDistrict)
+      locationDistrictId: selectedDistrict === "all" ? '"all"' : String(selectedDistrict),
+      search: searchText
     };
     
     const config = {};
@@ -41,20 +42,20 @@ function RecommendedAdsGrid() {
     return response.data.data;
   };
 
-  const { data, error, refetch, isLoading } = useQuery(['recommendedAds', selectedTown], fetchRecommendedAds, {
-    enabled: !!selectedTown,
+  const { data, error, refetch, isLoading } = useQuery(['searchedAds', selectedTown, searchText], fetchSearchedAds, {
+    enabled: !!selectedTown && !!searchText,
   });
 
   useEffect(() => {
-    if (selectedTown) {
+    if (selectedTown && searchText) {
       refetch();
     }
-  }, [selectedTown, refetch]);
+  }, [selectedTown, searchText, refetch]);
 
   const dataLength = data ? data.length : 0;
 
   const showMoreAds = () => {
-    setVisibleAds((prevVisible) => Math.min(prevVisible + 8, dataLength));
+    setVisibleAds((prevVisible) => Math.min(prevVisible + 4, dataLength));
   };
 
   const renderCard = (ad) => (
@@ -146,4 +147,4 @@ function RecommendedAdsGrid() {
   );
 }
 
-export default RecommendedAdsGrid;
+export default SearchedAdsGrid;

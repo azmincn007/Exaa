@@ -6,7 +6,7 @@ import { CiHeart } from 'react-icons/ci';
 import { ArrowRight } from 'lucide-react';
 import { useQuery, useMutation } from 'react-query';
 import axios from 'axios';
-import { Button } from '@chakra-ui/react';
+import { Button, Modal, ModalOverlay, ModalContent, ModalBody, ModalCloseButton, useDisclosure } from '@chakra-ui/react';
 import { BASE_URL } from '../../../config/config';
 import CarCar from '../AdSingleStructure/CarCar';
 import Rest from '../AdSingleStructure/Rest';
@@ -64,6 +64,7 @@ function SingleAd() {
   const navigate = useNavigate();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const { isLoggedIn, token } = useAuth();
 
@@ -128,7 +129,7 @@ function SingleAd() {
       <div className="relative flex items-center justify-center w-4/5 mx-auto overflow-hidden gap-16">
         <FaChevronLeft onClick={handlePrevClick} />
         {imageCount > 0 ? (
-          <div className="w-full bg-black flex justify-center items-center">
+          <div className="w-full bg-black flex justify-center items-center cursor-pointer" onClick={onOpen}>
             <img
               src={currentImageUrl}
               alt={`Ad Image ${currentImageIndex + 1}`}
@@ -142,6 +143,22 @@ function SingleAd() {
         )}
         <FaChevronRight onClick={handleNextClick} />
       </div>
+
+      {/* Image Modal for full view */}
+      <Modal isOpen={isOpen} onClose={onClose} size="full">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalCloseButton />
+          <ModalBody className="flex justify-center items-center">
+            <img
+              src={currentImageUrl}
+              alt={`Full View Ad Image ${currentImageIndex + 1}`}
+              className="max-h-[80vh] object-contain"
+            />
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+
       <div className="container mx-auto p-6">
         <div className="grid grid-cols-12 gap-4">
           {isCarCategory ? <CarCar adData={adData} /> : <Rest adData={adData} />}

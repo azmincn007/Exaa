@@ -17,10 +17,11 @@ import StyledLanguageDropdown from "../forms/dropdown/StyledLanguageDropdown";
 import SellModal from "../modals/othermodals/SellModal";
 import SkeletonNavbar from "../Skelton/SkwltonNavbar";
 import { useQueryClient } from "react-query";
+import { useSearch } from "../../Hooks/SearchContext";
 
 
 
-function Navbar({ onShowPackagesAndOrders }) {
+function Navbar({ onShowPackagesAndOrders,setSearchResults  }) {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isProfileDropdownOpenMobile, setIsProfileDropdownOpenMobile] = useState(false);
   const profileDropdownRef = useRef(null);
@@ -29,6 +30,14 @@ function Navbar({ onShowPackagesAndOrders }) {
   const { userData, isLoading } = useContext(UserdataContext);
   const navigate = useNavigate();
   const queryClient = useQueryClient(); // Access the query client
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const { setHasSearched, resetSearch } = useSearch();
+  const handleSearch = () => {
+    if (searchTerm.length > 2) {
+      setHasSearched(true);
+    }
+  };
 
   const { isOpen: isSellModalOpen, onOpen: onSellModalOpen, onClose: onSellModalClose } = useDisclosure();
   const { isOpen: isLoginModalOpen, onOpen: onLoginModalOpen, onClose: onLoginModalClose } = useDisclosure();
@@ -40,7 +49,10 @@ function Navbar({ onShowPackagesAndOrders }) {
       onLoginModalOpen();
     }
   };
-
+  const handleLogoClick = () => {
+    resetSearch();
+    navigate('/');
+  };
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -145,13 +157,16 @@ function Navbar({ onShowPackagesAndOrders }) {
         {/* Large screens layout (above 900px) */}
         <div className="hidden lg:grid grid-cols-12 gap-4 items-center">
           <div className="col-span-2 lg:col-span-1">
-            <Link to={"/"}>
-              <img className="h-[40px]" src={IMAGES.ExaLogo} alt="Logo" />
-            </Link>
+          <Link to="/" onClick={handleLogoClick}>
+  <img className="h-[40px]" src={IMAGES.ExaLogo} alt="Logo" />
+</Link>
           </div>
           <div className="col-span-4">
-            <SearchComponent />
-          </div>
+          <SearchComponent 
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              onSearch={handleSearch}
+            />      </div>
           <div className="col-span-3 flex gap-2 items-center justify-around">
             <div className="flex items-center gap-4">
               <FaLocationDot /> <SimpleCountryDropdown />
@@ -200,8 +215,11 @@ function Navbar({ onShowPackagesAndOrders }) {
             </div>
           </div>
           <div className="w-full">
-            <SearchComponent />
-          </div>
+          <SearchComponent 
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              onSearch={handleSearch}
+            />          </div>
         </div>
       </div>
       <LoginModal isOpen={isLoginModalOpen} onClose={onLoginModalClose} />
