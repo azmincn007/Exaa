@@ -17,7 +17,7 @@ const FuelFilter = ({ filterValues, handleFilterChange }) => {
   return (
     <FormControl>
       <FormLabel>Fuel Type</FormLabel>
-      <Stack spacing={2}>
+      <Stack maxH="200px" spacing={2}>
         {fuelOptions.map((fuel) => (
           <Checkbox
             key={fuel}

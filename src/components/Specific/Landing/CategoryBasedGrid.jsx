@@ -6,57 +6,12 @@ import {
 } from '@chakra-ui/react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from 'react-query';
-import axios from 'axios';
-import { BASE_URL } from '../../../config/config';
-import CardUser from '../../common/Cards/CardUser';
 import { TownContext } from '../../../App';
 import { Filter } from 'lucide-react'; 
 import CategoryDropdown from '../Catgorybased/CategoryDropdown';
 import DynamicFilters from '../Catgorybased/DynamicFilterss';
-
-const fetchSubCategories = async (categoryId) => {
-  const response = await axios.get(`${BASE_URL}/api/ad-find-category-sub-categories/${categoryId}`);
-  console.log('Fetched subCategories:', response.data.data);
-  return response.data.data;
-};
-
-const fetchAdsData = async (subCategoryId, selectedTownId, selectedDistrictId, filters) => {
-  let url = `${BASE_URL}/api/find-sub-category-ads/${subCategoryId}?locationDistrictId="${selectedDistrictId}"&locationTownId="${selectedTownId}"`;
-  
-  // Handle multiple fuel types
-  if (filters.fuel && filters.fuel.length > 0) {
-    const fuelQuery = filters.fuel.map(fuel => `fuel=${encodeURIComponent(fuel)}`).join('&');
-    url += `&${fuelQuery}`;
-  }
-  
-  // Handle multiple years
-  if (filters.year && filters.year.length > 0) {
-    const yearQuery = filters.year.map(year => `year=${encodeURIComponent(year)}`).join('&');
-    url += `&${yearQuery}`;
-  }
-  
-  // Handle transmission
-  if (filters.transmission && filters.transmission.length > 0) {
-    const transmissionQuery = filters.transmission.map(trans => `transmission=${encodeURIComponent(trans)}`).join('&');
-    url += `&${transmissionQuery}`;
-  }
-  
-  // Handle kmDriven
-  if (filters.kmDriven && filters.kmDriven.length > 0) {
-    const kmDrivenQuery = filters.kmDriven.map(km => `kmDriven=${encodeURIComponent(km)}`).join('&');
-    url += `&${kmDrivenQuery}`;
-  }
-  
-  // Handle noOfOwners
-  if (filters.noOfOwners && filters.noOfOwners.length > 0) {
-    const noOfOwnersQuery = filters.noOfOwners.map(owner => `noOfOwners=${encodeURIComponent(owner)}`).join('&');
-    url += `&${noOfOwnersQuery}`;
-  }
-  
-  const response = await axios.get(url);
-  console.log('Fetched adsData:', response.data);
-  return response.data;
-};
+import CardUser from '../../common/Cards/CardUser';
+import AdsService from '../../../Services/AdsServices';
 
 const CategoryBasedGrid = () => {
   const { categoryId, categoryName } = useParams();
@@ -65,12 +20,39 @@ const CategoryBasedGrid = () => {
   const [visibleCount, setVisibleCount] = useState(16);
   const [selectedTown, selectedDistrict] = useContext(TownContext);
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [filters, setFilters] = useState({ fuel: [] ,year:[]});
+  const [filters, setFilters] = useState({
+    fuel: [],
+    yearStart: 2000,
+    yearEnd: 2025,
+    transmission: [],
+    kmDriven: [],
+    noOfOwners: [],
+    bedrooms: [],
+    bathrooms: [],
+    furnishing: [],
+    constructionStatus: [],
+    listedBy: [],
+    totalFloors: [],
+    facing: [],
+    totalLandAreaStart: 0,
+    totalLandAreaEnd: 10000,
+    superBuiltupAreaStart: 50,
+    superBuiltupAreaEnd: 10000,
+    carpetAreaStart: 50,
+    carpetAreaEnd: 10000,
+    engineCC: [],
+    buyYearStart: 2010,
+    buyYearEnd: 2025,
+    salaryPeriod: [],
+  positionType: [],
+  qualification: [],
+  experience: [],
+  });
 
-
+  // Fetch subcategories
   const { data: subCategories, isLoading: isLoadingSubCategories } = useQuery(
     ['subCategories', categoryId],
-    () => fetchSubCategories(categoryId),
+    () => AdsService.fetchSubCategories(categoryId),
     { enabled: !!categoryId }
   );
 
@@ -80,13 +62,16 @@ const CategoryBasedGrid = () => {
     }
   }, [subCategories]);
 
-  useEffect(() => {
-    console.log('Selected Category:', selectedCategory);
-  }, [selectedCategory]);
-
-  const { data: adsData, isLoading: isLoadingAdsData } = useQuery(
-    ['adsData', selectedCategory?.id, selectedTown, selectedDistrict, filters],
-    () => fetchAdsData(selectedCategory?.id, selectedTown || "all", selectedDistrict || "all", filters),
+  // Fetch ads data
+  const { data: adsData, isLoading: isLoadingAdsData, refetch: refetchAdsData } = useQuery(
+    ['adsData', selectedCategory?.id, selectedTown, selectedDistrict, filters, sortOption],
+    () => AdsService.fetchAdsData({
+      subCategoryId: selectedCategory?.id,
+      selectedTownId: selectedTown || "all",
+      selectedDistrictId: selectedDistrict || "all",
+      filters,
+      sortOption
+    }),
     { 
       enabled: !!selectedCategory?.id,
       onSuccess: (data) => {
@@ -97,8 +82,8 @@ const CategoryBasedGrid = () => {
       }
     }
   );
+
   const handleItemClick = (clickedItem) => {
-    console.log('Category clicked:', clickedItem);
     setSelectedCategory(clickedItem);
     setVisibleCount(16);
     if (isOpen) onClose();
@@ -110,7 +95,6 @@ const CategoryBasedGrid = () => {
 
   const filteredAndSortedAdsData = () => {
     if (!adsData || !adsData.data) {
-      console.log('No adsData or adsData.data');
       return [];
     }
     
@@ -131,6 +115,12 @@ const CategoryBasedGrid = () => {
     setVisibleCount((prevCount) => prevCount + 16);
   };
 
+  const handleFilterChange = (newFilters) => {
+    console.log('Filters changed:', newFilters);
+    setFilters(newFilters);
+    refetchAdsData(); // Refetch data when filters change
+  };
+
   const columns = useBreakpointValue({ base: "1fr", md: "250px 1fr" });
   const cardColumns = useBreakpointValue({ base: 2, sm: 2, md: 3 });
   const isMobile = useBreakpointValue({ base: true, md: false });
@@ -145,18 +135,13 @@ const CategoryBasedGrid = () => {
       />
       {selectedCategory && (
         <DynamicFilters
-        subCategoryId={selectedCategory.id}
-        filters={filters}
-        setFilters={setFilters}
-        onFilterChange={(newFilters) => {
-          console.log('Filters changed:', newFilters);
-          setFilters(newFilters);
-        }}
-      />
+          subCategoryId={selectedCategory.id}
+          filters={filters}
+          setFilters={handleFilterChange}
+        />
       )}
     </VStack>
   );
-
   return (
     <Box className='py-4 w-[95%] mx-auto'>
       {isMobile && (

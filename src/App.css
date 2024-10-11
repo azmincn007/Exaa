@@ -117,3 +117,27 @@
 .animate-fade-in {
   animation: fade-in 0.3s ease-out forwards;
 }
+
+/* Webkit browsers like Chrome, Safari */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  width: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 24px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: black transparent;
+}

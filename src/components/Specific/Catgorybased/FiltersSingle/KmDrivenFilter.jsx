@@ -1,5 +1,5 @@
 import React from 'react';
-import { FormControl, FormLabel, Checkbox, Stack } from '@chakra-ui/react';
+import { FormControl, FormLabel, Checkbox, Stack, Box } from '@chakra-ui/react';
 
 const KmDrivenFilter = ({ filterValues, handleFilterChange }) => {
   const kmDrivenOptions = [
@@ -31,17 +31,19 @@ const KmDrivenFilter = ({ filterValues, handleFilterChange }) => {
   return (
     <FormControl>
       <FormLabel>Kilometers Driven</FormLabel>
-      <Stack spacing={2}>
-        {kmDrivenOptions.map((option) => (
-          <Checkbox
-            key={option.id}
-            isChecked={filterValues.kmDriven?.includes(option.id) || false}
-            onChange={() => handleCheckboxChange(option.id)}
-          >
-            {option.name}
-          </Checkbox>
-        ))}
-      </Stack>
+      <Box maxH="200px" overflowY="auto" overflowX="hidden">
+        <Stack spacing={2}>
+          {kmDrivenOptions.map((option) => (
+            <Checkbox
+              key={option.id}
+              isChecked={filterValues.kmDriven?.includes(option.id) || false}
+              onChange={() => handleCheckboxChange(option.id)}
+            >
+              {option.name}
+            </Checkbox>
+          ))}
+        </Stack>
+      </Box>
     </FormControl>
   );
 };
