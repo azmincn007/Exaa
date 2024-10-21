@@ -20,7 +20,7 @@ import {
   Spinner,
 } from "@chakra-ui/react";
 import { CircleCheck } from "lucide-react";
-import packages from '../../assets/packages.png'
+import packages from '../../assets/Packages.png'
 import { BASE_URL } from "../../config/config";
 import PackageGrid from "../../components/Specific/Packages/PackagesadsBoxes";
 import Boostgrid from "../../components/Specific/Packages/Boostgrid";
