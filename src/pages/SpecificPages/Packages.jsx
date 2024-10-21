@@ -37,7 +37,7 @@ const fetchAdPackages = async () => {
       'Authorization': `Bearer ${userToken}`
     }
   });
-  console.log(data.data);
+ 
   
   return data.data;
 };
