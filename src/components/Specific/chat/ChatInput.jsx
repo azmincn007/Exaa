@@ -1,37 +1,42 @@
-// ChatInput.jsx
 import React, { useState } from 'react';
 import { FaTelegram } from "react-icons/fa";
 import axios from 'axios';
 import { BASE_URL } from '../../../config/config';
 
-const ChatInput = ({ message, setMessage, adId, adCategoryId, adBuyerId, onMessageSent }) => {
+const ChatInput = ({ adId, adCategoryId, adBuyerId, onMessageSent }) => {
+  const [message, setMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
 
   const handleSend = async () => {
     if (!message.trim() || isSending) return;
 
-    const tempMessage = {
+    const userToken = localStorage.getItem('UserToken');
+
+    // Create the message object immediately
+    const sentMessage = {
       message: message.trim(),
       status: 'sending',
+      adBuyer: false,
+      adSeller: true,
       tempId: Date.now(),
-      timestamp: new Date().toISOString()
     };
+
+    // Update the message list immediately
+    onMessageSent(sentMessage);
+    setMessage(''); // Clear the input after sending
 
     try {
       setIsSending(true);
-      // Clear input immediately
-      setMessage('');
-      // Add temporary message to chat
-      onMessageSent(tempMessage);
-      
-      const userToken = localStorage.getItem('UserToken');
+
+      // Send the message to the API
       const response = await axios.post(
         `${BASE_URL}/api/ad-chats`,
         {
           adId,
           adCategoryId,
           adBuyerId,
-          message: tempMessage.message
+          message: sentMessage.message,
+          isOfferMessage: 'false',
         },
         {
           headers: {
@@ -40,18 +45,18 @@ const ChatInput = ({ message, setMessage, adId, adCategoryId, adBuyerId, onMessa
         }
       );
 
-      // Update with real message data
-      onMessageSent({
-        ...response.data,
-        tempId: tempMessage.tempId,
-        status: 'sent'
-      });
+      // Here you can update the message status based on the response
+      const confirmedMessage = {
+        ...sentMessage,
+        id: response.data.id, // Assuming your API returns the message ID
+        status: 'sent', // Change status to 'sent'
+      };
+
+      onMessageSent(confirmedMessage); // Update the message list with the confirmed message
+
     } catch (error) {
       console.error('Error sending message:', error);
-      onMessageSent({
-        ...tempMessage,
-        status: 'error'
-      });
+      // Optionally handle the error state here if needed
     } finally {
       setIsSending(false);
     }
@@ -78,12 +83,10 @@ const ChatInput = ({ message, setMessage, adId, adCategoryId, adBuyerId, onMessa
       <button
         onClick={handleSend}
         disabled={isSending || !message.trim()}
-        className={`transform transition-all duration-200 ${
-          isSending ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110 active:scale-95'
-        }`}
+        className={`transform transition-all duration-200 ${isSending ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110 active:scale-95'}`}
       >
         <FaTelegram 
-          size={30} 
+          size={30}
           className={`text-blue-500 ${isSending ? 'animate-pulse' : 'hover:text-blue-600'}`}
         />
       </button>

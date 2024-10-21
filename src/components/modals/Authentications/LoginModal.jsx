@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import {
   Modal,
   ModalOverlay,
@@ -13,11 +13,13 @@ import { IMAGES } from '../../../constants/logoimg';
 import { Link } from 'react-router-dom';
 import LoginWithMobileOrEmail from './loginwithemailorphone';
 import SignupModal from './SignupModal';
+import { UserDataRefetchContext } from '../../../App';
 
 function LoginModal({ isOpen, onClose }) {
   const [isLoginWithMobileOrEmailOpen, setIsLoginWithMobileOrEmailOpen] = useState(false);
   const [loginType, setLoginType] = useState('');
   const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
+  const refetchUserData = useContext(UserDataRefetchContext);
 
   const openLoginWithMobileOrEmail = (type) => {
     setLoginType(type);
@@ -36,6 +38,7 @@ function LoginModal({ isOpen, onClose }) {
   const handleLoginSuccess = () => {
     closeLoginWithMobileOrEmail();
     onClose(); // Close the LoginModal
+    refetchUserData(); // Fetch user data after successful login
   };
 
   return (

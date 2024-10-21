@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { useQuery } from 'react-query';
 import { useForm, Controller } from 'react-hook-form';
@@ -33,6 +35,7 @@ import { useCategories, useDistricts, useSubCategories, fetchSubCategoryDetails,
 import { useBrands } from '../../common/config/Api/UseBrands.jsx';
 import { useModels } from '../../common/config/Api/UseModels.jsx';
 import { useVariants } from '../../common/config/Api/UseVarient.jsx';
+import { useNavigate } from 'react-router-dom';
 
 const SellModalEdit = ({ isOpen, onClose, listingData }) => {
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
@@ -44,9 +47,13 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
   const [selectedBrandId, setSelectedBrandId] = useState(null);
   const [selectedModelId, setSelectedModelId] = useState(null);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const [categoryChanged, setCategoryChanged] = useState(false);
+  const [initialCategoryId, setInitialCategoryId] = useState(null);
+
   const { register, handleSubmit, control, formState: { errors }, setValue, reset, getValues, watch } = useForm();
   const getUserToken = useCallback(() => localStorage.getItem('UserToken'), []);
   const toast = useToast();
+  const navigate = useNavigate();
 
   const modalSize = useBreakpointValue({ base: "full", md: "xl" });
   const fontSize = useBreakpointValue({ base: "sm", md: "md" });
@@ -98,6 +105,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
 
   useEffect(() => {
     if (isDataLoaded && completeAdData) {
+      setInitialCategoryId(completeAdData.adCategory?.id);
       setSelectedCategoryId(completeAdData.adCategory?.id);
       setSelectedSubCategoryId(completeAdData.adSubCategory?.id);
       setSelectedDistrictId(completeAdData.locationDistrict?.id);
@@ -158,6 +166,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
 
   const handleCategoryChange = (e) => {
     const newCategoryId = e.target.value;
+    setCategoryChanged(newCategoryId !== initialCategoryId);
     setSelectedCategoryId(newCategoryId);
     setSelectedSubCategoryId(null);
     setSubCategoryDetails(null);
@@ -186,8 +195,53 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
     setUploadedImages(prevImages => prevImages.filter((_, i) => i !== index));
   };
 
+  const checkAdCreationPossibility = async (categoryId) => {
+    try {
+      const token = getUserToken();
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await axios.get(`${BASE_URL}/api/ad-categories/${categoryId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      return response.data.data.isAdCreationPossible;
+    } catch (error) {
+      console.error('Error checking ad creation possibility:', error);
+      toast({
+        title: "Error checking category permission",
+        description: error.response?.data?.message || "Something went wrong",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return false;
+    }
+  };
+
   const onSubmit = async (data) => {
     try {
+      // Check ad creation possibility only if category has changed
+      if (categoryChanged) {
+        const isCreationPossible = await checkAdCreationPossibility(data.adCategory);
+        
+        if (!isCreationPossible) {
+          onClose();
+          navigate('/packages/post-more-ads');
+          toast({
+            title: "Package Required",
+            description: "You need to purchase a package to edit ads in this category. Redirecting you to available packages.",
+            status: "info",
+            duration: 5000,
+            isClosable: true,
+          });
+          return;
+        }
+      }
+
       console.log('Form submitted with values:', data);
       const formData = new FormData();
       Object.keys(data).forEach(key => {
@@ -197,6 +251,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
       });
 
       formData.append('adShowroom', JSON.stringify([]));
+      formData.append('adBoostTag', '');
 
       if (uploadedImages.length === 0) {
         throw new Error('At least one image is required');
@@ -344,7 +399,6 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
     }
   };
 
-  console.log('Current form values:', getValues());
   return (
     <Modal isOpen={isOpen} onClose={onClose} size={modalSize}>
       <ModalOverlay />

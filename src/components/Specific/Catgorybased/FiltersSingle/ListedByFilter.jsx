@@ -1,7 +1,7 @@
 // src/components/Filters/FiltersSingle/ListedByFilter.js
 import React from 'react';
 import {
-  VStack,
+  SimpleGrid,
   Checkbox,
   CheckboxGroup,
   FormControl,
@@ -18,13 +18,13 @@ const ListedByFilter = ({ filterValues, handleFilterChange }) => {
         value={filterValues.listedBy || []}
         onChange={(values) => handleFilterChange('listedBy', values)}
       >
-        <VStack align="start" spacing={2}>
+        <SimpleGrid columns={2} spacing={2}>
           {options.map((option) => (
             <Checkbox key={option} value={option}>
               {option}
             </Checkbox>
           ))}
-        </VStack>
+        </SimpleGrid>
       </CheckboxGroup>
     </FormControl>
   );

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { useQuery } from 'react-query';
+import { useQueryClient } from 'react-query';
 import axios from 'axios';
 import { useForm, Controller } from 'react-hook-form';
 import {
@@ -29,25 +29,24 @@ import { BASE_URL } from '../../../config/config';
 import { IoAddOutline, IoClose } from 'react-icons/io5';
 import SellInput from '../../../components/forms/Input/SellInput.jsx';
 import CongratulationsModal from './SellSuccessmodal.jsx';
+import getFieldConfig from '../../common/config/GetField.jsx';
+import { fetchSubCategoryDetails } from '../../common/config/SellModalQueries.jsx';
+import { useBrands } from '../../common/config/Api/UseBrands.jsx';
+import { useModels } from '../../common/config/Api/UseModels.jsx';
+import { useVariants } from '../../common/config/Api/UseVarient.jsx';
+import { useTypes } from '../../common/config/Api/UseTypes.jsx';
+import { useNavigate } from 'react-router-dom';
 
-const fetchSubCategoryDetails = async (userToken, subCategoryId) => {
-  if (!userToken) throw new Error('No user token found');
-  if (!subCategoryId) throw new Error('No subcategory selected');
-  const { data } = await axios.get(`${BASE_URL}/api/ad-find-one-sub-category/${subCategoryId}`, {
-    headers: { 'Authorization': `Bearer ${userToken}` },
-  });
-  console.log(data.data);
-  return data.data;
-};
-
-const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId, townId, showroomid ,onAdCreated }) => {
-  console.log(showroomid);
-  
-  
+const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId, townId, showroomid, onAdCreated }) => {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [uploadedImages, setUploadedImages] = useState([]);
   const [subCategoryDetails, setSubCategoryDetails] = useState(null);
-  
-  const { register, handleSubmit, control, formState: { errors }, setValue, reset, getValues } = useForm();
+  const [showCongratulations, setShowCongratulations] = useState(false);
+  const [selectedBrandId, setSelectedBrandId] = useState(null);
+  const [selectedModelId, setSelectedModelId] = useState(null);
+  const [selectedTypeId, setSelectedTypeId] = useState(null);
+  const { register, handleSubmit, control, formState: { errors }, setValue, reset, getValues, watch } = useForm();
   const getUserToken = useCallback(() => localStorage.getItem('UserToken'), []);
   const toast = useToast();
 
@@ -55,57 +54,50 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
   const fontSize = useBreakpointValue({ base: "sm", md: "md" });
   const headingSize = useBreakpointValue({ base: "xl", md: "2xl" });
   const imageBoxSize = useBreakpointValue({ base: "100px", md: "150px" });
-  const [showCongratulations, setShowCongratulations] = useState(false);
 
-  const { data: subCategoryData, isLoading: isSubCategoryLoading, isError: isSubCategoryError } = useQuery(
-    ['subCategoryDetails', getUserToken, subCategoryId],
-    () => fetchSubCategoryDetails(getUserToken(), subCategoryId),
-    { 
-      enabled: isOpen && !!getUserToken() && !!subCategoryId,
-      onSuccess: (data) => {
-        setSubCategoryDetails(data);
-      }
-    }
-  );
+  const { data: brands } = useBrands(isOpen, getUserToken, subCategoryId);
+  const { data: models } = useModels(isOpen, getUserToken, selectedBrandId, subCategoryId);
+  const { data: variants } = useVariants(isOpen, getUserToken, selectedModelId, subCategoryId);
+  const { data: types } = useTypes(isOpen, getUserToken, subCategoryId);
 
   useEffect(() => {
     if (subCategoryId) {
-      const currentValues = getValues();
-      const fieldsToReset = Object.keys(currentValues).reduce((acc, key) => {
-        if (key !== 'adCategory' && key !== 'adSubCategory') {
-          acc[key] = '';
-        } else {
-          acc[key] = currentValues[key];
-        }
-        return acc;
-      }, {});
-      reset(fieldsToReset);
+      fetchSubCategoryDetails(getUserToken(), subCategoryId)
+        .then(data => {
+          setSubCategoryDetails(data);
+        })
+        .catch(error => {
+          console.error('Error fetching subcategory details:', error);
+          toast({
+            title: "Error fetching subcategory details",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
+        });
     }
-  }, [subCategoryId, getValues, reset]);
+  }, [subCategoryId, getUserToken, toast]);
 
-  const clearForm = useCallback(() => {
-    reset();
-    setUploadedImages([]);
-    setSubCategoryDetails(null);
-  }, [reset]);
+  useEffect(() => {
+    if (subCategoryId) {
+      reset();
+    }
+  }, [subCategoryId, reset]);
 
   const onSubmit = async (data) => {
     const relevantFields = subCategoryDetails?.requiredFields || [];
-    const filteredData = Object.keys(data)
-      .filter(key => relevantFields.includes(key) || ['adCategory', 'adSubCategory', 'locationDistrict', 'locationTown'].includes(key))
-      .reduce((obj, key) => {
-        if (data[key] !== "" && key !== 'adShowroom') {
-          obj[key] = data[key];
-        }
-        return obj;
-      }, {});
+    const filteredData = relevantFields.reduce((obj, key) => {
+      obj[key] = data[key] !== undefined ? data[key] : "";
+      return obj;
+    }, {});
   
     filteredData.adShowroom = showroomid ? [showroomid] : [];
     filteredData.adCategory = categoryId;
     filteredData.adSubCategory = subCategoryId;
     filteredData.locationDistrict = districtId;
     filteredData.locationTown = townId;
-  
+    filteredData.adSubscription = ""; 
+
     const formData = new FormData();
     Object.keys(filteredData).forEach(key => {
       if (key === 'adShowroom') {
@@ -120,9 +112,10 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
       formData.append('images', file);
     });
   
-    // Log the data being sent to the API
-    console.log('Data being sent to API:', Object.fromEntries(formData.entries())); // Check the final data here
-    ;
+    console.log("FormData being sent to API:");
+    for (let [key, value] of formData.entries()) {
+      console.log(key, value);
+    }
   
     try {
       const apiUrl = `${BASE_URL}/api/${subCategoryDetails.apiUrl}`;
@@ -138,27 +131,19 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
         }
       });
   
-      // Log the API response
-      console.log('API Response:', response.data);
-  
       if (response.status === 200 || response.status === 201) {
-        toast({
-          title: "Ad added successfully",
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
-        clearForm();
-        onClose();
-        onAdCreated();
         setShowCongratulations(true);
+        reset();
+        setUploadedImages([]);
+        onClose();
+        queryClient.invalidateQueries("userAds");
+        if (onAdCreated) {
+          onAdCreated();
+        }
       } else {
         throw new Error('Failed to add ad');
       }
     } catch (error) {
-      // Log any errors
-      console.error('API Error:', error);
-
       let errorMessage = 'Error adding ad';
       if (error.response && error.response.data && error.response.data.message) {
         errorMessage = error.response.data.message;
@@ -166,17 +151,20 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
         errorMessage = error.message;
       }
   
-      toast({
-        title: errorMessage,
-        description: error.response?.data?.description || error.message,
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      if (error.response && error.response.status === 404) {
+        navigate('/packages/post-more-ads');
+      } else {
+        toast({
+          title: errorMessage,
+          description: error.response?.data?.description || error.message,
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
     }
-    clearForm();
-    onClose();
   };
+
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file && uploadedImages.length < 4) {
@@ -192,70 +180,32 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
     setUploadedImages(prevImages => prevImages.filter((_, i) => i !== index));
   };
 
-  const getFieldConfig = (fieldName) => {
-    const commonRules = { required: `${fieldName} is required` };
-    const numberRules = { ...commonRules, min: { value: 0, message: `${fieldName} must be positive` } };
-    
-    switch(fieldName) {
-      case 'title':
-      case 'description':
-      case 'brand':
-      case 'model':
-      case 'variant':
-      case 'transmission':
-      case 'rtoCode':
-      case 'listedBy':
-      case 'typeOfAccomodation':
-      case 'facing':
-      case 'projectName':
-      case 'qualification':
-        return { type: 'text', label: fieldName.charAt(0).toUpperCase() + fieldName.slice(1), rules: commonRules };
-      case 'price':
-      case 'year':
-      case 'kmDriven':
-      case 'noOfOwners':
-      case 'bedrooms':
-      case 'bathrooms':
-      case 'totalFloors':
-      case 'floorNo':
-      case 'carParking':
-      case 'type':
-      case 'carpetArea':
-      case 'maintenance':
-      case 'securityAmount':
-      case 'monthlyRent':
-      case 'plotArea':
-      case 'length':
-      case 'breadth':
-      case 'totalLandArea':
-      case 'engineCC':
-      case 'motorPower':
-      case 'buyYear':
-      case 'experience':
-      case 'salary':
-        return { type: 'number', label: fieldName.charAt(0).toUpperCase() + fieldName.slice(1), rules: numberRules };
-      case 'superBuiltupArea':
-        return { type: 'number', label: "Super Built Up Area", rules: numberRules };
-      case 'isActiveAd':
-      case 'isShowroomAd':
-        return { type: 'checkbox', label: fieldName.charAt(0).toUpperCase() + fieldName.slice(1), rules: {} };
-      case 'furnishing':
-        return { type: 'select', label: "Furnishing", options: ["Furnished", "Semi-Furnished", "Unfurnished"], rules: commonRules };
-      case 'constructionStatus':
-        return { type: 'select', label: "Construction Status", options: ["Under Construction", "Ready to Move"], rules: commonRules };
-      case 'salaryPeriod':
-        return { type: 'select', label: "Salary Period", options: ["Monthly", "Annual"], rules: commonRules };
-      case 'fuel':
-        return { type: 'radio', label: "Fuel", options: ["Petrol", "Diesel"], rules: commonRules };
-      case 'adShowroom':
-        return null;
-      default:
-        return null;
+  const watchBrand = watch('brand');
+  const watchModel = watch('model');
+
+  useEffect(() => {
+    if (watchBrand) {
+      setSelectedBrandId(watchBrand);
+      setValue('model', '');
+      setValue('variant', '');
+      setSelectedModelId(null);
     }
-  };
+  }, [watchBrand, setValue]);
+
+  useEffect(() => {
+    if (watchModel) {
+      setSelectedModelId(watchModel);
+      setValue('variant', '');
+    }
+  }, [watchModel, setValue]);
 
   const renderField = (fieldName) => {
-    const config = getFieldConfig(fieldName);
+    // Skip rendering for locationDistrict and locationTown
+    if (fieldName === 'locationDistrict' || fieldName === 'locationTown') {
+      return null;
+    }
+
+    const config = getFieldConfig(fieldName, [], [], brands, models, variants, types);
     
     if (!config) return null;
     
@@ -264,10 +214,25 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
         return (
           <FormControl key={fieldName} isInvalid={errors[fieldName]} fontSize={fontSize}>
             <FormLabel>{config.label}</FormLabel>
-            <Select {...register(fieldName, config.rules)}>
+            <Select 
+              {...register(fieldName, config.rules)}
+              onChange={(e) => {
+                if (fieldName === 'brand') {
+                  setSelectedBrandId(e.target.value);
+                  setValue('model', '');
+                  setValue('variant', '');
+                  setSelectedModelId(null);
+                } else if (fieldName === 'model') {
+                  setSelectedModelId(e.target.value);
+                  setValue('variant', '');
+                } else if (fieldName === 'type') {
+                  setSelectedTypeId(e.target.value);
+                }
+              }}
+            >
               <option value="">Select {config.label}</option>
               {config.options.map(option => (
-                <option key={option} value={option}>{option}</option>
+                <option key={option.id || option} value={option.id || option}>{option.name || option}</option>
               ))}
             </Select>
             <FormErrorMessage>{errors[fieldName] && errors[fieldName].message}</FormErrorMessage>
@@ -337,77 +302,74 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
   );
 
   return (
-      <>
-    <Modal isOpen={isOpen} onClose={onClose} size={modalSize}>
-      <ModalOverlay />
-      <ModalContent 
-        bg="#F1F1F1" 
-        color="black" 
-        maxWidth={{ base: "80%", md: modalSize }}
-      >
-        <ModalBody>
-          <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-3 py-3'>
-            <h3 className={`text-${headingSize} font-bold mb-3`}>Add your showroom ad details</h3>
-            
-            {isSubCategoryLoading && <Text>Loading subcategory details...</Text>}
-            {isSubCategoryError && <Text color="red.500">Error loading subcategory details</Text>}
-            
-            {subCategoryDetails && subCategoryDetails.requiredFields?.map(fieldName => renderField(fieldName))}
-            
-            <FormControl fontSize={fontSize}>
-              <FormLabel>Upload Images (Max 4)</FormLabel>
-              <Flex gap={3} flexWrap="wrap" justifyContent="center">
-                {uploadedImages.map((image, index) => (
-                  <Box key={index} position="relative">
-                    <ImageUploadBox>
-                      <Image src={image.preview} alt={`Uploaded ${index + 1}`} objectFit="cover" w="100%" h="100%" />
-                      <IoClose 
-                        className='absolute top-1 right-1 bg-[#4F7598] rounded-full h-[20px] w-[20px]' 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeImage(index);
-                        }}
-                      />
+    <>
+      <Modal isOpen={isOpen} onClose={onClose} size={modalSize}>
+        <ModalOverlay />
+        <ModalContent 
+          bg="#F1F1F1" 
+          color="black" 
+          maxWidth={{ base: "80%", md: modalSize }}
+        >
+          <ModalBody>
+            <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-3 py-3'>
+              <h3 className={`text-${headingSize} font-bold mb-3`}>Add your showroom ad details</h3>
+              
+              {subCategoryDetails && subCategoryDetails.requiredFields?.map(fieldName => renderField(fieldName))}
+              
+              <FormControl fontSize={fontSize}>
+                <FormLabel>Upload Images (Max 4)</FormLabel>
+                <Flex gap={3} flexWrap="wrap" justifyContent="center">
+                  {uploadedImages.map((image, index) => (
+                    <Box key={index} position="relative">
+                      <ImageUploadBox>
+                        <Image src={image.preview} alt={`Uploaded ${index + 1}`} objectFit="cover" w="100%" h="100%" />
+                        <IoClose 
+                          className='absolute top-1 right-1 bg-[#4F7598] rounded-full h-[20px] w-[20px]' 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeImage(index);
+                          }}
+                        />
+                      </ImageUploadBox>
+                      <Text as="a" fontSize="xs" textAlign="center" mt={1}>
+                        Uploaded
+                      </Text>
+                    </Box>
+                  ))}
+                  {uploadedImages.length < 4 && (
+                    <ImageUploadBox onClick={() => document.getElementById('imageUpload').click()}>
+                      <Icon as={IoAddOutline} w={5} h={5} />
+                      <Text fontSize="xs" textAlign="center" mt={1}>
+                        {uploadedImages.length === 0 ? 'Add image' : 'Upload more'}
+                      </Text>
                     </ImageUploadBox>
-                    <Text as="a" fontSize="xs" textAlign="center" mt={1}>
-                      Uploaded
-                    </Text>
-                  </Box>
-                ))}
-                {uploadedImages.length < 4 && (
-                  <ImageUploadBox onClick={() => document.getElementById('imageUpload').click()}>
-                    <Icon as={IoAddOutline} w={5} h={5} />
-                    <Text fontSize="xs" textAlign="center" mt={1}>
-                      {uploadedImages.length === 0 ? 'Add image' : 'Upload more'}
-                    </Text>
-                  </ImageUploadBox>
-                )}
-                <input
-                  id="imageUpload"
-                  type="file"
-                  accept="image/*"
-                  style={{ display: 'none' }}
-                  onChange={handleImageUpload}
+                  )}
+                  <input
+                    id="imageUpload"
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={handleImageUpload}
                   />
-              </Flex>
-            </FormControl>
-            
-            <Button type="submit" colorScheme="blue" mt={3} fontSize={fontSize}>Submit</Button>
-          </form>
-        </ModalBody>
-        <ModalFooter>
-          <Button colorScheme="gray" mr={3} onClick={onClose} fontSize={fontSize}>Close</Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
+                </Flex>
+              </FormControl>
+              
+              <Button type="submit" colorScheme="blue" mt={3} fontSize={fontSize}>Submit</Button>
+            </form>
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="gray" mr={3} onClick={onClose} fontSize={fontSize}>Close</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
 
-    {showCongratulations && (
+      {showCongratulations && (
         <CongratulationsModal
           adType="Showroom Ad"
           onClose={() => setShowCongratulations(false)}
         />
       )}
-</>
+    </>
   );
 };
 

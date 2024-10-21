@@ -13,6 +13,8 @@ const MemoizedCardUser = memo(CardUser);
 function RecommendedAdsGrid() {
   const [selectedTown] = useContext(TownContext);
   const [selectedDistrict, setSelectedDistrict] = useContext(DistrictContext);
+  
+  
 
   
   

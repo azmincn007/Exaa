@@ -8,7 +8,6 @@ import { BASE_URL } from '../../../config/config';
 function CardShowroom({  imageUrl, price, title, location, postedDate, adBoostTag,  views, likes,id,adCategory }) {
   console.log(adCategory);
   
-  console.log(imageUrl);
   
   
   const isActive = adBoostTag === "Active";

@@ -1,5 +1,6 @@
+// src/components/Filters/FiltersSingle/FuelFilter.js
 import React from 'react';
-import { FormControl, FormLabel, Checkbox, Stack } from '@chakra-ui/react';
+import { FormControl, FormLabel, Checkbox, SimpleGrid } from '@chakra-ui/react';
 
 const FuelFilter = ({ filterValues, handleFilterChange }) => {
   const fuelOptions = ['Petrol', 'Diesel', 'Electric', 'CNG', 'Hybrid'];
@@ -17,7 +18,7 @@ const FuelFilter = ({ filterValues, handleFilterChange }) => {
   return (
     <FormControl>
       <FormLabel>Fuel Type</FormLabel>
-      <Stack maxH="200px" spacing={2}>
+      <SimpleGrid columns={2} spacing={2}>
         {fuelOptions.map((fuel) => (
           <Checkbox
             key={fuel}
@@ -27,7 +28,7 @@ const FuelFilter = ({ filterValues, handleFilterChange }) => {
             {fuel}
           </Checkbox>
         ))}
-      </Stack>
+      </SimpleGrid>
     </FormControl>
   );
 };

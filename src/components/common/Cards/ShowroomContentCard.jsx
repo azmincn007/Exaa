@@ -6,12 +6,6 @@ import {
   IconButton, 
   Flex,
   useToast,
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogContent,
-  AlertDialogOverlay,
   Button
 } from '@chakra-ui/react';
 import { FaPencilAlt, FaTrash } from 'react-icons/fa';
@@ -19,6 +13,7 @@ import { BASE_URL } from '../../../config/config';
 import axios from 'axios';
 import { useAuth } from '../../../Hooks/AuthContext';
 import { useQueryClient } from 'react-query';
+import DeleteConfirmationDialog from '../../modals/othermodals/DeleteConfirmation';
 
 const ShowroomContentCard = ({ 
   showroom, 
@@ -28,7 +23,7 @@ const ShowroomContentCard = ({
   onDeleteSuccess 
 }) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
-  const cancelRef = React.useRef();
+  const [isDeleting, setIsDeleting] = React.useState(false);
   const toast = useToast();
   const { token } = useAuth();
   const queryClient = useQueryClient();
@@ -44,6 +39,7 @@ const ShowroomContentCard = ({
   };
 
   const handleDeleteConfirm = async () => {
+    setIsDeleting(true);
     try {
       // Optimistically update the UI
       const previousShowrooms = queryClient.getQueryData(["showrooms"]);
@@ -63,14 +59,18 @@ const ShowroomContentCard = ({
       );
   
       if (response.status === 200) {
-        // Call the success callback with the showroom id
         onDeleteSuccess(showroom.id);
-        
-        // Invalidate the query to ensure consistency
         await queryClient.invalidateQueries({
           queryKey: ["showrooms"],
           refetchType: 'active',
           exact: true
+        });
+        toast({
+          title: "Showroom deleted",
+          description: "The showroom has been successfully deleted.",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
         });
       }
     } catch (error) {
@@ -85,6 +85,7 @@ const ShowroomContentCard = ({
         isClosable: true,
       });
     } finally {
+      setIsDeleting(false);
       setIsDeleteDialogOpen(false);
     }
   };
@@ -171,32 +172,13 @@ const ShowroomContentCard = ({
       </Box>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog
+      <DeleteConfirmationDialog
         isOpen={isDeleteDialogOpen}
-        leastDestructiveRef={cancelRef}
         onClose={() => setIsDeleteDialogOpen(false)}
-      >
-        <AlertDialogOverlay>
-          <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Delete Showroom
-            </AlertDialogHeader>
-
-            <AlertDialogBody>
-              Are you sure you want to delete this showroom? This action cannot be undone.
-            </AlertDialogBody>
-
-            <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={() => setIsDeleteDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button colorScheme="red" onClick={handleDeleteConfirm} ml={3}>
-                Delete
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
+        onConfirm={handleDeleteConfirm}
+        itemName="Showroom"
+        isLoading={isDeleting}
+      />
     </>
   );
 };

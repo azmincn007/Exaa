@@ -46,10 +46,8 @@ export const AdsService = {
       }
 
       // Log the URL before making the API call
-      console.log('API call URL:', url);
 
       const response = await axios.get(url);
-      console.log('Fetched adsData:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error fetching ads data:', error);

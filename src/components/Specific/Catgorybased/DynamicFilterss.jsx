@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { VStack, Card, CardHeader, CardBody, Skeleton, Alert, AlertIcon, Button, Divider, Box, Heading } from "@chakra-ui/react";
+import { VStack, Card, CardHeader, CardBody, Skeleton, Alert, AlertIcon, Button, Divider, Box, Heading, Flex } from "@chakra-ui/react";
 import axios from "axios";
 import { BASE_URL } from "../../../config/config";
 import FuelFilter from "./FiltersSingle/FuelFIlter";
@@ -24,12 +24,25 @@ import SalaryPeriodFilter from "./FiltersSingle/SalaryPEriodFIlter";
 import PositionTypeFilter from "./FiltersSingle/PositionTypeFIlter";
 import QualificationFilter from "./FiltersSingle/QualificationFilter";
 import ExperienceFilter from "./FiltersSingle/ExperienceFilter";
+import PriceRangeFilter from "./FiltersSingle/PriceRangeFilter";
+import FloorNoFilter from "./FiltersSingle/FloorFilter";
+import CarParkingFilter from "./FiltersSingle/CarparkingFIlter";
+import RTOCodeFilter from "./FiltersSingle/RtoCOdefilter";
+import BrandFilter from "./FiltersSingle/BrandFilter";
+import TypeFilter from "./FiltersSingle/TypeFilter";
+import ModelFilter from "./FiltersSingle/ModalFilter";
+import MonthlyRentRangeFilter from "./FiltersSingle/MonthlyRentFilter";
+import SecurityAmountRangeFilter from "./FiltersSingle/SecurityAmountFilter";
+import PlotAreaRangeFilter from "./FiltersSingle/PlotareaFilter";
 
 const DynamicFilters = ({ subCategoryId, onFilterChange, filters, setFilters }) => {
+  const getUserToken = useCallback(() => localStorage.getItem("UserToken"), []);
+
   const [filterConfig, setFilterConfig] = useState([]);
   const [localFilters, setLocalFilters] = useState(filters);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedBrands, setSelectedBrands] = useState([]);
 
   useEffect(() => {
     const fetchFilterConfig = async () => {
@@ -65,10 +78,19 @@ const DynamicFilters = ({ subCategoryId, onFilterChange, filters, setFilters }) 
   }, [subCategoryId, filters]);
 
   const handleLocalFilterChange = useCallback((key, value) => {
-    setLocalFilters((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
+    setLocalFilters((prev) => {
+      const updatedFilters = {
+        ...prev,
+        [key]: value,
+      };
+
+      // If the brand filter is changed, update selectedBrands
+      if (key === 'brand') {
+        setSelectedBrands(value);
+      }
+
+      return updatedFilters;
+    });
   }, []);
 
   const handleApplyFilters = () => {
@@ -85,37 +107,54 @@ const DynamicFilters = ({ subCategoryId, onFilterChange, filters, setFilters }) 
     setLocalFilters(resetFilters);
     setFilters(resetFilters);
     onFilterChange(resetFilters);
+    setSelectedBrands([]);
   };
 
   const renderFilter = (filterKey) => {
+    // Skip rendering for 'salary' and 'variant' fields
+    if (filterKey === "salary" || filterKey === "variant" ||  filterKey === "projectName"  ||  filterKey === "length"  ||  filterKey === "breadth") {
+      return null;
+    }
     const rangeFilters = {
-      totalLandArea: ['totalLandAreaStart', 'totalLandAreaEnd'],
-      superBuiltupArea: ['superBuiltupAreaStart', 'superBuiltupAreaEnd'],
-      carpetArea: ['carpetAreaStart', 'carpetAreaEnd'],
-      year: ['yearStart', 'yearEnd'],
-      buyYear: ['buyYearStart', 'buyYearEnd']
+      totalLandArea: ["totalLandAreaStart", "totalLandAreaEnd"],
+      superBuiltupArea: ["superBuiltupAreaStart", "superBuiltupAreaEnd"],
+      carpetArea: ["carpetAreaStart", "carpetAreaEnd"],
+      year: ["yearStart", "yearEnd"],
+      buyYear: ["buyYearStart", "buyYearEnd"],
+      price: ["priceStart", "priceEnd"],
+      monthlyRent: ["monthlyRentStart", "monthlyRentEnd"],
+      securityAmount: ["securityAmountStart", "securityAmountEnd"],
+      plotArea: ["plotAreaStart", "plotAreaEnd"],
+
     };
 
     for (const [rangeKey, [startKey, endKey]] of Object.entries(rangeFilters)) {
       if (filterKey === startKey && filterConfig.includes(startKey) && filterConfig.includes(endKey)) {
         switch (rangeKey) {
-          case 'totalLandArea':
+          case "totalLandArea":
             return <LandAreaRangeFilter filterValues={localFilters} handleFilterChange={handleLocalFilterChange} />;
-          case 'superBuiltupArea':
+          case "superBuiltupArea":
             return <SuperBuiltupAreaFilter filterValues={localFilters} handleFilterChange={handleLocalFilterChange} />;
-          case 'carpetArea':
+          case "carpetArea":
             return <CarpetAreaFilter filterValues={localFilters} handleFilterChange={handleLocalFilterChange} />;
-          case 'year':
+          case "year":
             return <YearRangeFilter filterValues={localFilters} handleFilterChange={handleLocalFilterChange} />;
-          case 'buyYear':
+          case "buyYear":
             return <BuyYearRangeFilter filterValues={localFilters} handleFilterChange={handleLocalFilterChange} />;
-            
+          case "price":
+            return <PriceRangeFilter filterValues={localFilters} handleFilterChange={handleLocalFilterChange} subCategory={subCategoryId} />;
+            case "monthlyRent":
+  return <MonthlyRentRangeFilter filterValues={localFilters} handleFilterChange={handleLocalFilterChange} />;
+  case "securityAmount":
+  return <SecurityAmountRangeFilter filterValues={localFilters} handleFilterChange={handleLocalFilterChange} />;
+  case "plotArea":
+  return <PlotAreaRangeFilter filterValues={localFilters} handleFilterChange={handleLocalFilterChange} />;
         }
       } else if (filterKey === endKey) {
         return null;
       }
     }
-    // Handle other filters
+
     switch (filterKey) {
       case "fuel":
         return <FuelFilter filterValues={localFilters} handleFilterChange={handleLocalFilterChange} />;
@@ -141,27 +180,54 @@ const DynamicFilters = ({ subCategoryId, onFilterChange, filters, setFilters }) 
         return <TotalFloorsFilter filterValues={localFilters} handleFilterChange={handleLocalFilterChange} />;
       case "facing":
         return <FacingFilter filterValues={localFilters} handleFilterChange={handleLocalFilterChange} />;
-        case "engineCC":
-          return <EngineCCFilter filterValues={localFilters} handleFilterChange={handleLocalFilterChange} />;
-          case "salaryPeriod":
-            return <SalaryPeriodFilter filterValues={localFilters} handleFilterChange={handleLocalFilterChange} />;
-          case "positionType":
-            return <PositionTypeFilter filterValues={localFilters} handleFilterChange={handleLocalFilterChange} />;
-          case "qualification":
-            return <QualificationFilter filterValues={localFilters} handleFilterChange={handleLocalFilterChange} />;
-          case "experience":
-            return <ExperienceFilter filterValues={localFilters} handleFilterChange={handleLocalFilterChange} />;
+      case "engineCC":
+        return <EngineCCFilter filterValues={localFilters} handleFilterChange={handleLocalFilterChange} />;
+      case "salaryPeriod":
+        return <SalaryPeriodFilter filterValues={localFilters} handleFilterChange={handleLocalFilterChange} />;
+      case "positionType":
+        return <PositionTypeFilter filterValues={localFilters} handleFilterChange={handleLocalFilterChange} />;
+      case "floorNo":
+        return <FloorNoFilter filterValues={localFilters} handleFilterChange={handleLocalFilterChange} />;
+      case "qualification":
+        return <QualificationFilter filterValues={localFilters} handleFilterChange={handleLocalFilterChange} />;
+      case "experience":
+        return <ExperienceFilter filterValues={localFilters} handleFilterChange={handleLocalFilterChange} />;
+      case "carParking":
+        return <CarParkingFilter filterValues={localFilters} handleFilterChange={handleLocalFilterChange} />;
+      case "rtoCode":
+        return <RTOCodeFilter filterValues={localFilters} handleFilterChange={handleLocalFilterChange} />;
+      case "brand":
+        return (
+          <BrandFilter 
+            filterValues={localFilters} 
+            handleFilterChange={handleLocalFilterChange} 
+            subCategoryId={subCategoryId} 
+            getUserToken={getUserToken} 
+          />
+        );
+      case "model":
+        // Only render ModelFilter if at least one brand is selected
+        return selectedBrands.length > 0 ? (
+          <ModelFilter 
+            filterValues={localFilters} 
+            handleFilterChange={handleLocalFilterChange} 
+            subCategoryId={subCategoryId} 
+            getUserToken={getUserToken}
+            selectedBrands={selectedBrands}
+          />
+        ) : null;
+      case "type":
+        return (
+          <TypeFilter 
+            filterValues={localFilters} 
+            handleFilterChange={handleLocalFilterChange} 
+            subCategoryId={subCategoryId} 
+            getUserToken={getUserToken} 
+          />
+        );
       default:
         return <div>Unsupported filter type: {filterKey}</div>;
     }
-  
-  
-
-    return (
-      <Box key={filterKey} width="100%" p={2}>
-        {filterComponent}
-      </Box>
-    );
   };
 
   if (isLoading) {
@@ -174,7 +240,7 @@ const DynamicFilters = ({ subCategoryId, onFilterChange, filters, setFilters }) 
           <VStack spacing={4}>
             {[1, 2, 3].map((i) => (
               <Box key={i} width="100%">
-                <Skeleton height="20px" width="150px" mb={2} />
+                <Skeleton height="20px" width="50px" mb={2} />
                 <Skeleton height="40px" />
                 {i < 3 && <Divider my={4} borderColor="gray.300" />}
               </Box>
@@ -202,6 +268,7 @@ const DynamicFilters = ({ subCategoryId, onFilterChange, filters, setFilters }) 
       </Alert>
     );
   }
+
   const scrollbarStyles = {
     "&::-webkit-scrollbar": {
       width: "4px",
@@ -221,28 +288,36 @@ const DynamicFilters = ({ subCategoryId, onFilterChange, filters, setFilters }) 
   };
 
   return (
-    <Card>
+    <Card className="">
       <CardHeader>
         <Heading size="md">Filters</Heading>
       </CardHeader>
       <CardBody>
-        <Box maxHeight="600px" overflowY="auto" css={scrollbarStyles}>
-          <VStack spacing={4} align="stretch">
-            {filterConfig.map((filterKey, index) => (
-              <React.Fragment key={filterKey}>
-                {renderFilter(filterKey)}
-                {index < filterConfig.length - 1 && <Divider my={4} borderColor="gray.300" />}
-              </React.Fragment>
-            ))}
-            <Divider my={4} borderColor="gray.300" />
+        <VStack spacing={4} align="stretch">
+          <div className="flex flex-col gap-2" mb={4}>
             <Button colorScheme="blue" onClick={handleApplyFilters}>
               Apply Filters
             </Button>
-            <Button colorScheme="gray" variant="outline" onClick={handleResetFilters} mt={2}>
+            <Button colorScheme="gray" variant="outline" onClick={handleResetFilters}>
               Reset Filters
             </Button>
-          </VStack>
-        </Box>
+          </div>
+          <Divider borderColor="gray.300" />
+          <Box maxHeight="500px" overflowY="auto" css={scrollbarStyles}>
+            {filterConfig.map((filterKey, index) => {
+              const filterComponent = renderFilter(filterKey);
+              if (filterComponent) {
+                return (
+                  <React.Fragment key={filterKey}>
+                    {filterComponent}
+                    {index < filterConfig.length - 1 && <Divider my={4} borderColor="gray.300" />}
+                  </React.Fragment>
+                );
+              }
+              return null;
+            })}
+          </Box>
+        </VStack>
       </CardBody>
     </Card>
   );

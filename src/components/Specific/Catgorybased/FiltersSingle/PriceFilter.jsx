@@ -1,95 +1,45 @@
-import React, { useEffect } from 'react';
-import {
-  Box,
-  Card,
-  CardHeader,
-  CardBody,
-  Text,
-  RangeSlider,
-  RangeSliderTrack,
-  RangeSliderFilledTrack,
-  RangeSliderThumb,
-  Flex,
-  Tooltip
-} from '@chakra-ui/react';
+import React, { useState, useEffect } from 'react';
+import ReusableRangeSlider from '../ReusableRangeSliderComponent';
 
-const PriceFilter = ({ filterValues, handleFilterChange }) => {
-  const [showTooltip, setShowTooltip] = React.useState([false, false]);
-  const [range, setRange] = React.useState([100, 1000]);
+const PriceRangeFilter = ({ filterValues, handleFilterChange, minPrice, maxPrice }) => {
+  const [range, setRange] = useState([
+    filterValues.priceStart || minPrice,
+    filterValues.priceEnd || maxPrice
+  ]);
 
   useEffect(() => {
-    if (filterValues.priceStart?.length > 0 && filterValues.priceEnd?.length > 0) {
-      setRange([
-        parseInt(filterValues.priceStart[0]),
-        parseInt(filterValues.priceEnd[0])
-      ]);
-    }
-  }, [filterValues.priceStart, filterValues.priceEnd]);
+    const newStart = filterValues.priceStart !== null ? filterValues.priceStart : minPrice;
+    const newEnd = filterValues.priceEnd !== null ? filterValues.priceEnd : maxPrice;
+    setRange([newStart, newEnd]);
 
-  const handleRangeChange = (newRange) => {
+    // Update filter values if they're not set
+    if (filterValues.priceStart === null || filterValues.priceEnd === null) {
+      handleFilterChange('priceStart', newStart);
+      handleFilterChange('priceEnd', newEnd);
+    }
+  }, [filterValues.priceStart, filterValues.priceEnd, minPrice, maxPrice, handleFilterChange]);
+
+  const handleSliderChange = (newRange) => {
     setRange(newRange);
-    handleFilterChange('priceStart', [newRange[0].toString()]);
-    handleFilterChange('priceEnd', [newRange[1].toString()]);
+    handleFilterChange('priceStart', newRange[0]);
+    handleFilterChange('priceEnd', newRange[1]);
+  };
+
+  const formatLabel = (value) => {
+    return `$${value.toLocaleString()}`;
   };
 
   return (
-    <Card variant="elevated">
-      <CardHeader pb={0}>
-        <Text fontSize="md" fontWeight="medium">Price Range</Text>
-      </CardHeader>
-      <CardBody>
-        <Box px={4}>
-          <Flex justify="space-between" mb={2}>
-            <Text fontSize="sm" color="gray.600">₹{range[0]}</Text>
-            <Text fontSize="sm" color="gray.600">₹{range[1]}</Text>
-          </Flex>
-          <RangeSlider
-            aria-label={['min price', 'max price']}
-            defaultValue={[100, 1000]}
-            value={range}
-            min={100}
-            max={1000}
-            step={10}
-            onChange={handleRangeChange}
-            onMouseEnter={() => setShowTooltip([true, true])}
-            onMouseLeave={() => setShowTooltip([false, false])}
-          >
-            <RangeSliderTrack bg="gray.200">
-              <RangeSliderFilledTrack bg="blue.500" />
-            </RangeSliderTrack>
-            <Tooltip
-              hasArrow
-              bg="blue.500"
-              color="white"
-              placement="top"
-              isOpen={showTooltip[0]}
-              label={`₹${range[0]}`}
-            >
-              <RangeSliderThumb 
-                index={0} 
-                boxSize={6}
-                _focus={{ boxShadow: "outline" }}
-              />
-            </Tooltip>
-            <Tooltip
-              hasArrow
-              bg="blue.500"
-              color="white"
-              placement="top"
-              isOpen={showTooltip[1]}
-              label={`₹${range[1]}`}
-            >
-              <RangeSliderThumb 
-                index={1} 
-                boxSize={6}
-                _focus={{ boxShadow: "outline" }}
-              />
-            </Tooltip>
-          </RangeSlider>
-        </Box>
-      </CardBody>
-    </Card>
+    <ReusableRangeSlider
+      label="Price Range"
+      min={minPrice}
+      max={maxPrice}
+      step={1000}
+      value={range}
+      onChange={handleSliderChange}
+      formatLabel={formatLabel}
+    />
   );
 };
 
-export default PriceFilter;
+export default PriceRangeFilter;

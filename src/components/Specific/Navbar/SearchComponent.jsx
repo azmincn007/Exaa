@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from 'react-query';
 import {
   Input,
@@ -14,23 +14,43 @@ import { Search } from 'lucide-react';
 import { BASE_URL } from '../../../config/config';
 import { useSearch } from '../../../Hooks/SearchContext';
 
+const fetchSuggestions = async (search, isShowroom, userToken) => {
+  if (!search) return [];
+  const endpoint = isShowroom
+    ? `/api/find-showrooms-search-suggestion?search=${search}`
+    : `/api/find-home-page-search-ads-suggestion?search=${search}`;
+  
+  const headers = isShowroom && userToken
+    ? { 'Authorization': `Bearer ${userToken}` }
+    : {};
 
-const fetchSuggestions = async (search) => {
-  const response = await fetch(`${BASE_URL}/api/find-home-page-search-ads-suggestion?search=${search}`);
-  const data = await response.json();
-  return data.data;
+  try {
+    const response = await fetch(`${BASE_URL}${endpoint}`, { headers });
+    const data = await response.json();
+    console.log('API Response:', data);
+    return Array.isArray(data.data) ? data.data : [];
+  } catch (error) {
+    console.error('Error fetching suggestions:', error);
+    return [];
+  }
 };
 
-function SearchComponent() {
+function SearchComponent({ isShowroom }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [userToken, setUserToken] = useState(null);
   const { handleSearch } = useSearch();
 
-  const { data: suggestions = [] } = useQuery(
-    ['suggestions', searchTerm],
-    () => fetchSuggestions(searchTerm),
+  useEffect(() => {
+    const token = localStorage.getItem('UserToken');
+    setUserToken(token);
+  }, []);
+
+  const { data: suggestions, error, isLoading } = useQuery(
+    ['suggestions', searchTerm, isShowroom, userToken],
+    () => fetchSuggestions(searchTerm, isShowroom, userToken),
     {
-      enabled: true,
+      enabled: !!searchTerm && !!userToken,
       refetchOnWindowFocus: false,
     }
   );
@@ -90,7 +110,7 @@ function SearchComponent() {
           </InputRightElement>
         </InputGroup>
       </Box>
-      {showSuggestions && suggestions.length > 0 && (
+      {showSuggestions && !isLoading && !error && suggestions && suggestions.length > 0 && (
         <Box
           className="border border-gray-200 rounded-md bg-white shadow-md absolute z-10 w-full max-w-md"
         >

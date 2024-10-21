@@ -4,7 +4,7 @@ import { AiOutlineUser, AiOutlineBell } from "react-icons/ai";
 import { FaLocationDot } from "react-icons/fa6";
 import { MdDoorSliding } from "react-icons/md";
 import { BiMessage } from "react-icons/bi";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { IMAGES } from "../../constants/logoimg";
 import { useAuth } from "../../Hooks/AuthContext";
 import { UserdataContext } from "../../App";
@@ -30,6 +30,7 @@ function Navbar({ onShowPackagesAndOrders,setSearchResults  }) {
   const { userData, isLoading } = useContext(UserdataContext);
   const navigate = useNavigate();
   const queryClient = useQueryClient(); // Access the query client
+  const location = useLocation();
 
   const [searchTerm, setSearchTerm] = useState('');
   const { setHasSearched, resetSearch } = useSearch();
@@ -39,6 +40,9 @@ function Navbar({ onShowPackagesAndOrders,setSearchResults  }) {
     }
   };
 
+  const isShowroomPage = location.pathname === '/showroom';
+  console.log(isShowroomPage);
+  
   const { isOpen: isSellModalOpen, onOpen: onSellModalOpen, onClose: onSellModalClose } = useDisclosure();
   const { isOpen: isLoginModalOpen, onOpen: onLoginModalOpen, onClose: onLoginModalClose } = useDisclosure();
 
@@ -166,7 +170,8 @@ function Navbar({ onShowPackagesAndOrders,setSearchResults  }) {
               searchTerm={searchTerm}
               setSearchTerm={setSearchTerm}
               onSearch={handleSearch}
-            />      </div>
+              isShowroom={isShowroomPage}
+            />     </div>
           <div className="col-span-3 flex gap-2 items-center justify-around">
             <div className="flex items-center gap-4">
               <FaLocationDot /> <SimpleCountryDropdown />
@@ -219,7 +224,8 @@ function Navbar({ onShowPackagesAndOrders,setSearchResults  }) {
               searchTerm={searchTerm}
               setSearchTerm={setSearchTerm}
               onSearch={handleSearch}
-            />          </div>
+              isShowroom={isShowroomPage}
+            />      </div>
         </div>
       </div>
       <LoginModal isOpen={isLoginModalOpen} onClose={onLoginModalClose} />

@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { useQuery, useQueryClient } from "react-query";
-import axios from "axios";
+import { useQuery, useQueryClient, useMutation } from "react-query";import axios from "axios";
 import { useForm, Controller } from "react-hook-form";
 import {
   Modal,
@@ -20,13 +19,14 @@ import {
   Text,
   useBreakpointValue,
   useToast,
-  InputGroup,
-  InputLeftAddon,
+  Textarea,
 } from "@chakra-ui/react";
 import { BASE_URL } from "../../../config/config";
 import { IoAddOutline, IoClose } from "react-icons/io5";
 import SellInput from "../../../components/forms/Input/SellInput.jsx";
 import PhoneInputShowroom from "../../../components/forms/Input/MobileInputShowroom.jsx";
+
+
 
 const fetchCategories = async (userToken) => {
   const { data } = await axios.get(`${BASE_URL}/api/find-showroom-categories`, {
@@ -63,7 +63,7 @@ const fetchTowns = async (userToken, districtId) => {
   return data.data;
 };
 
-const ShowroomCreateModal = ({ isOpen, onClose }) => {
+const ShowroomCreateModal = ({ isOpen, onClose ,onSuccess}) => {
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [selectedSubCategoryId, setSelectedSubCategoryId] = useState(null);
   const [selectedDistrictId, setSelectedDistrictId] = useState(null);
@@ -78,8 +78,35 @@ const ShowroomCreateModal = ({ isOpen, onClose }) => {
     control,
   } = useForm();
   const [userToken, setUserToken] = useState(localStorage.getItem("UserToken"));
-  const toast = useToast();
   const queryClient = useQueryClient();
+  const toast = useToast();
+
+  const createShowroomMutation = useMutation(
+    (formData) =>
+      axios.post(`${BASE_URL}/api/ad-showrooms`, formData, {
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+          "Content-Type": "multipart/form-data",
+        },
+      }),
+    {
+      onSuccess: (response) => {
+        console.log("Showroom created:", response.data.data);
+        onSuccess(response.data.data);
+      },
+      onError: (error) => {
+        console.error("Error creating showroom:", error);
+        toast({
+          title: "Error creating showroom",
+          description: error.response?.data?.message || error.message,
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      },
+    }
+  );
+
 
   const modalSize = useBreakpointValue({ base: "full", md: "xl" });
   const fontSize = useBreakpointValue({ base: "sm", md: "md" });
@@ -93,6 +120,8 @@ const ShowroomCreateModal = ({ isOpen, onClose }) => {
   const subCategoriesQuery = useQuery(["adSubCategories", userToken, selectedCategoryId], () => fetchSubCategories(userToken, selectedCategoryId), {
     enabled: isOpen && !!userToken && !!selectedCategoryId,
   });
+
+  
 
   const showroomCategoriesQuery = useQuery(
     ["showroomCategories", userToken, selectedSubCategoryId],
@@ -147,10 +176,10 @@ const ShowroomCreateModal = ({ isOpen, onClose }) => {
     setUploadedImage(null);
   };
 
-  const onSubmit = async (data) => {
+  const onSubmit = useCallback(async (data) => {
     const formData = new FormData();
     Object.keys(data).forEach((key) => {
-      if (key === 'phone') {
+      if (key === 'phone' || key === 'whatsappNumber') {
         formData.append(key, `+91${data[key]}`);
       } else {
         formData.append(key, data[key]);
@@ -161,43 +190,12 @@ const ShowroomCreateModal = ({ isOpen, onClose }) => {
       formData.append("images", uploadedImage.file);
     }
 
-    console.log("Data being sent to API:");
-    for (let [key, value] of formData.entries()) {
-      console.log(key, value);
-    }
-
     try {
-      const apiUrl = `${BASE_URL}/api/ad-showrooms`;
-      const response = await axios.post(apiUrl, formData, {
-        headers: {
-          Authorization: `Bearer ${userToken}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      if (response.status === 200 || response.status === 201) {
-        toast({
-          title: "Showroom created successfully",
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
-        // Invalidate and refetch showrooms query
-        queryClient.invalidateQueries("showrooms");
-        onClose();
-      } else {
-        throw new Error("Failed to create showroom");
-      }
+      await createShowroomMutation.mutateAsync(formData);
     } catch (error) {
-      toast({
-        title: "Error creating showroom",
-        description: error.response?.data?.message || error.message,
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      console.error("Error in onSubmit:", error);
     }
-  };
+  }, [createShowroomMutation, uploadedImage]);
 
   useEffect(() => {
     if (isOpen) {
@@ -247,6 +245,7 @@ const ShowroomCreateModal = ({ isOpen, onClose }) => {
               error={errors.name}
               fontSize={fontSize}
             />
+
             <FormControl isInvalid={errors.phone}>
               <FormLabel fontSize={fontSize}>Mobile Number</FormLabel>
               <Controller
@@ -265,6 +264,73 @@ const ShowroomCreateModal = ({ isOpen, onClose }) => {
               />
               <FormErrorMessage>{errors.phone && errors.phone.message}</FormErrorMessage>
             </FormControl>
+
+            <FormControl isInvalid={errors.whatsappNumber}>
+              <FormLabel fontSize={fontSize}>WhatsApp Number</FormLabel>
+              <Controller
+                name="whatsappNumber"
+                control={control}
+                rules={{
+                  required: "WhatsApp number is required",
+                  pattern: {
+                    value: /^[6-9]\d{9}$/,
+                    message: "Invalid WhatsApp number",
+                  },
+                }}
+                render={({ field }) => (
+                  <PhoneInputShowroom {...field} error={errors.whatsappNumber} />
+                )}
+              />
+              <FormErrorMessage>{errors.whatsappNumber && errors.whatsappNumber.message}</FormErrorMessage>
+            </FormControl>
+
+            <SellInput
+              label="Address"
+              type="text"
+              name="address"
+              register={register}
+              rules={{ required: "Address is required" }}
+              error={errors.address}
+              fontSize={fontSize}
+            />
+
+            <FormControl isInvalid={errors.description}>
+              <FormLabel fontSize={fontSize}>Description</FormLabel>
+              <Textarea
+                {...register("description", { required: "Description is required" })}
+                placeholder="Enter showroom description"
+                fontSize={fontSize}
+              />
+              <FormErrorMessage>{errors.description && errors.description.message}</FormErrorMessage>
+            </FormControl>
+
+            <SellInput
+              label="Website Link"
+              type="url"
+              name="websiteLink"
+              register={register}
+              rules={{ 
+                pattern: {
+                  value: /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/,
+                  message: "Invalid URL format"
+                }
+              }}
+              error={errors.websiteLink}
+              fontSize={fontSize}
+            />
+
+            <SellInput
+              label="Facebook Page Link"
+              name="facebookPageLink"
+              register={register}
+              rules={{ 
+                pattern: {
+                  message: "Invalid Facebook page URL"
+                }
+              }}
+              error={errors.facebookPageLink}
+              fontSize={fontSize}
+            />
 
             <FormControl isInvalid={errors.adCategory} fontSize={fontSize}>
               <FormLabel>Category</FormLabel>

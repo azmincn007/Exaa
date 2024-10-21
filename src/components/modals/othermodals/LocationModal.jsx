@@ -19,8 +19,7 @@ import {
 import { IMAGES } from '../../../constants/logoimg';
 import { BASE_URL } from '../../../config/config';
 import TownModal from './TownModal';
-import { TownContext } from '../../../App';
-import { DistrictContext } from '../../../App';
+import { DistrictContext, TownContext } from '../../../App';
 
 const fetchLocationDistricts = async () => {
   const response = await axios.get(`${BASE_URL}/api/find-current-districts-web`);
@@ -28,17 +27,16 @@ const fetchLocationDistricts = async () => {
 };
 
 function LocationModal({ isOpen, onClose, onLocationSet }) {
-  const [selectedDistrict, setSelectedDistrict] = useState(null);
+  const [selectedDistrict, setSelectedDistrict] = useContext(DistrictContext);
   const [isTownModalOpen, setIsTownModalOpen] = useState(false);
   const [, setSelectedTown] = useContext(TownContext);
-  const [, setSelectedDistrictContext] = useContext(DistrictContext);
   const toast = useToast();
 
   const { data, isLoading, error } = useQuery('locationDistricts', fetchLocationDistricts);
 
   const handleDistrictSelect = (district) => {
     if (district.id === 'all') {
-      setSelectedDistrictContext('all');
+      setSelectedDistrict('all');
       setSelectedTown('all');
       localStorage.setItem('selectedDistrictId', 'all');
       localStorage.setItem('selectedTownId', 'all');
@@ -56,7 +54,9 @@ function LocationModal({ isOpen, onClose, onLocationSet }) {
       onClose();
       onLocationSet();
     } else {
-      setSelectedDistrict(district);
+      setSelectedDistrict(district.id);
+      localStorage.setItem('selectedDistrictId', district.id);
+      localStorage.setItem('selectedDistrictName', district.name);
       setIsTownModalOpen(true);
     }
   };
@@ -103,8 +103,8 @@ function LocationModal({ isOpen, onClose, onLocationSet }) {
                       key={district.id}
                       w="100%"
                       h="40px"
-                      bg={selectedDistrict?.id === district.id ? "blue.500" : "white"}
-                      color={selectedDistrict?.id === district.id ? "white" : "black"}
+                      bg={selectedDistrict === district.id ? "blue.500" : "white"}
+                      color={selectedDistrict === district.id ? "white" : "black"}
                       border="1px"
                       borderColor="gray.200"
                       borderRadius="md"
@@ -134,12 +134,12 @@ function LocationModal({ isOpen, onClose, onLocationSet }) {
         </ModalContent>
       </Modal>
 
-      {selectedDistrict && selectedDistrict.id !== 'all' && (
+      {selectedDistrict && selectedDistrict !== 'all' && (
         <TownModal
           isOpen={isTownModalOpen}
           onClose={handleTownModalClose}
-          districtId={selectedDistrict.id}
-          districtName={selectedDistrict.name}
+          districtId={selectedDistrict}
+          districtName={data?.find(d => d.id === selectedDistrict)?.name}
           onLocationSet={handleLocationSet}
         />
       )}

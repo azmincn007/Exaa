@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Modal,
   ModalOverlay,
@@ -14,7 +14,6 @@ import {
 import { useQuery } from 'react-query';
 import axios from 'axios';
 import { BASE_URL } from '../../../config/config';
-import { BiLeftArrowAlt } from 'react-icons/bi';
 import { FaChevronRight } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
@@ -28,38 +27,13 @@ const fetchCategories = async () => {
   return response.data.data;
 };
 
-const fetchSubcategories = async (categoryId) => {
-  const token = localStorage.getItem('UserToken');
-  const response = await axios.get(`${BASE_URL}/api/ad-find-category-sub-categories/${categoryId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  return response.data.data;
-};
-
 function CategoryModal({ isOpen, onClose }) {
-  const [selectedCategory, setSelectedCategory] = useState(null);
   const navigate = useNavigate();
 
   const { data: categories, isLoading: isLoadingCategories } = useQuery('categories', fetchCategories);
 
-  const { data: subcategories, isLoading: isLoadingSubcategories } = useQuery(
-    ['subcategories', selectedCategory],
-    () => fetchSubcategories(selectedCategory),
-    {
-      enabled: !!selectedCategory,
-    }
-  );
-
   const handleCategoryClick = (categoryId, categoryName) => {
-    setSelectedCategory(categoryId);
     navigate(`/category/${categoryId}/${categoryName}`);
-    onClose();
-  };
-
-  const handleSubcategoryClick = (categoryId, categoryName, subcategoryId, subcategoryName) => {
-    navigate(`/category/${categoryId}/${categoryName}/${subcategoryId}`);
     onClose();
   };
 
@@ -79,7 +53,7 @@ function CategoryModal({ isOpen, onClose }) {
           </Box>
           {isLoadingCategories ? (
             <Spinner />
-          ) : selectedCategory === null ? (
+          ) : (
             <Grid
               templateColumns={{ base: 'repeat(1, 1fr)', md: 'repeat(2, 1fr)' }}
               gap={2}
@@ -91,8 +65,8 @@ function CategoryModal({ isOpen, onClose }) {
                   variant="outline"
                   justifyContent="flex-start"
                   fontSize={{ base: 'xs', sm: 'sm' }}
-                  bg={selectedCategory === category.id ? "blue.500" : "white"}
-                  color={selectedCategory === category.id ? "white" : "black"}
+                  bg="white"
+                  color="black"
                   border="1px"
                   borderColor="gray.200"
                   borderRadius="md"
@@ -110,61 +84,6 @@ function CategoryModal({ isOpen, onClose }) {
                 </Button>
               ))}
             </Grid>
-          ) : (
-            <>
-              <Button
-                variant="outline"
-                justifyContent="flex-start"
-                fontSize={{ base: 'xs', sm: 'sm' }}
-                bg="white"
-                color="black"
-                border="1px"
-                borderColor="gray.200"
-                borderRadius="md"
-                _hover={{
-                  borderColor: "blue.500",
-                  bg: "blue.100",
-                  boxShadow: "sm",
-                }}
-                onClick={() => setSelectedCategory(null)}
-              >
-                <HStack>
-                  <BiLeftArrowAlt />
-                  <Text>Back</Text>
-                </HStack>
-              </Button>
-              {isLoadingSubcategories ? (
-                <Spinner />
-              ) : (
-                <Grid
-                  templateColumns={{ base: 'repeat(1, 1fr)', sm: 'repeat(2, 1fr)', md: 'repeat(2, 1fr)' }}
-                  gap={2}
-                  mt={4}
-                >
-                  {subcategories?.slice(0, 6).map((subcategory, index) => (
-                    <Button
-                      key={index}
-                      variant="outline"
-                      justifyContent="flex-start"
-                      fontSize={{ base: 'xs', sm: 'sm' }}
-                      bg={selectedCategory === subcategory.id ? "blue.500" : "white"}
-                      color={selectedCategory === subcategory.id ? "white" : "black"}
-                      border="1px"
-                      borderColor="gray.200"
-                      borderRadius="md"
-                      _hover={{
-                        borderColor: "blue.500",
-                        bg: "blue.100",
-                        boxShadow: "sm",
-                      }}
-                      onClick={() => handleSubcategoryClick(selectedCategory, categories.find(cat => cat.id === selectedCategory)?.name, subcategory.id, subcategory.name)}
-                    >
-                      {subcategory.name}
-                    </Button>
-                  ))}
-                </Grid>
-              )}
-            </>
           )}
         </ModalBody>
       </ModalContent>

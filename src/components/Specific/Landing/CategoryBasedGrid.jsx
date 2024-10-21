@@ -44,9 +44,23 @@ const CategoryBasedGrid = () => {
     buyYearStart: 2010,
     buyYearEnd: 2025,
     salaryPeriod: [],
-  positionType: [],
-  qualification: [],
-  experience: [],
+    positionType: [],
+    qualification: [],
+    experience: [],
+    priceStart: 50,
+    priceEnd: 3000000,
+    floorNo:[],
+    carParking:[],
+    rtoCode:[],
+    brand:[],
+    types:[],
+    model:[],
+    monthlyRentStart:100,
+    monthlyRentEnd:1000000,
+    securityAmountStart:0,
+    securityAmountEnd:500000,
+    plotAreaStart:0,
+    plotAreaEnd:50000
   });
 
   // Fetch subcategories
@@ -75,7 +89,7 @@ const CategoryBasedGrid = () => {
     { 
       enabled: !!selectedCategory?.id,
       onSuccess: (data) => {
-        console.log('useQuery adsData success:', data);
+        // Handle success if needed
       },
       onError: (error) => {
         console.error('Error fetching adsData:', error);
@@ -121,8 +135,9 @@ const CategoryBasedGrid = () => {
     refetchAdsData(); // Refetch data when filters change
   };
 
-  const columns = useBreakpointValue({ base: "1fr", md: "250px 1fr" });
-  const cardColumns = useBreakpointValue({ base: 2, sm: 2, md: 3 });
+  // Updated breakpoint values
+  const columns = useBreakpointValue({ base: "1fr", md: "200px 1fr", lg: "300px 1fr" });
+  const cardColumns = useBreakpointValue({ base: 2, sm: 2, md: 3, lg: 4 });
   const isMobile = useBreakpointValue({ base: true, md: false });
 
   const FilterSection = () => (
@@ -142,6 +157,7 @@ const CategoryBasedGrid = () => {
       )}
     </VStack>
   );
+
   return (
     <Box className='py-4 w-[95%] mx-auto'>
       {isMobile && (
@@ -157,7 +173,9 @@ const CategoryBasedGrid = () => {
       <Grid templateColumns={columns} gap={[3, 4, 6]}>
         {!isMobile && (
           <GridItem>
-            <FilterSection />
+            <Box position="sticky" top="20px">
+              <FilterSection />
+            </Box>
           </GridItem>
         )}
         <GridItem>
@@ -191,23 +209,21 @@ const CategoryBasedGrid = () => {
 
               {filteredAndSortedAdsData().slice(0, visibleCount).length > 0 ? (
                 <SimpleGrid columns={cardColumns} spacing={[3, 4, 6]}>
-                  {filteredAndSortedAdsData().slice(0, visibleCount).map((ad) => {
-                    return (
-                      <CardUser
-                        key={ad.id}
-                        id={ad.id}
-                        adCategoryId={ad.adCategory.id}
-                        isFeatured={ad.isFeatured}
-                        imageUrl={ad.images?.url || ''}
-                        price={ad.price}
-                        title={ad.title}
-                        location={ad.locationTown.name}
-                        postedDate={ad.postedDate}
-                        adBoostTag={ad.adBoostTag}
-                        isAdFavourite={ad.isAdFavourite}
-                      />
-                    );
-                  })}
+                  {filteredAndSortedAdsData().slice(0, visibleCount).map((ad) => (
+                    <CardUser
+                      key={ad.id}
+                      id={ad.id}
+                      adCategoryId={ad.adCategory.id}
+                      isFeatured={ad.isFeatured}
+                      imageUrl={ad.images?.url || ''}
+                      price={ad.price}
+                      title={ad.title}
+                      location={ad.locationTown.name}
+                      postedDate={ad.postedDate}
+                      adBoostTag={ad.adBoostTag}
+                      isAdFavourite={ad.isAdFavourite}
+                    />
+                  ))}
                 </SimpleGrid>
               ) : (
                 <Text fontSize={["sm", "md"]}>No ads available for this category.</Text>

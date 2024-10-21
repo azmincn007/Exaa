@@ -8,6 +8,56 @@ const generateFloorOptions = (max) =>
   Array.from({ length: max }, (_, i) => ({ id: (i + 1).toString(), name: (i + 1).toString() }))
     .concat([{ id: `${max}+`, name: `${max}+` }]);
 
+const subcategoryPriceRanges = {
+  1: { min: 50000, max: 1000000 },
+  2: { min: 50000, max: 1000000},
+  3: { min: 50000, max: 500000000000000},
+  6: { min: 10000, max: 100000000},
+  11: { min: 1000, max: 50000000},
+  12: { min: 500, max: 3000000},
+  13: { min: 500, max: 3000000},
+  14: { min: 500, max: 1000000},
+  15: { min: 500, max: 1000000},
+  16: { min: 500, max: 1000000},
+  18: { min: 1000, max: 100000000},
+  19: { min: 500, max: 1000000},
+  21: { min: 200, max: 500000},
+  22: { min: 200, max: 500000},
+  23: { min: 500, max: 1000000},
+
+  59: { min: 50, max: 1000000},
+  60: { min: 50, max: 1000000},
+  61: { min: 50, max: 1000000},
+  62: { min: 50, max: 1000000},
+  63: { min: 50, max: 1000000}, 
+  64: { min: 50, max: 1000000}, 
+  65: { min: 50, max: 1000000}, 
+  66: { min: 50, max: 1000000}, 
+  67: { min: 50, max: 1000000}, 
+  68: { min: 50, max: 1000000}, 
+  69: { min: 50, max: 1000000}, 
+  70: { min: 50, max: 1000000}, 
+
+  71: { min: 30, max: 1000000}, 
+  72: { min: 30, max: 1000000}, 
+  73: { min: 30, max: 1000000}, 
+
+
+
+
+  
+
+  
+
+
+
+
+
+
+  
+
+};
+
 const specialFields = {
   type: { type: 'select', label: "Type" },
   brand: { type: 'select', label: "Brand" },
@@ -21,7 +71,18 @@ const specialFields = {
   totalLandArea: { type: 'number', label: "Total Land Area (in cents)", rules: { required: "Total Land Area is required", min: { value: 1, message: "Land area must be at least 1 cent" }, max: { value: 10000, message: "Land area cannot exceed 10000 cents" } } },
   superBuiltupArea: { type: 'number', label: "Super Built Up Area", rules: { required: "Super Built Up Area is required", min: { value: 50, message: "Area must be at least 50 sq ft" }, max: { value: 10000, message: "Area cannot exceed 10000 sq ft" } } },
   carpetArea: { type: 'number', label: "Carpet Area", rules: { required: "Carpet Area is required", min: { value: 50, message: "Area must be at least 50 sq ft" }, max: { value: 10000, message: "Area cannot exceed 10000 sq ft" } } },
-  price: { type: 'number', label: "Price", rules: { required: "Price is required", min: { value: 50000, message: "Price must be at least ₹50,000" }, max: { value: 1000000000, message: "Price cannot exceed ₹100 Crore" } } },
+  price: { 
+    type: 'number', 
+    label: "Price", 
+    getRules: (adSubcategoryId) => {
+      const { min, max } = subcategoryPriceRanges[adSubcategoryId] || { min: 50, max: 1000000 };
+      return { 
+        required: "Price is required", 
+        min: { value: min, message: `Price for ${name} must be at least ₹${min.toLocaleString()}` }, 
+        max: { value: max, message: `Price for ${name} cannot exceed ₹${max.toLocaleString()}` } 
+      };
+    }
+  },
   bedrooms: { type: 'select', label: "Bedrooms", options: [{ id: "1", name: "1" }, { id: "2", name: "2" }, { id: "3", name: "3" }, { id: "4", name: "4" }, { id: "4+", name: "4+" }] },
   bathrooms: { type: 'select', label: "Bathrooms", options: [{ id: "1", name: "1" }, { id: "2", name: "2" }, { id: "3", name: "3" }, { id: "4", name: "4" }, { id: "4+", name: "4+" }] },
   projectName: { type: 'text', label: "Project Name" },
@@ -50,7 +111,8 @@ const specialFields = {
   experience: { type: 'select', label: "Experience Required", options: vehicleData.experienceLevels },
 };
 
-export const getFieldConfig = (fieldName, districts, towns, brands, models, variants, types) => {
+export const getFieldConfig = (fieldName, districts, towns, brands, models, variants, types, selectedSubCategoryId) => {
+  
   const commonRules = { required: `${fieldName} is required` };
   const numberRules = { ...commonRules, min: { value: 0, message: `${fieldName} must be positive` } };
 
@@ -60,7 +122,12 @@ export const getFieldConfig = (fieldName, districts, towns, brands, models, vari
   if (fieldName in specialFields) {
     const field = specialFields[fieldName];
     if (['brand', 'model', 'variant', 'type'].includes(fieldName)) {
-      return { ...field, options: { brand: brands, model: models, variant: variants, type: types }[fieldName] || [], rules: commonRules };
+      const options = { brand: brands, model: models, variant: variants, type: types }[fieldName] || [];
+      const fieldRules = ['type', 'brand'].includes(fieldName) ? commonRules : {};
+      return { ...field, options, rules: fieldRules };
+    }
+    if (fieldName === 'price') {
+      return { ...field, rules: field.getRules(selectedSubCategoryId) };
     }
     return { ...field, rules: field.rules || (field.type === 'number' ? numberRules : commonRules) };
   }

@@ -2,7 +2,7 @@ import './App.css';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Home from './pages/Home';
 import { QueryClient, QueryClientProvider } from 'react-query';
-import { createContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useEffect, useState } from 'react';
 import { AuthProvider } from './Hooks/AuthContext';
 import Layout from './pages/Layout';
 import SingleAd from './components/Specific/Landing/SingleAd';
@@ -19,11 +19,14 @@ import ChatComponent from './pages/SpecificPages/Chatcomponent';
 import axios from 'axios';
 import { BASE_URL } from './config/config';
 import { SearchProvider } from './Hooks/SearchContext';
+import Packages from './pages/SpecificPages/Packages';
+import PaymentButton from './Services/RazorpayPayment';
 
 export const TownContext = createContext();
 export const UserdataContext = createContext();
 
 export const DistrictContext = createContext();
+export const UserDataRefetchContext = createContext();
 
 function App() {
   const queryClient = new QueryClient();
@@ -32,23 +35,46 @@ function App() {
   const [userData, setUserData] = useState(null);
   const [isLoading, setIsLoading] = useState(true); // Loading state
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const token = localStorage.getItem('UserToken'); // Ensure you have the token
-        const response = await axios.get(`${BASE_URL}/api/users/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setUserData(response.data.data); // Update state with fetched user data
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-      } finally {
-        setIsLoading(false); // Set loading to false after fetching
-      }
-    };
+ 
 
-    fetchUserData();
+  
+
+  const fetchUserData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem('UserToken');
+      if (!token) {
+        setUserData(null);
+        return;
+      }
+      const response = await axios.get(`${BASE_URL}/api/users/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUserData(response.data.data);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      setUserData(null);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchUserData();
+  }, [fetchUserData]);
+
+  useEffect(() => {
+    if (selectedTown) {
+      localStorage.setItem('selectedTownId', selectedTown);
+    }
+  }, [selectedTown]);
+
+  useEffect(() => {
+    if (selectedDistrict) {
+      localStorage.setItem('selectedDistrictId', selectedDistrict);
+    }
+  }, [selectedDistrict]);
+
 
   useEffect(() => {
     if (selectedTown) {
@@ -67,13 +93,25 @@ function App() {
       <AuthProvider>
       <SearchProvider>
         <UserdataContext.Provider value={{ userData, setUserData, isLoading }}>
+        <UserDataRefetchContext.Provider value={fetchUserData}>
         <DistrictContext.Provider value={[selectedDistrict, setSelectedDistrict]}>
           <TownContext.Provider value={[selectedTown, setSelectedTown]}>
             <Router>
               <Routes>
-                <Route path="/" element={<Layout><Home /></Layout>} />
+              <Route 
+  path="/" 
+  element={
+    <Layout searchType="home">
+      <Home />
+    </Layout>
+  } 
+/>
                 <Route path="/packages-and-orders/:section" element={<Layout><PackagesAndOrders /></Layout>} />
-                <Route path="/buy-packages/myorders" element={<BuyPackagesAndMyorders />} />
+                <Route path="/packages" element={<Layout><Packages /></Layout>}>
+  <Route index element={<Navigate to="/packages/post-more-ads" replace />} />
+  <Route path="post-more-ads" element={<Packages />} />
+  <Route path="boost-with-tags" element={<Packages />} />
+</Route>                <Route path="/buy-packages/myorders" element={<BuyPackagesAndMyorders />} />
                 <Route path="/category/:categoryId/:categoryName" element={<Layout><CategoryBasedGrid /></Layout>} />
                 <Route path="/category/:categoryId/:categoryName/:subCategoryId" element={<Layout><CategoryBasedGrid /></Layout>} /> 
                 <Route path="/details/:id/:adCategoryId" element={<Layout><SingleAd /></Layout>} />
@@ -89,10 +127,12 @@ function App() {
                   <Route path="buying" element={<ChatComponent />} />
                   <Route path="selling" element={<ChatComponent />} />
                 </Route>
+                <Route path="payment" element={<PaymentButton />} />
               </Routes>
             </Router>
           </TownContext.Provider>
           </DistrictContext.Provider>
+          </UserDataRefetchContext.Provider>
         </UserdataContext.Provider>
         </SearchProvider>
       </AuthProvider>

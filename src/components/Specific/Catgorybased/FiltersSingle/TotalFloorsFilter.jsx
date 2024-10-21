@@ -1,9 +1,10 @@
-// TotalFloorsFilter.js
+// src/components/Filters/FiltersSingle/TotalFloorsFilter.js
 import React from 'react';
-import { FormControl, FormLabel, Checkbox, Stack } from '@chakra-ui/react';
+import { FormControl, FormLabel, Checkbox, SimpleGrid } from '@chakra-ui/react';
 
 const TotalFloorsFilter = ({ filterValues, handleFilterChange }) => {
-  const floorOptions = Array.from({ length: 20 }, (_, i) => (i + 1).toString());
+  // Generate floor options from 1 to 20 and add '20+'
+  const floorOptions = [...Array.from({ length: 20 }, (_, i) => (i + 1).toString()), '20+'];
 
   const handleCheckboxChange = (floor) => {
     const updatedFloors = filterValues.totalFloors ? [...filterValues.totalFloors] : [];
@@ -18,7 +19,7 @@ const TotalFloorsFilter = ({ filterValues, handleFilterChange }) => {
   return (
     <FormControl>
       <FormLabel>Total Floors</FormLabel>
-      <Stack maxH="200px" overflowY="auto" spacing={2}>
+      <SimpleGrid columns={2} maxH="200px" overflowY="auto" spacing={2}>
         {floorOptions.map((floor) => (
           <Checkbox
             key={floor}
@@ -28,8 +29,9 @@ const TotalFloorsFilter = ({ filterValues, handleFilterChange }) => {
             {floor}
           </Checkbox>
         ))}
-      </Stack>
+      </SimpleGrid>
     </FormControl>
   );
-}; 
-  export default  TotalFloorsFilter
+};
+
+export default TotalFloorsFilter;

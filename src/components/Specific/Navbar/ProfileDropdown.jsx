@@ -5,9 +5,11 @@ import { BASE_URL } from '../../../config/config';
 import { MdFavoriteBorder } from 'react-icons/md';
 import { UserdataContext } from '../../../App';
 
-const ProfileDropdown = ({ onLogout, onClose, onShowPackagesAndOrders }) => {
+const ProfileDropdown = ({ onLogout, onClose }) => {
   const navigate = useNavigate();
   const { userData } = React.useContext(UserdataContext);
+  console.log(userData);
+  
 
   const renderProfileImage = () => {
     if (userData?.profileImage?.url) {
@@ -28,49 +30,48 @@ const ProfileDropdown = ({ onLogout, onClose, onShowPackagesAndOrders }) => {
   };
 
   const handleItemClick = (action) => {
-    action();
     onClose();
+    setTimeout(() => {
+      action();
+    }, 0);
   };
 
   const menuItems = [
-    { 
-      label: 'Buy Packages & My Orders', 
-      icon: FiPackage, 
-      onClick: () => handleItemClick(() => {
-        onShowPackagesAndOrders();
-        navigate('/buy-packages/myorders');
-      }), 
-      className: 'bg-[#0071BC66]' 
+    {
+      label: 'Buy Packages & My Orders',
+      icon: FiPackage,
+      onClick: () => handleItemClick(() => navigate('/packages/post-more-ads')),
+      className: 'bg-[#0071BC66]'
     },
-    { 
-      label: 'Bought Packages & Billings', 
-      icon: FiPackage, 
-      onClick: () => handleItemClick(() => navigate('/packages-and-orders/packages')) 
+    {
+      label: 'Bought Packages & Billings',
+      icon: FiPackage,
+      onClick: () => handleItemClick(() => navigate('/packages-and-orders/packages'))
     },
-    { 
-      label: 'Favourites', 
-      icon: MdFavoriteBorder, 
-      onClick: () => handleItemClick(() => navigate('/my-ads')) 
+    {
+      label: 'Favourites',
+      icon: MdFavoriteBorder,
+      onClick: () => handleItemClick(() => navigate('/my-ads'))
     },
-    { 
-      label: 'My Showroom', 
-      icon: FiShoppingBag, 
-      onClick: () => handleItemClick(() => navigate('/my-showroom')) 
+    {
+      label: 'My Showroom',
+      icon: FiShoppingBag,
+      onClick: () => handleItemClick(() => navigate('/my-showroom'))
     },
-    { 
-      label: 'Help & Support', 
-      icon: FiHelpCircle, 
-      onClick: () => handleItemClick(() => {/* Add help & support action */}) 
+    {
+      label: 'Help & Support',
+      icon: FiHelpCircle,
+      onClick: () => handleItemClick(() => {/* Add help & support action */})
     },
-    { 
-      label: 'Settings', 
-      icon: FiSettings, 
-      onClick: () => handleItemClick(() => {/* Add settings action */}) 
+    {
+      label: 'Settings',
+      icon: FiSettings,
+      onClick: () => handleItemClick(() => {/* Add settings action */})
     },
-    { 
-      label: 'Logout', 
-      icon: FiLogOut, 
-      onClick: () => handleItemClick(onLogout) 
+    {
+      label: 'Logout',
+      icon: FiLogOut,
+      onClick: () => handleItemClick(onLogout)
     },
   ];
 
@@ -108,4 +109,4 @@ const ProfileDropdown = ({ onLogout, onClose, onShowPackagesAndOrders }) => {
   );
 }
 
-export default ProfileDropdown;
+export default ProfileDropdown; 

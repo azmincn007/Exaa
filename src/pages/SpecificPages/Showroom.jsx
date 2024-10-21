@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from 'react-query';
 import axios from 'axios';
@@ -8,14 +8,23 @@ import { BASE_URL } from '../../config/config';
 import { MapPin, ShoppingBag } from 'lucide-react';
 import { RiGhostLine } from 'react-icons/ri';
 import { FaChevronRight } from 'react-icons/fa6';
+import { DistrictContext, TownContext } from '../../App';
+import { useSearch } from '../../Hooks/SearchContext';
+import { useAuth } from '../../Hooks/AuthContext';
 
-// Fetching showrooms
-const fetchShowrooms = async () => {
+// Updated fetchShowrooms function
+const fetchShowrooms = async ({ selectedDistrict, selectedTown, searchText }) => {
   const token = localStorage.getItem('UserToken');
   const response = await axios.get(`${BASE_URL}/api/find-other-ad-showrooms`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
+    params: {
+      locationTownId: selectedTown === "all" ? '"all"' : String(selectedTown),
+      locationDistrictId: selectedDistrict === "all" ? '"all"' : String(selectedDistrict),
+      search: searchText,
+      sort: ''
+    }
   });
   return response.data.data;
 };
@@ -52,9 +61,26 @@ const Showroom = () => {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [visibleItems, setVisibleItems] = useState(12);
+  const [selectedTown] = useContext(TownContext);
+  const [selectedDistrict] = useContext(DistrictContext);
+  const { isLoggedIn, isInitialized } = useAuth();
 
-  // Fetch showrooms and categories with react-query
-  const { data: showrooms, isLoading: isShowroomsLoading } = useQuery('showrooms', fetchShowrooms);
+  const { searchText } = useSearch();
+  console.log(searchText);
+  useEffect(() => {
+    if (isInitialized && !isLoggedIn) {
+      navigate('/');
+    }
+  }, [isInitialized, isLoggedIn, navigate]);
+
+  // Updated useQuery hook for showrooms
+  const { data: showrooms, isLoading: isShowroomsLoading } = useQuery(
+    ['showrooms', selectedDistrict, selectedTown, searchText],
+    () => fetchShowrooms({ selectedDistrict, selectedTown, searchText }),
+    {
+      enabled: !!selectedDistrict && !!selectedTown,
+    }
+  );
   const { data: categories, isLoading: isCategoriesLoading } = useQuery('categories', fetchCategories);
 
   const storedTownName = localStorage.getItem('selectedTownName');
@@ -108,15 +134,7 @@ const Showroom = () => {
             </Select>
           )}
 
-          {/* Location Button */}
-          <Button
-            leftIcon={<MapPin className="text-12" />}
-            className='bg-[#D2BA8580] px-4 sm:px-12 text-sm'
-            variant='solid'
-            size="sm"
-          >
-            {storedTownName || 'Select Location'}
-          </Button>
+          
         </div>
       </div>
 

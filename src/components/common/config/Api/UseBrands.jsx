@@ -18,14 +18,13 @@ export const useBrands = (isOpen, getUserToken, subcategoryId) => {
       // Determine the subcategory based on subcategoryId
       let subcategory;
       if (subcategoryIdString === "11") {
-        console.log("MATCHED");
         subcategory = "ad-car-brands";
       } else if (subcategoryIdString === "12") {
         subcategory = "ad-moto-bike-brans";
       } else if (subcategoryIdString === "13") {
         subcategory = "ad-moto-bull-modes";
       } else if (subcategoryIdString === "14") {
-        subcategory = "ad-motorcycle-scooter-mode";
+        subcategory = "ad-moto-scoo-brans";
       } else if (subcategoryIdString === "15") {
         subcategory = "ad-moto-scoo-brans";
       } else if (subcategoryIdString === "19") {

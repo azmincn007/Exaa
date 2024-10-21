@@ -1,7 +1,7 @@
 // src/components/Filters/FiltersSingle/BathroomFilter.js
 import React from 'react';
 import {
-  VStack,
+  SimpleGrid,
   Checkbox,
   CheckboxGroup,
   FormControl,
@@ -18,13 +18,13 @@ const BathroomFilter = ({ filterValues, handleFilterChange }) => {
         value={filterValues.bathrooms || []}
         onChange={(values) => handleFilterChange('bathrooms', values)}
       >
-        <VStack align="start" spacing={2}>
+        <SimpleGrid columns={2} spacing={2}>
           {options.map((option) => (
             <Checkbox key={option} value={option}>
               {option}
             </Checkbox>
           ))}
-        </VStack>
+        </SimpleGrid>
       </CheckboxGroup>
     </FormControl>
   );

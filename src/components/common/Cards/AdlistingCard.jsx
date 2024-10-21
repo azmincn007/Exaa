@@ -4,7 +4,6 @@ import { Eye, Heart, MapPin } from 'lucide-react';
 import { BASE_URL } from '../../../config/config';
 
 const AdListing = ({ isActive, image, title, price, views, likes, location, postedDate, adCategory, description ,adSubcategory}) => {
-  console.log(likes);
   
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden shadow-md mb-4 font-Inter">
@@ -32,7 +31,7 @@ const AdListing = ({ isActive, image, title, price, views, likes, location, post
           </div>
           <Text>{description}</Text>
           <Text className="text-20 font-bold text-blue-500">
-            ₹{price.toLocaleString()}
+            ₹{price?.toLocaleString()}
           </Text>
           <div className="mt-auto flex flex-col gap-2">
             <div className="flex justify-between items-center">

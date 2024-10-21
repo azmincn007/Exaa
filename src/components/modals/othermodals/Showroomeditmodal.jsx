@@ -20,6 +20,7 @@ import {
   Text,
   useBreakpointValue,
   useToast,
+  Textarea,
 } from "@chakra-ui/react";
 import { BASE_URL } from "../../../config/config";
 import { IoAddOutline, IoClose } from "react-icons/io5";
@@ -115,6 +116,11 @@ const ShowroomEditModal = ({ isOpen, onClose, showroom, onSuccess }) => {
       reset({
         name: showroom.name,
         phone: showroom.phone.replace("+91", ""),
+        whatsappNumber: showroom.whatsappNumber?.replace("+91", ""),
+        address: showroom.address,
+        description: showroom.description,
+        websiteLink: showroom.websiteLink,
+        facebookPageLink: showroom.facebookPageLink,
         adCategory: showroom.adCategory?.id,
         adShowroomCategory: showroom.adShowroomCategory?.id,
         adSubCategory: showroom.adSubCategory?.id,
@@ -204,7 +210,7 @@ const ShowroomEditModal = ({ isOpen, onClose, showroom, onSuccess }) => {
   const onSubmit = async (data) => {
     const formData = new FormData();
     Object.keys(data).forEach((key) => {
-      if (key === "phone") {
+      if (key === "phone" || key === "whatsappNumber") {
         formData.append(key, `+91${data[key]}`);
       } else {
         formData.append(key, data[key]);
@@ -229,7 +235,6 @@ const ShowroomEditModal = ({ isOpen, onClose, showroom, onSuccess }) => {
       console.log("API Response:", response.data);
 
       if (response.status === 200) {
-       
         queryClient.invalidateQueries("showrooms");
         onSuccess();
         onClose();
@@ -247,7 +252,6 @@ const ShowroomEditModal = ({ isOpen, onClose, showroom, onSuccess }) => {
       });
     }
   };
-
   const ImageUploadBox = ({ onClick, children }) => (
     <Box
       w={imageBoxSize}
@@ -285,6 +289,7 @@ const ShowroomEditModal = ({ isOpen, onClose, showroom, onSuccess }) => {
               error={errors.name}
               fontSize={fontSize}
             />
+
             <FormControl isInvalid={errors.phone}>
               <FormLabel fontSize={fontSize}>Mobile Number</FormLabel>
               <Controller
@@ -301,6 +306,72 @@ const ShowroomEditModal = ({ isOpen, onClose, showroom, onSuccess }) => {
               />
               <FormErrorMessage>{errors.phone && errors.phone.message}</FormErrorMessage>
             </FormControl>
+
+            <FormControl isInvalid={errors.whatsappNumber}>
+              <FormLabel fontSize={fontSize}>WhatsApp Number</FormLabel>
+              <Controller
+                name="whatsappNumber"
+                control={control}
+                rules={{
+                  required: "WhatsApp number is required",
+                  pattern: {
+                    value: /^[6-9]\d{9}$/,
+                    message: "Invalid WhatsApp number",
+                  },
+                }}
+                render={({ field }) => <PhoneInputShowroom {...field} error={errors.whatsappNumber} />}
+              />
+              <FormErrorMessage>{errors.whatsappNumber && errors.whatsappNumber.message}</FormErrorMessage>
+            </FormControl>
+
+            <SellInput
+              label="Address"
+              type="text"
+              name="address"
+              register={register}
+              rules={{ required: "Address is required" }}
+              error={errors.address}
+              fontSize={fontSize}
+            />
+
+            <FormControl isInvalid={errors.description}>
+              <FormLabel fontSize={fontSize}>Description</FormLabel>
+              <Textarea
+                {...register("description", { required: "Description is required" })}
+                placeholder="Enter showroom description"
+                fontSize={fontSize}
+              />
+              <FormErrorMessage>{errors.description && errors.description.message}</FormErrorMessage>
+            </FormControl>
+
+            <SellInput
+              label="Website Link"
+              type="url"
+              name="websiteLink"
+              register={register}
+              rules={{ 
+                pattern: {
+                  value: /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/,
+                  message: "Invalid URL format"
+                }
+              }}
+              error={errors.websiteLink}
+              fontSize={fontSize}
+            />
+
+            <SellInput
+              label="Facebook Page Link"
+              name="facebookPageLink"
+              register={register}
+              rules={{ 
+                pattern: {
+                  value: /^(https?:\/\/)?(www\.)?facebook.com\/.+/,
+                  message: "Invalid Facebook page URL"
+                }
+              }}
+              error={errors.facebookPageLink}
+              fontSize={fontSize}
+            />
 
             <FormControl isInvalid={errors.adCategory} fontSize={fontSize}>
               <FormLabel>Category</FormLabel>

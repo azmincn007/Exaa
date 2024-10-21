@@ -1,5 +1,6 @@
+// src/components/Filters/FiltersSingle/FacingFilter.js
 import React from 'react';
-import { FormControl, FormLabel, Checkbox, Stack } from '@chakra-ui/react';
+import { FormControl, FormLabel, Checkbox, SimpleGrid } from '@chakra-ui/react';
 
 const FacingFilter = ({ filterValues, handleFilterChange }) => {
   const facingOptions = [
@@ -26,7 +27,7 @@ const FacingFilter = ({ filterValues, handleFilterChange }) => {
   return (
     <FormControl>
       <FormLabel>Facing</FormLabel>
-      <Stack maxH="200px" spacing={2}>
+      <SimpleGrid columns={2} maxH="200px" overflowY="auto" spacing={2}>
         {facingOptions.map((facing) => (
           <Checkbox
             key={facing}
@@ -36,9 +37,9 @@ const FacingFilter = ({ filterValues, handleFilterChange }) => {
             {facing}
           </Checkbox>
         ))}
-      </Stack>
+      </SimpleGrid>
     </FormControl>
   );
 };
 
-export default FacingFilter
+export default FacingFilter;

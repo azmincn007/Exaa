@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useContext } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "react-query";
 import axios from "axios";
@@ -9,30 +9,7 @@ import { MdDateRange } from "react-icons/md";
 import { FaChevronRight } from "react-icons/fa";
 import CardShowroom from "../../components/common/Cards/CardShowroom";
 import { BASE_URL } from "../../config/config";
-
-const fetchShowroomData = async (id) => {
-  const token = localStorage.getItem('UserToken');
-  const response = await axios.get(`${BASE_URL}/api/ad-showrooms/${id}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  console.log(response.data.data);
-  
-  return response.data.data;
-};
-
-const fetchOtherShowroomAds = async (adShowroomId) => {
-  const token = localStorage.getItem('UserToken');
-  const response = await axios.get(`${BASE_URL}/api/find-other-showroom-ads/${adShowroomId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  console.log(response.data.data);
-  
-  return response.data.data;
-};
+import { DistrictContext, TownContext } from "../../App";
 
 function Showroomsingle() {
   const { id } = useParams();
@@ -40,14 +17,39 @@ function Showroomsingle() {
   const [budgetFilter, setBudgetFilter] = useState("");
   const [dateSort, setDateSort] = useState(false);
   const [visibleCards, setVisibleCards] = useState(6);
+  const [selectedTown] = useContext(TownContext);
+  const [selectedDistrict] = useContext(DistrictContext);
+
+  const fetchShowroomData = async () => {
+    const token = localStorage.getItem('UserToken');
+    const response = await axios.get(`${BASE_URL}/api/ad-showrooms/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data.data;
+  };
+
+  const fetchOtherShowroomAds = async () => {
+    const token = localStorage.getItem('UserToken');
+    const response = await axios.get(`${BASE_URL}/api/find-other-showroom-ads/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      params: {
+        adSubCategoryId: showroomData?.adSubCategory?.id,
+        locationTownId: selectedTown === "all" ? '"all"' : String(selectedTown),
+        locationDistrictId: selectedDistrict === "all" ? '"all"' : String(selectedDistrict),
+        sort:''
+      }
+    });
+    return response.data.data;
+  };
 
   const { data: showroomData, isLoading: isLoadingShowroom, error: showroomError } = useQuery(
     ['showroom', id],
-    () => fetchShowroomData(id),
+    fetchShowroomData,
     {
-      onSuccess: (data) => {
-        // You can add any additional logic here if needed
-      },
       onError: (error) => {
         console.error("Error fetching showroom data:", error);
       }
@@ -55,12 +57,10 @@ function Showroomsingle() {
   );
 
   const { data: otherAds, isLoading: isLoadingOtherAds, error: otherAdsError } = useQuery(
-    ['otherShowroomAds', id],
-    () => fetchOtherShowroomAds(id),
+    ['otherShowroomAds', id, showroomData?.adSubCategory?.id],
+    fetchOtherShowroomAds,
     {
-      onSuccess: (data) => {
-        // You can add any additional logic here if needed
-      },
+      enabled: !!showroomData?.adSubCategory?.id,
       onError: (error) => {
         console.error("Error fetching other showroom ads:", error);
       }
@@ -84,21 +84,18 @@ function Showroomsingle() {
     
     let filteredAds = [...otherAds];
 
-    // Apply budget filter
     if (budgetFilter === "highToLow") {
       filteredAds.sort((a, b) => b.price - a.price);
     } else if (budgetFilter === "lowToHigh") {
       filteredAds.sort((a, b) => a.price - b.price);
     }
 
-    // Apply title sort
     if (sortOrder === "aToZ") {
       filteredAds.sort((a, b) => a.title.localeCompare(b.title));
     } else if (sortOrder === "zToA") {
       filteredAds.sort((a, b) => b.title.localeCompare(a.title));
     }
 
-    // Apply date sort if active
     if (dateSort) {
       filteredAds.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     }
@@ -125,8 +122,8 @@ function Showroomsingle() {
   return (
     <div className="w-[80%] mx-auto font-Inter">
       <h1 className="py-2 font-semibold flex justify-center">Showroom</h1>
-      <div className="w-full overflow-hidden font-sans bg-blue-600 rounded-xl ">
-        <div className="h-[500px] overflow-hidden ">
+      <div className="w-full overflow-hidden font-sans bg-blue-600 rounded-xl">
+        <div className="h-[200px] w-[60%] mx-auto object-contain overflow-hidden ">
           <img 
             src={imageUrl} 
             alt="Showroom image" 
@@ -139,7 +136,7 @@ function Showroomsingle() {
           <p className="text-sm mt-1 mb-0">Showroom Category: {showroomData?.adShowroomCategory?.name || 'Category not available'}</p>
         </div>
       </div>
-      <div className="py-2 ">
+      <div className="py-2">
         <h1 className="font-semibold py-2">All Ads</h1>
         <div className="bg-[#0071BC1A] flex justify-between items-center">
           <div className="flex gap-4 items-center">

@@ -27,7 +27,8 @@ function SearchedAdsGrid() {
       adLimit: 30,
       locationTownId: selectedTown === "all" ? '"all"' : String(selectedTown),
       locationDistrictId: selectedDistrict === "all" ? '"all"' : String(selectedDistrict),
-      search: searchText
+      search: searchText,
+      sort:''
     };
     
     const config = {};

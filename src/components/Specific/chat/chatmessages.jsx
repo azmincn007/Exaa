@@ -1,53 +1,46 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
-const ChatMessages = ({ chats }) => {
-  const receiverName = chats.data.adChatReceiver.name;
-  const isBuyerReceiver = chats.data.adChatReceiver.type === 'buyer';
+
+const ChatMessages = ({ chats, userId }) => {
   const messagesEndRef = useRef(null);
+  const [displayedMessages, setDisplayedMessages] = useState([]);
+  const receiverName = chats?.data?.adChatReceiver?.name;
+  const isBuyerReceiver = chats?.data?.adChatReceiver?.type === 'buyer';
+
+  // Loading state
+  if (!chats?.data) {
+    return (
+      <div className="flex flex-col h-full bg-white rounded-lg shadow-sm">
+        {/* Loading skeleton UI */}
+      </div>
+    );
+  }
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const confirmedMessages = chats.data.messages.filter(
+      message => message.status !== 'sending'
+    );
+    setDisplayedMessages(confirmedMessages);
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chats.data.messages]);
 
   const MessageBubble = ({ message, isMessageFromReceiver }) => {
+    if (!message) return null;
+
     return (
-      <div
-        className={`flex ${isMessageFromReceiver ? 'justify-start' : 'justify-end'}
-          transform transition-all duration-300 ease-out
-          ${message.status === 'sending' ? 'opacity-70' : 'opacity-100'}
-          translate-y-0`}
-      >
-        <div
-          className={`
-            relative group
-            max-w-[70%] rounded-lg p-3 
-            ${isMessageFromReceiver ? 'bg-gray-200 text-black' : 'bg-blue-500 text-white'}
-            ${message.status === 'sending' ? 'animate-pulse' : 'animate-none'}
-            ${message.status === 'error' ? 'border border-red-500' : ''}
-            transform transition-all duration-300
-            translate-y-0 opacity-100
-            ${message.tempId ? 'animate-messageAppear' : ''}
-          `}
-        >
+      <div className={`flex ${isMessageFromReceiver ? 'justify-start' : 'justify-end'}`}>
+        <div className={`relative group max-w-[70%] rounded-lg p-3 
+          ${isMessageFromReceiver ? 'bg-gray-200 text-black' : 'bg-blue-500 text-white'}
+          ${message.status === 'sending' ? 'opacity-70' : 'opacity-100'}`}>
           {message.message}
-          
-          {/* Sending indicator */}
           {message.status === 'sending' && (
             <div className="absolute -bottom-6 right-0 flex space-x-1">
-              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" 
-                   style={{ animationDelay: '0ms' }} />
-              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" 
-                   style={{ animationDelay: '150ms' }} />
-              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" 
-                   style={{ animationDelay: '300ms' }} />
+              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
             </div>
           )}
-          
-          {/* Error indicator */}
           {message.status === 'error' && (
-            <div className="absolute -bottom-6 right-0 text-xs text-red-500">
-              Failed to send
-            </div>
+            <div className="absolute -bottom-6 right-0 text-xs text-red-500">Failed to send</div>
           )}
         </div>
       </div>
@@ -67,11 +60,14 @@ const ChatMessages = ({ chats }) => {
             const isSenderBuyer = message.adBuyer && !message.adSeller;
             const isMessageFromReceiver = isBuyerReceiver ? isSenderBuyer : !isSenderBuyer;
 
+            // Determine ownership before rendering
+            const isUserMessage = message.adBuyer === false && message.adSeller === true;
+
             return (
               <MessageBubble
-                key={message.tempId || index}
+                key={message.tempId || message.id || index}
                 message={message}
-                isMessageFromReceiver={isMessageFromReceiver}
+                isMessageFromReceiver={isUserMessage}
               />
             );
           })}
@@ -81,4 +77,5 @@ const ChatMessages = ({ chats }) => {
     </div>
   );
 };
-export default ChatMessages
+
+export default ChatMessages;

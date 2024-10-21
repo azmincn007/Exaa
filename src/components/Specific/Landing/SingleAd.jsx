@@ -13,6 +13,7 @@ import Rest from '../AdSingleStructure/Rest';
 import SkeletonSingleAdPage from '../../Skelton/singleadPageskelton';
 import LoginModal from '../../modals/Authentications/LoginModal';
 import { useAuth } from '../../../Hooks/AuthContext';
+import PriceAdjuster from '../AdSingleStructure/PriceAdjuster';
 
 const fetchAdData = async ({ queryKey }) => {
   const [_, adCategoryId, adId, token] = queryKey;
@@ -26,26 +27,49 @@ const fetchAdData = async ({ queryKey }) => {
   return data.data;
 };
 
-const findOrCreateChat = async ({ adId, adCategoryId, adBuyerId, adSellerId, token }) => {
+const findOrCreateChat = async ({ adId, adCategoryId, adBuyerId, adSellerId, token, message, isOfferMessage }) => {
   try {
-    const { data } = await axios.get(
-      `${BASE_URL}/api/find-one-chat/${adId}/${adCategoryId}/${adBuyerId}/${adSellerId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    return { data, isNewChat: false };
-  } catch (error) {
-    if (error.response && error.response.status === 404) {
+    if (isOfferMessage) {
+      // Always create a new chat for offers
       const { data } = await axios.post(
         `${BASE_URL}/api/ad-chats`,
         {
           adId,
           adCategoryId,
           adBuyerId,
-          message: 'Hi, I want to know more details about that',
+          message,
+          isOfferMessage
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return { data, isNewChat: true };
+    } else {
+      // For regular chats, try to find existing chat first
+      const { data } = await axios.get(
+        `${BASE_URL}/api/find-one-chat/${adId}/${adCategoryId}/${adBuyerId}/${adSellerId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return { data, isNewChat: false };
+    }
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      // Create new chat if not found
+      const { data } = await axios.post(
+        `${BASE_URL}/api/ad-chats`,
+        {
+          adId,
+          adCategoryId,
+          adBuyerId,
+          message,
+          isOfferMessage
         },
         {
           headers: {
@@ -64,6 +88,7 @@ function SingleAd() {
   const navigate = useNavigate();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isPriceAdjusterOpen, setIsPriceAdjusterOpen] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const { isLoggedIn, token } = useAuth();
@@ -79,10 +104,8 @@ function SingleAd() {
   const chatMutation = useMutation(findOrCreateChat, {
     onSuccess: (result) => {
       const { data, isNewChat } = result;
-      if (isNewChat) {
+      if (data.data && (isNewChat || data.data.ad)) {
         navigate(`/chats/all`, { state: { selectedChatId: data.data?.id } });
-      } else if (data.data && data.data.ad) {
-        navigate(`/chats/all`, { state: { selectedChatId: data.data.ad.id } });
       } else {
         navigate(`/chats/all`);
       }
@@ -102,8 +125,32 @@ function SingleAd() {
         adBuyerId: adData?.adBuyer?.id,
         adSellerId: adData?.adSeller?.id,
         token,
+        message: 'Hi, I want to know more details',
+        isOfferMessage: false
       });
     }
+  };
+
+  const handleMakeOffer = () => {
+    if (!isLoggedIn || !token) {
+      setIsLoginModalOpen(true);
+    } else {
+      setIsPriceAdjusterOpen(true);
+    }
+  };
+
+  const handleOfferSubmit = (adjustedPrice) => {
+    console.log(`Offer submitted: ₹${adjustedPrice.toFixed(2)}`);
+    chatMutation.mutate({
+      adId,
+      adCategoryId,
+      adBuyerId: adData?.adBuyer?.id,
+      adSellerId: adData?.adSeller?.id,
+      token,
+      message: `Hi, I want to make an offer at ₹${adjustedPrice.toFixed(2)}`,
+      isOfferMessage: true
+    });
+    setIsPriceAdjusterOpen(false);
   };
 
   const handlePrevClick = () => {
@@ -127,7 +174,7 @@ function SingleAd() {
   return (
     <div className="my-16 font-Inter">
       <div className="relative flex items-center justify-center w-4/5 mx-auto overflow-hidden gap-16">
-        <FaChevronLeft onClick={handlePrevClick} />
+        <FaChevronLeft onClick={handlePrevClick} className="cursor-pointer" />
         {imageCount > 0 ? (
           <div className="w-full bg-black flex justify-center items-center cursor-pointer" onClick={onOpen}>
             <img
@@ -141,10 +188,9 @@ function SingleAd() {
             No Image Available
           </div>
         )}
-        <FaChevronRight onClick={handleNextClick} />
+        <FaChevronRight onClick={handleNextClick} className="cursor-pointer" />
       </div>
 
-      {/* Image Modal for full view */}
       <Modal isOpen={isOpen} onClose={onClose} size="full">
         <ModalOverlay />
         <ModalContent>
@@ -165,7 +211,10 @@ function SingleAd() {
           <div className="col-span-12 md:col-span-4 flex flex-col gap-4">
             <div className="bg-white p-4">
               <div className="flex gap-4 px-4 mb-4">
-                <Button className="w-full bg-green-500 gap-2 text-white text-sm md:text-base">
+                <Button 
+                  className="w-full bg-green-500 gap-2 text-white text-sm md:text-base"
+                  onClick={handleMakeOffer}
+                >
                   <FaCommentDollar /> Make Offer
                 </Button>
                 <Button
@@ -211,6 +260,14 @@ function SingleAd() {
           <p className="text-sm md:text-base text-gray-500">{adData.description || 'No description available.'}</p>
         </div>
       </div>
+
+      <PriceAdjuster
+        initialPrice={adData.price}
+        onSubmit={handleOfferSubmit}
+        isOpen={isPriceAdjusterOpen}
+        onClose={() => setIsPriceAdjusterOpen(false)}
+      />
+
       <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
     </div>
   );

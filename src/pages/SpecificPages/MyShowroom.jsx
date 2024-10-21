@@ -1,25 +1,14 @@
 // MyShowroom.jsx
-import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Button,
-  Grid,
-  GridItem,
-  useBreakpointValue,
-  Text,
-  Image,
-  VStack,
-  Center,
-  useToast,
-} from "@chakra-ui/react";
+import React, { useState, useEffect, useCallback } from "react";
+import { Box, Button, Grid, GridItem, useBreakpointValue, Text, Image, VStack, Center, useToast } from "@chakra-ui/react";
 import { MdAddCircleOutline } from "react-icons/md";
 import { useQuery, useQueryClient } from "react-query";
 import axios from "axios";
-import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/css';
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
 import ShowroomCreateModal from "../../components/modals/othermodals/ShowroomCreateModal";
 import { BASE_URL } from "../../config/config";
-import emptyillus from '../../assets/empty.png';
+import emptyillus from "../../assets/empty.png";
 import { CiLocationOn } from "react-icons/ci";
 import SellShowroomAd from "../../components/modals/othermodals/SellShowroomAd";
 import ShowroomUserdata from "../../components/common/Cards/ShowroomuserAdCard";
@@ -34,26 +23,20 @@ import EditShowroomModal from "../../components/modals/othermodals/EditShowroomA
 import EditShowroomad from "../../components/modals/othermodals/EditShowroomAd";
 
 const fetchShowrooms = async (token) => {
-  const response = await axios.get(
-    `${BASE_URL}/api/find-user-ad-showrooms`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
+  const response = await axios.get(`${BASE_URL}/api/find-user-ad-showrooms`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
   return response.data.data;
 };
 
 const fetchShowroomAds = async (showroomId, token) => {
-  const response = await axios.get(
-    `${BASE_URL}/api/find-user-showroom-ads/${showroomId}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
+  const response = await axios.get(`${BASE_URL}/api/find-user-showroom-ads/${showroomId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
   return response.data.data;
 };
 
@@ -67,29 +50,6 @@ const MyShowroom = () => {
   const [showroomToEdit, setShowroomToEdit] = useState(null);
   const [isEditAdModalOpen, setIsEditAdModalOpen] = useState(false);
   const [adToEdit, setAdToEdit] = useState(null);
-  const handleAdEdit = (ad) => {
-    setAdToEdit(ad);
-    setIsEditAdModalOpen(true);
-  };
-
-  const handleEditAdModalClose = () => {
-    setIsEditAdModalOpen(false);
-    setAdToEdit(null);
-  };
-
-  const handleEditAdSuccess = () => {
-    queryClient.invalidateQueries(["showroomAds", selectedShowroom?.id]);
-    handleEditAdModalClose();
-    
-    toast({
-      title: "Ad updated successfully",
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-    });
-  };
-
-  
 
   const { isLoggedIn, isInitialized, token } = useAuth();
   const queryClient = useQueryClient();
@@ -97,22 +57,28 @@ const MyShowroom = () => {
 
   useEffect(() => {
     if (isInitialized && !isLoggedIn) {
-      navigate('/');
+      navigate("/");
     }
   }, [isInitialized, isLoggedIn, navigate]);
 
-  const { data: showrooms, isLoading: showroomsLoading, error: showroomsError } = useQuery(
-    ["showrooms", token],
-    () => fetchShowrooms(token),
-    {
-      retry: 3,
-      retryDelay: 1000,
-      refetchOnWindowFocus: false,
-      enabled: !!token,
-    }
-  );
+  const {
+    data: showrooms,
+    isLoading: showroomsLoading,
+    error: showroomsError,
+    refetch: refetchShowrooms,
+  } = useQuery(["showrooms", token], () => fetchShowrooms(token), {
+    retry: 3,
+    retryDelay: 1000,
+    refetchOnWindowFocus: false,
+    enabled: !!token,
+  });
 
-  const { data: showroomAds, isLoading: adsLoading, error: adsError } = useQuery(
+  const {
+    data: showroomAds,
+    isLoading: adsLoading,
+    error: adsError,
+    refetch: refetchShowroomAds,
+  } = useQuery(
     ["showroomAds", selectedShowroom?.id, token],
     () => fetchShowroomAds(selectedShowroom?.id, token),
     {
@@ -135,70 +101,93 @@ const MyShowroom = () => {
   const handleSellModalOpen = () => setIsSellModalOpen(true);
   const handleSellModalClose = () => setIsSellModalOpen(false);
 
-  const handleShowroomSelect = (showroom) => {
-    setSelectedShowroom(showroom);
-  };
-
-  const handleShowroomDelete = async (deletedShowroomId) => {
-    // Get current showrooms from cache
-    const currentShowrooms = queryClient.getQueryData(["showrooms"]) || [];
-    
-    // Optimistically update the showrooms list
-    const updatedShowrooms = currentShowrooms.filter(s => s.id !== deletedShowroomId);
-    queryClient.setQueryData(["showrooms"], updatedShowrooms);
-
-    // If the deleted showroom was selected, select the first available showroom
-    if (selectedShowroom?.id === deletedShowroomId) {
-      const nextShowroom = updatedShowrooms[0] || null;
-      setSelectedShowroom(nextShowroom);
-    }
-
-    // Invalidate the queries to ensure consistency
-    await Promise.all([
-      queryClient.invalidateQueries(["showrooms"]),
-      queryClient.invalidateQueries(["showroomAds", deletedShowroomId])
-    ]);
-
+  const handleShowroomCreated = useCallback(async (newShowroom) => {
+    console.log("New showroom created:", newShowroom);
+    await refetchShowrooms();
+    setSelectedShowroom(newShowroom);
+    handleClose();
     toast({
-      title: "Showroom deleted successfully",
+      title: "Showroom created successfully",
       status: "success",
       duration: 3000,
       isClosable: true,
     });
-  };
-  const handleAdCreated = () => {
-    queryClient.invalidateQueries(["showroomAds", selectedShowroom?.id]);
+  }, [refetchShowrooms, handleClose, toast]);
+
+  const handleShowroomSelect = useCallback((showroom) => {
+    setSelectedShowroom(showroom);
+  }, []);
+
+  const handleShowroomDelete = useCallback(async (deletedShowroomId) => {
+    await refetchShowrooms();
+    if (selectedShowroom?.id === deletedShowroomId) {
+      const updatedShowrooms = showrooms.filter(s => s.id !== deletedShowroomId);
+      setSelectedShowroom(updatedShowrooms[0] || null);
+    }
+   
+  }, [refetchShowrooms, selectedShowroom, showrooms, toast]);
+
+  const handleAdCreated = useCallback(async () => {
+    await refetchShowroomAds();
     handleSellModalClose();
-    
     toast({
       title: "Ad created successfully",
       status: "success",
       duration: 3000,
       isClosable: true,
     });
-  };
+  }, [refetchShowroomAds, handleSellModalClose, toast]);
 
-  const handleShowroomEdit = (showroom) => {
+  const handleShowroomEdit = useCallback((showroom) => {
     setShowroomToEdit(showroom);
     setIsEditModalOpen(true);
-  };
+  }, []);
 
-  const handleEditModalClose = () => {
+  const handleEditModalClose = useCallback(() => {
     setIsEditModalOpen(false);
     setShowroomToEdit(null);
-  };
+  }, []);
 
-  const handleEditSuccess = () => {
-    queryClient.invalidateQueries("showrooms");
+  const handleEditSuccess = useCallback(async (updatedShowroom) => {
+    await refetchShowrooms();
+    setSelectedShowroom(updatedShowroom);
     handleEditModalClose();
-    
     toast({
       title: "Showroom updated successfully",
       status: "success",
       duration: 3000,
       isClosable: true,
     });
-  };
+  }, [refetchShowrooms, handleEditModalClose, toast]);
+
+  const handleAdEdit = useCallback((ad) => {
+    setAdToEdit(ad);
+    setIsEditAdModalOpen(true);
+  }, []);
+
+  const handleEditAdModalClose = useCallback(() => {
+    setIsEditAdModalOpen(false);
+    setAdToEdit(null);
+  }, []);
+
+  const handleEditAdSuccess = useCallback(async () => {
+    await refetchShowroomAds();
+    handleEditAdModalClose();
+   
+  }, [refetchShowroomAds, handleEditAdModalClose, toast]);
+
+  
+  const handleAdDeleted = useCallback((deletedAdId) => {
+    // Update the local state
+    if (selectedShowroom) {
+      queryClient.setQueryData(
+        ["showroomAds", selectedShowroom.id],
+        (oldData) => oldData ? oldData.filter(ad => ad.id !== deletedAdId) : []
+      );
+    }
+    
+   
+  }, [queryClient, selectedShowroom, toast]);
 
   if (showroomsLoading || !isInitialized || adsLoading) {
     return <ShowroomSkeleton />;
@@ -222,36 +211,31 @@ const MyShowroom = () => {
         }}
         gap={6}
       >
-        <GridItem 
-          colSpan={{ base: 1, md: 6, lg: 4 }} 
-          bg="#0071BC1A" 
+        <GridItem
+          colSpan={{ base: 1, md: 6, lg: 4 }}
+          bg="#0071BC1A"
           height={{ base: "auto", md: "100vh" }}
           overflowY={{ base: "visible", md: "auto" }}
           overflowX="hidden"
           position="relative"
           className="rounded-xl"
           css={{
-            '&::-webkit-scrollbar': {
-              width: '4px',
+            "&::-webkit-scrollbar": {
+              width: "4px",
             },
-            '&::-webkit-scrollbar-track': {
-              width: '6px',
+            "&::-webkit-scrollbar-track": {
+              width: "6px",
             },
-            '&::-webkit-scrollbar-thumb': {
-              background: '#4F7598',
-              borderRadius: '24px',
+            "&::-webkit-scrollbar-thumb": {
+              background: "#4F7598",
+              borderRadius: "24px",
             },
           }}
         >
           <VStack spacing={4} align="stretch" p={4}>
             {showrooms && showrooms.length > 0 ? (
               isMobile ? (
-                <Swiper
-                  className="w-full"
-                  spaceBetween={30}
-                  slidesPerView={1}
-                  onSlideChange={(swiper) => handleShowroomSelect(showrooms[swiper.activeIndex])}
-                >
+                <Swiper className="w-full" spaceBetween={30} slidesPerView={1} onSlideChange={(swiper) => handleShowroomSelect(showrooms[swiper.activeIndex])}>
                   {showrooms.map((showroom) => (
                     <SwiperSlide key={showroom.id}>
                       <ShowroomContentCard
@@ -278,13 +262,7 @@ const MyShowroom = () => {
               )
             ) : (
               <Box textAlign="center">
-                <Image
-                  src={emptyillus}
-                  alt="No showrooms"
-                  mx="auto"
-                  className="max-w-[200px] max-h-[200px]"
-                  mb={4}
-                />
+                <Image src={emptyillus} alt="No showrooms" mx="auto" className="max-w-[200px] max-h-[200px]" mb={4} />
                 <Text fontSize="lg" fontWeight="medium" mb={4}>
                   No showrooms found
                 </Text>
@@ -305,26 +283,12 @@ const MyShowroom = () => {
           </VStack>
         </GridItem>
 
-        <GridItem
-          colSpan={{ base: 1, md: 6, lg: 8 }}
-          bg="#0071BC1A"
-          minHeight="300px"
-          borderRadius="xl"
-          boxShadow="md"
-          p={6}
-        >
+        <GridItem colSpan={{ base: 1, md: 6, lg: 8 }} bg="#0071BC1A" minHeight="300px" borderRadius="xl" boxShadow="md" p={6}>
           {selectedShowroom ? (
             <VStack spacing={4} align="stretch" height="100%">
               <div className="flex justify-between items-center">
-                <h2 className="font-semibold text-xl">
-                  My Showroom - {selectedShowroom.name}
-                </h2>
-                <Button 
-                  leftIcon={<CiLocationOn />} 
-                  className="bg-[#D2BA8580]" 
-                  variant='solid'
-                  size="sm"
-                >
+                <h2 className="font-semibold text-xl">My Showroom - {selectedShowroom.name}</h2>
+                <Button leftIcon={<CiLocationOn />} className="bg-[#D2BA8580]" variant="solid" size="sm">
                   {selectedShowroom.locationTown?.name || "Location not set"}
                 </Button>
               </div>
@@ -332,11 +296,14 @@ const MyShowroom = () => {
               {showroomAds && showroomAds.length > 0 ? (
                 <VStack spacing={4} align="stretch">
                   {showroomAds.map((ad) => (
-                    <ShowroomuserAdCard 
-                    key={ad.id} 
-                    data={ad} 
-                    onEdit={handleAdEdit}
-                  />
+               <ShowroomuserAdCard 
+               key={ad.id} 
+               data={ad} 
+               onEdit={handleAdEdit}
+               onDelete={handleAdDeleted}
+               showroomId={selectedShowroom?.id}
+               token={token}
+             />
                   ))}
                   <Button
                     leftIcon={<MdAddCircleOutline />}
@@ -352,23 +319,11 @@ const MyShowroom = () => {
                 </VStack>
               ) : (
                 <Center flex={1} flexDirection="column">
-                  <Image
-                    src={emptyillus}
-                    alt="No posts"
-                    maxWidth="200px"
-                    maxHeight="200px"
-                    mb={4}
-                  />
+                  <Image src={emptyillus} alt="No posts" maxWidth="200px" maxHeight="200px" mb={4} />
                   <Text fontSize="lg" fontWeight="medium" mb={4}>
                     No posts yet in this showroom
                   </Text>
-                  <Button
-                    leftIcon={<MdAddCircleOutline />}
-                    colorScheme="blue"
-                    size="lg"
-                    borderRadius="xl"
-                    onClick={handleSellModalOpen}
-                  >
+                  <Button leftIcon={<MdAddCircleOutline />} colorScheme="blue" size="lg" borderRadius="xl" onClick={handleSellModalOpen}>
                     New Post
                   </Button>
                 </Center>
@@ -384,15 +339,12 @@ const MyShowroom = () => {
         </GridItem>
       </Grid>
 
-      <ShowroomCreateModal 
-        isOpen={isOpen} 
-        onClose={handleClose} 
-        onSuccess={() => {
-          queryClient.invalidateQueries("showrooms");
-          handleClose();
-        }}
+      <ShowroomCreateModal
+        isOpen={isOpen}
+        onClose={handleClose}
+        onSuccess={handleShowroomCreated}
       />
-      
+
       {selectedShowroom && (
         <SellShowroomAd
           isOpen={isSellModalOpen}
@@ -403,20 +355,14 @@ const MyShowroom = () => {
           townId={selectedShowroom.locationTown?.id}
           showroomid={selectedShowroom.id}
           onAdCreated={handleAdCreated}
+         
         />
       )}
 
-      {showroomToEdit && (
-        <ShowroomEditModal
-          isOpen={isEditModalOpen}
-          onClose={handleEditModalClose}
-          showroom={showroomToEdit}
-          onSuccess={handleEditSuccess}
-        />
-      )}
+      {showroomToEdit && <ShowroomEditModal isOpen={isEditModalOpen} onClose={handleEditModalClose} showroom={showroomToEdit} onSuccess={handleEditSuccess} />}
 
-{adToEdit && (
-  <EditShowroomad
+      {adToEdit && (
+        <EditShowroomad
           isOpen={isEditAdModalOpen}
           onClose={handleEditAdModalClose}
           ad={adToEdit}

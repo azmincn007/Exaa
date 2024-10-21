@@ -35,6 +35,7 @@ import { useBrands } from '../../common/config/Api/UseBrands.jsx';
 import { useModels } from '../../common/config/Api/UseModels.jsx';
 import { useVariants } from '../../common/config/Api/UseVarient.jsx';
 import { useTypes } from '../../common/config/Api/UseTypes.jsx';
+import { useNavigate } from 'react-router-dom';
 
 const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
   const queryClient = useQueryClient();
@@ -48,9 +49,13 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
   const [selectedBrandId, setSelectedBrandId] = useState(null);
   const [selectedModelId, setSelectedModelId] = useState(null);
   const [selectedTypeId, setSelectedTypeId] = useState(null);
+  const [submittedFormData, setSubmittedFormData] = useState(null);
+  const [submittedApiUrl, setSubmittedApiUrl] = useState(null);
+  const [isTagCreationPossible, setIsTagCreationPossible] = useState(false);
   const { register, handleSubmit, control, formState: { errors }, setValue, reset, getValues,watch } = useForm();
   const getUserToken = useCallback(() => localStorage.getItem('UserToken'), []);
   const toast = useToast();
+  const navigate=useNavigate()
 
   const modalSize = useBreakpointValue({ base: "full", md: "xl" });
   const fontSize = useBreakpointValue({ base: "sm", md: "md" });
@@ -62,8 +67,12 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
   const { data: districts, isLoading: isDistrictsLoading, isError: isDistrictsError } = useDistricts(isOpen, getUserToken);
   const { data: towns, isLoading: isTownsLoading, isError: isTownsError } = useTowns(isOpen, getUserToken, selectedDistrictId);
   const { data: brands, isLoading: isBrandsLoading, isError: isBrandsError } = useBrands(isOpen, getUserToken,selectedSubCategoryId);
-  const { data: models, isLoading:isModelsLoading , error } = useModels(isOpen, getUserToken, selectedBrandId, selectedSubCategoryId);
-  const { data: variants, isLoading: isVariantsLoading, isError: isVariantsError } = useVariants(isOpen, getUserToken, selectedModelId,selectedSubCategoryId);
+  const { data: models, isLoading: isModelsLoading, error } = useModels(
+    isOpen, 
+    getUserToken, 
+    selectedBrandId, 
+    selectedSubCategoryId
+  );  const { data: variants, isLoading: isVariantsLoading, isError: isVariantsError } = useVariants(isOpen, getUserToken, selectedModelId,selectedSubCategoryId);
   const { data: types, isLoading: isTypesLoading, isError: isTypesError } = useTypes(isOpen, getUserToken, selectedSubCategoryId);
   const clearForm = useCallback(() => {
     reset();
@@ -120,50 +129,99 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
       reset(fieldsToReset);
     }
   }, [selectedSubCategoryId, getValues, reset]);
-
-  const onSubmit = async (data) => {
-    const relevantFields = subCategoryDetails?.requiredFields || [];
-    const filteredData = Object.keys(data)
-      .filter(key => relevantFields.includes(key) || ['adCategory', 'adSubCategory', 'locationDistrict', 'locationTown'].includes(key))
-      .reduce((obj, key) => {
-        if (data[key] !== "" && key !== 'adShowroom') {
-          obj[key] = data[key];
-        }
-        return obj;
-      }, {});
-
-    filteredData.adShowroom = [];
-
-    const formData = new FormData();
-    Object.keys(filteredData).forEach(key => {
-      if (key === 'adShowroom') {
-        formData.append(key, JSON.stringify(filteredData[key]));
-      } else {
-        formData.append(key, filteredData[key]);
-      }
-    });
-
-    const imageFiles = uploadedImages.map(image => image.file);
-    imageFiles.forEach((file) => {
-      formData.append('images', file);
-    });
-
+  const checkAdCreationPossibility = async (categoryId) => {
     try {
+      const token = getUserToken();
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+  
+      const response = await axios.get(`${BASE_URL}/api/ad-categories/${categoryId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      console.log(response.data.data);
+  
+      return {
+        isAdCreationPossible: response.data.data.isAdCreationPossible,
+        isTagCreationPossible: response.data.data.isTagCreationPossible
+      };
+    } catch (error) {
+      console.error('Error checking ad creation possibility:', error);
+      toast({
+        title: "Error checking category permission",
+        description: error.response?.data?.message || "Something went wrong",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return { isAdCreationPossible: false, isTagCreationPossible: false };
+    }
+  };
+  const onSubmit = async (data) => {
+    try {
+      // First check if ad creation is possible
+      const { isAdCreationPossible, isTagCreationPossible } = await checkAdCreationPossibility(data.adCategory);
+      
+      if (!isAdCreationPossible) {
+        onClose();
+        navigate('/packages/post-more-ads');
+        toast({
+          title: "Package Required",
+          description: "You need to purchase a package to post more ads in this category. Redirecting you to available packages.",
+          status: "info",
+          duration: 5000,
+          isClosable: true,
+        });
+        return;
+      }
+  
+      // If creation is possible, proceed with the original submit logic
+      const relevantFields = subCategoryDetails?.requiredFields || [];
+      const filteredData = Object.keys(data)
+        .filter(key => relevantFields.includes(key) || ['adCategory', 'adSubCategory', 'locationDistrict', 'locationTown'].includes(key))
+        .reduce((obj, key) => {
+          if (data[key] !== "" && key !== 'adShowroom') {
+            obj[key] = data[key];
+          }
+          return obj;
+        }, {});
+  
+      filteredData.adShowroom = [];
+      filteredData.adBoostTag = ''; // Add adBoostTag with null value
+  
+      const formData = new FormData();
+      Object.keys(filteredData).forEach(key => {
+        if (key === 'adShowroom') {
+          formData.append(key, JSON.stringify(filteredData[key]));
+        } else {
+          formData.append(key, filteredData[key]);
+        }
+      });
+  
+      const imageFiles = uploadedImages.map(image => image.file);
+      imageFiles.forEach((file) => {
+        formData.append('images', file);
+      });
+  
       const apiUrl = `${BASE_URL}/api/${subCategoryDetails.apiUrl}`;
       const token = getUserToken();
       if (!token) {
         throw new Error('No authentication token found');
       }
-
+  
       const response = await axios.post(apiUrl, formData, {
         headers: { 
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
         }
       });
-
+  
       if (response.status === 200 || response.status === 201) {
         setSubmittedAdType(subCategoryDetails.name);
+        setSubmittedFormData(filteredData);
+        setSubmittedApiUrl(subCategoryDetails.apiUrl);
         setShowCongratulations(true);
         clearForm();
         onClose();
@@ -173,18 +231,21 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
         if (onSuccessfulSubmit) {
           onSuccessfulSubmit();
         }
+  
+        // Pass isTagCreationPossible to CongratulationsModal
+        setIsTagCreationPossible(isTagCreationPossible);
       } else {
         throw new Error('Failed to add ad');
       }
     } catch (error) {
       let errorMessage = 'Error adding ad';
-
+  
       if (error.response && error.response.data && error.response.data.message) {
         errorMessage = error.response.data.message;
       } else if (error.message) {
         errorMessage = error.message;
       }
-
+  
       toast({
         title: errorMessage,
         description: error.response?.data?.description || error.message,
@@ -194,7 +255,6 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
       });
     }
   };
-
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file && uploadedImages.length < 4) {
@@ -235,7 +295,7 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
 
     
     const renderField = (fieldName) => {
-      const config = getFieldConfig(fieldName, districts, towns, brands, models, variants, types);
+      const config = getFieldConfig(fieldName, districts, towns, brands, models, variants, types,selectedSubCategoryId);
       
       if (!config) return null;
       
@@ -250,9 +310,8 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
                   fieldName === 'locationDistrict' ? isDistrictsLoading : 
                   fieldName === 'locationTown' ? isTownsLoading || !selectedDistrictId :
                   fieldName === 'brand' ? isBrandsLoading :
-                  fieldName === 'model' ? isModelsLoading || !selectedBrandId :
+                  fieldName === 'model' ? isModelsLoading :
                   fieldName === 'variant' ? isVariantsLoading || !selectedModelId :
-                
                   false
                 }
                 onChange={(e) => {
@@ -267,8 +326,6 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
                   } else if (fieldName === 'model') {
                     setSelectedModelId(e.target.value);
                     setValue('variant', '');
-                  } else if (fieldName === 'type') {
-                    setSelectedTypeId(e.target.value);
                   }
                 }}
               >
@@ -438,11 +495,14 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
       </Modal>
 
       {showCongratulations && (
-        <CongratulationsModal 
-          adType={submittedAdType}
-          onClose={() => setShowCongratulations(false)}
-        />
-      )}
+  <CongratulationsModal 
+    adType={submittedAdType}
+    formData={submittedFormData}
+    apiUrl={submittedApiUrl}
+    isTagCreationPossible={isTagCreationPossible}
+    onClose={() => setShowCongratulations(false)}
+  />
+)}
       </>
     );
   };

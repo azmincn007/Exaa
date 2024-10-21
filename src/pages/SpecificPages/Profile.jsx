@@ -1,11 +1,15 @@
-import React, { useContext } from "react";
-import { Box, Button, Grid, GridItem, SimpleGrid, useBreakpointValue, Skeleton, SkeletonCircle, useDisclosure, useToast } from "@chakra-ui/react";
+import React, { useContext, useState } from "react";
+import { Box, Button, Flex, useBreakpointValue, Skeleton, SkeletonCircle, useDisclosure, useToast } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient, useMutation } from "react-query";
 import axios from "axios";
 import { FaGoogle, FaUser } from "react-icons/fa";
 import { IoLogoWhatsapp } from "react-icons/io5";
 import { IoIosMail } from "react-icons/io";
+import { Swiper, SwiperSlide } from 'swiper/react';
+import 'swiper/css';
+import 'swiper/css/pagination';
+import { Pagination } from "swiper/modules";
 import { BASE_URL } from "../../config/config";
 import emptyillus from "../../assets/empty.png";
 import { UserdataContext } from "../../App";
@@ -22,6 +26,8 @@ const Profile = () => {
   const { isLoggedIn, isInitialized, getToken } = useAuth();
   const { isOpen: isSellModalOpen, onOpen: onSellModalOpen, onClose: onSellModalClose } = useDisclosure();
 
+  const [visibleAds, setVisibleAds] = useState(3);
+
   const fetchUserAds = async () => {
     const token = await getToken();
     const response = await axios.get(`${BASE_URL}/api/find-user-ads`, {
@@ -36,7 +42,7 @@ const Profile = () => {
     "userAds",
     fetchUserAds,
     {
-      enabled: isLoggedIn ,
+      enabled: isLoggedIn,
     }
   );
 
@@ -97,7 +103,11 @@ const Profile = () => {
     console.log(`Editing ad with id: ${adId}`);
   };
 
-  // Responsive text sizes
+  const handleShowMore = () => {
+    setVisibleAds(prevVisible => prevVisible + 3);
+  };
+
+  const isMobile = useBreakpointValue({ base: true, md: false });
   const textSize = useBreakpointValue({ base: 'sm', md: 'md', lg: 'lg' });
   const titleSize = useBreakpointValue({ base: 'md', md: 'lg', lg: 'xl' });
 
@@ -125,7 +135,7 @@ const Profile = () => {
   const renderLeftSide = () => {
     if (isUserDataLoading) {
       return (
-        <div className="flex flex-col px-8">
+        <Box width="100%" px={4}>
           {renderProfileImage()}
           <Skeleton height="24px" width="150px" mb={2} />
           <Skeleton height="18px" width="200px" mb={2} />
@@ -135,52 +145,53 @@ const Profile = () => {
           <Skeleton height="40px" width="100%" mb={4} />
           <Skeleton height="40px" width="100%" mb={2} />
           <Skeleton height="20px" width="120px" alignSelf="center" />
-        </div>
+        </Box>
       );
     }
 
     return (
-      <div className="flex flex-col px-8">
+      <Box width="100%" px={4}>
         {renderProfileImage()}
         <h2 className={`text-${titleSize} font-semibold mb-2`}>{userData?.name || 'User'}</h2>
         <p className={`text-${textSize} text-gray-600 mb-2`}>{userData?.email || 'No email provided'}</p>
         <p className={`text-${textSize} text-gray-600 mb-2`}>Member since May 2018</p>
         <p className={`text-${textSize} text-gray-600 mb-4`}>3346 Followers · 12 Following</p>
         
-        <div className="mb-4 flex flex-col gap-4">
-          <p className={`text-${textSize} text-black font-semibold`}>User verified with</p>
-          <div className="flex items-center gap-8">
+        <Box mb={4}>
+          <p className={`text-${textSize} text-black font-semibold mb-2`}>User verified with</p>
+          <Flex alignItems="center" gap={8}>
             <FaGoogle className="h-6 w-6" />
             <IoLogoWhatsapp className="h-7 w-7" />
             <IoIosMail className="h-7 w-7" />
-          </div>
-          <Button
-            onClick={() => navigate('/profile/edit-profile')}
-            className="w-full mb-2"
-            colorScheme="blue"
-          >
-            Edit Profile
-          </Button>
-          <Button variant="link" className="text-blue-500">
-            Share Profile
-          </Button>
-        </div>
-      </div>
+          </Flex>
+        </Box>
+        <Button
+          onClick={() => navigate('/profile/edit-profile')}
+          width="100%"
+          mb={2}
+          colorScheme="blue"
+        >
+          Edit Profile
+        </Button>
+        <Button variant="link" className="text-blue-500">
+          Share Profile
+        </Button>
+      </Box>
     );
   };
 
   const renderRightSide = () => {
     if (isListingsLoading) {
-      return <Skeleton height="200px" />;
+      return <Skeleton height="200px" width="100%" />;
     }
 
     if (listingsError) {
-      return <div>Error loading listings: {listingsError.message}</div>;
+      return <Box width="100%">Error loading listings: {listingsError.message}</Box>;
     }
 
     if (!userListings || userListings.length === 0) {
       return (
-        <div className="flex flex-col items-center text-center p-6 rounded-lg shadow-sm max-w-sm mx-auto">
+        <Flex direction="column" alignItems="center" textAlign="center" p={6} rounded="lg" shadow="sm" maxWidth="sm" mx="auto">
           <img
             src={emptyillus}
             alt="Empty state illustration"
@@ -189,14 +200,45 @@ const Profile = () => {
           <Button onClick={handleSellClick} colorScheme="blue" className="text-white font-medium py-6 px-16 rounded">
             Start Selling
           </Button>
-        </div>
+        </Flex>
+      );
+    }
+
+    if (isMobile) {
+      return (
+        <Box width="100%">
+          <Swiper
+            modules={[Pagination]}
+            spaceBetween={20}
+            slidesPerView={1.5}
+            pagination={{ clickable: true }}
+          >
+            {userListings.slice(0, visibleAds).map((listing) => (
+              <SwiperSlide key={listing.id}>
+                <AdListingCardProfile
+                  listing={listing}
+                  onEdit={() => handleEditListing(listing.id)}
+                  onDelete={() => handleDeleteListing(listing.id, listing.adSubCategory.id)}
+                />
+              </SwiperSlide>
+            ))}
+          </Swiper>
+          {visibleAds < userListings.length && (
+            <Button onClick={handleShowMore} colorScheme="blue" variant="outline" mt={4} width="100%">
+              Show More
+            </Button>
+          )}
+          <Button onClick={handleSellClick} colorScheme="blue" className="text-white font-medium py-6 px-16 rounded mt-4 mx-auto block">
+            Start Selling
+          </Button>
+        </Box>
       );
     }
 
     return (
-      <div className="flex flex-col gap-4">
-        <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
-          {userListings.map((listing) => (
+      <Box width="100%">
+        <Flex direction="column" gap={4}>
+          {userListings.slice(0, visibleAds).map((listing) => (
             <AdListingCardProfile
               key={listing.id}
               listing={listing}
@@ -204,33 +246,36 @@ const Profile = () => {
               onDelete={() => handleDeleteListing(listing.id, listing.adSubCategory.id)}
             />
           ))}
-        </SimpleGrid>
-        <Button onClick={handleSellClick} colorScheme="blue" className="text-white font-medium py-6 px-16 rounded self-center mt-4">
+        </Flex>
+        {visibleAds < userListings.length && (
+          <Button onClick={handleShowMore} colorScheme="blue" variant="outline" mt={4} width="100%">
+            Show More
+          </Button>
+        )}
+        <Button onClick={handleSellClick} colorScheme="blue" className="text-white font-medium py-2 px-16 rounded mt-4 mx-auto block">
           Start Selling
         </Button>
-      </div>
+      </Box>
     );
   };
 
   return (
-    <>
-      <Box maxWidth="container" margin="auto" padding={8} className="font-Inter">
-        <Grid templateColumns={{ base: "repeat(1, 1fr)", lg: "repeat(12, 1fr)" }} gap={6}>
-          <GridItem colSpan={{ base: 1, lg: 4 }} className="min-h-[300px] bg-[#0071BC1A] py-2">
-            {renderLeftSide()}
-          </GridItem>
-          <GridItem colSpan={{ base: 1, lg: 8 }}>
-            {renderRightSide()}
-          </GridItem>
-        </Grid>
-      </Box>
+    <Box maxWidth="" margin="auto" padding={{ base: 4, md: 8 }} className="font-Inter">
+      <Flex direction={{ base: "column", lg: "row" }} gap={6}>
+        <Box width={{ base: "100%", lg: "30%" }} bg="#0071BC1A" py={4} rounded="lg">
+          {renderLeftSide()}
+        </Box>
+        <Box width={{ base: "100%", lg: "70%" }}>
+          {renderRightSide()}
+        </Box>
+      </Flex>
       
       <SellModal 
         isOpen={isSellModalOpen} 
         onClose={onSellModalClose} 
-        onSuccessfulSubmit={refetchUserAds}  // Pass the refetch function here
+        onSuccessfulSubmit={refetchUserAds}
       />
-    </>
+    </Box>
   );
 };
 
