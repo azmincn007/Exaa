@@ -1,30 +1,21 @@
-import React from 'react';
-import { 
-  Box, 
-  Image, 
-  Text, 
-  IconButton, 
-  Flex,
-  useToast,
-  Button
-} from '@chakra-ui/react';
-import { FaPencilAlt, FaTrash } from 'react-icons/fa';
-import { BASE_URL } from '../../../config/config';
-import axios from 'axios';
-import { useAuth } from '../../../Hooks/AuthContext';
-import { useQueryClient } from 'react-query';
-import DeleteConfirmationDialog from '../../modals/othermodals/DeleteConfirmation';
+import React from "react";
+import { Box, Image, Text, IconButton, Flex, Button } from "@chakra-ui/react";
+import { FaPencilAlt, FaTrash, FaUserPlus } from "react-icons/fa";
+import { BASE_URL } from "../../../config/config";
+import axios from "axios";
+import { useAuth } from "../../../Hooks/AuthContext";
+import { useQueryClient } from "react-query";
+import DeleteConfirmationDialog from "../../modals/othermodals/DeleteConfirmation";
+import AddOperatorModal from "../../modals/othermodals/OperatorModal";
+import { useCustomToast } from "../../../Hooks/ToastHook";
 
-const ShowroomContentCard = ({ 
-  showroom, 
-  isSelected, 
-  onClick,
-  onEdit,
-  onDeleteSuccess 
-}) => {
+const ShowroomContentCard = ({ showroom, isSelected, onClick, onEdit, onDeleteSuccess }) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
-  const toast = useToast();
+  const [isAddOperatorModalOpen, setIsAddOperatorModalOpen] = React.useState(false);
+  const [selectedOperator, setSelectedOperator] = React.useState(null);
+  const [isDeleteOperatorDialogOpen, setIsDeleteOperatorDialogOpen] = React.useState(false);
+  const showToast = useCustomToast();
   const { token } = useAuth();
   const queryClient = useQueryClient();
 
@@ -41,10 +32,7 @@ const ShowroomContentCard = ({
   const handleDeleteConfirm = async () => {
     setIsDeleting(true);
     try {
-      // Optimistically update the UI
       const previousShowrooms = queryClient.getQueryData(["showrooms"]);
-      
-      // Optimistically remove the showroom from the cache
       queryClient.setQueryData(["showrooms"], (old) => 
         old?.filter((s) => s.id !== showroom.id)
       );
@@ -52,42 +40,88 @@ const ShowroomContentCard = ({
       const response = await axios.delete(
         `${BASE_URL}/api/ad-showrooms/${showroom.id}`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
-  
+
       if (response.status === 200) {
-        onDeleteSuccess(showroom.id);
-        await queryClient.invalidateQueries({
-          queryKey: ["showrooms"],
-          refetchType: 'active',
-          exact: true
-        });
-        toast({
+        if (onDeleteSuccess) onDeleteSuccess(showroom.id);
+        await queryClient.invalidateQueries(["showrooms"]);
+        showToast({
           title: "Showroom deleted",
           description: "The showroom has been successfully deleted.",
-          status: "success",
-          duration: 3000,
-          isClosable: true,
         });
       }
     } catch (error) {
-      // Revert the optimistic update on error
       queryClient.setQueryData(["showrooms"], previousShowrooms);
-      
-      toast({
+      showToast({
         title: "Error deleting showroom",
         description: error.response?.data?.message || "An error occurred",
         status: "error",
-        duration: 3000,
-        isClosable: true,
       });
     } finally {
       setIsDeleting(false);
       setIsDeleteDialogOpen(false);
     }
+  };
+
+  const handleDeleteOperator = async () => {
+    if (!selectedOperator) return;
+
+    setIsDeleting(true);
+    try {
+      const previousShowrooms = queryClient.getQueryData(["showrooms"]);
+      
+      queryClient.setQueryData(["showrooms"], (old) => 
+        old?.map((s) => ({
+          ...s,
+          adShowroomOperators: s.id === showroom.id 
+            ? s.adShowroomOperators.filter(op => op.id !== selectedOperator.id)
+            : s.adShowroomOperators
+        }))
+      );
+
+      const response = await axios.delete(
+        `${BASE_URL}/api/delete-ad-showroom-operator/${selectedOperator.id}/${showroom.id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (response.status === 200) {
+        await queryClient.invalidateQueries(["showrooms"]);
+        showToast({
+          title: "Operator removed",
+          description: "The operator has been successfully removed.",
+        });
+        // Trigger the onDeleteSuccess callback if provided
+        if (onDeleteSuccess) onDeleteSuccess(selectedOperator.id);
+      }
+    } catch (error) {
+      queryClient.setQueryData(["showrooms"], previousShowrooms);
+      showToast({
+        title: "Error removing operator",
+        description: error.response?.data?.message || "An error occurred",
+        status: "error",
+      });
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteOperatorDialogOpen(false);
+      setSelectedOperator(null);
+    }
+  };
+
+  const handleAddOperator = (newOperator) => {
+    queryClient.setQueryData(["showrooms"], (old) => 
+      old?.map((s) => 
+        s.id === showroom.id 
+          ? { 
+              ...s, 
+              adShowroomOperators: [...s.adShowroomOperators, newOperator] 
+            }
+          : s
+      )
+    );
   };
 
   return (
@@ -102,61 +136,52 @@ const ShowroomContentCard = ({
         cursor="pointer"
         onClick={() => onClick(showroom)}
         transition="all 0.2s"
-        _hover={{ transform: 'scale(1.02)' }}
+        _hover={{ transform: "scale(1.02)" }}
         position="relative"
       >
-        {/* Action Buttons Container */}
-        <Flex
-          position="absolute"
-          top={6}
-          right={6}
-          gap={2}
-          zIndex={2}
-        >
-          <IconButton
-            icon={<FaPencilAlt />}
-            aria-label="Edit showroom"
-            size="sm"
-            colorScheme="blue"
-            bg="#4F7598"
-            _hover={{ bg: '#3182CE' }}
-            onClick={handleEdit}
-            borderRadius="full"
-            className="opacity-90 hover:opacity-100"
+        <Flex position="absolute" top={6} right={6} gap={2} zIndex={2}>
+          <IconButton 
+            icon={<FaPencilAlt />} 
+            aria-label="Edit showroom" 
+            size="sm" 
+            colorScheme="blue" 
+            bg="#4F7598" 
+            _hover={{ bg: "#3182CE" }} 
+            onClick={handleEdit} 
+            borderRadius="full" 
+            className="opacity-90 hover:opacity-100" 
           />
-          <IconButton
-            icon={<FaTrash />}
-            aria-label="Delete showroom"
-            size="sm"
-            colorScheme="red"
-            bg="red.500"
-            _hover={{ bg: 'red.600' }}
-            onClick={handleDeleteClick}
-            borderRadius="full"
-            className="opacity-90 hover:opacity-100"
+          <IconButton 
+            icon={<FaTrash />} 
+            aria-label="Delete showroom" 
+            size="sm" 
+            colorScheme="red" 
+            bg="red.500" 
+            _hover={{ bg: "red.600" }} 
+            onClick={handleDeleteClick} 
+            borderRadius="full" 
+            className="opacity-90 hover:opacity-100" 
           />
         </Flex>
 
-        {/* Card Content */}
         <Box position="relative">
-          <Image
-            src={`${BASE_URL}${showroom.images?.url}`}
-            alt={showroom.name}
-            objectFit="cover"
-            height="100px"
-            width="100%"
-            bg="black"
-            className="rounded-xl"
+          <Image 
+            src={`${BASE_URL}${showroom.images?.url}`} 
+            alt={showroom.name} 
+            objectFit="cover" 
+            height="100px" 
+            width="100%" 
+            bg="black" 
+            className="rounded-xl" 
           />
-          
           <Box 
             position="absolute" 
             top={0} 
             left={0} 
             right={0} 
             height="100px" 
-            background="linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0) 100%)"
-            className="rounded-xl"
+            background="linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0) 100%)" 
+            className="rounded-xl" 
           />
         </Box>
 
@@ -165,19 +190,74 @@ const ShowroomContentCard = ({
             {showroom.name}
           </Text>
           <Text fontSize="sm">Category: {showroom.adCategory?.name}</Text>
-          <Text fontSize="sm">
-            Created On: {new Date(showroom.createdAt).toLocaleDateString()}
-          </Text>
+
+          {showroom.adShowroomOperators && showroom.adShowroomOperators.length > 0 ? (
+            <Box mt={2} border="1px" borderColor="whiteAlpha.300" borderRadius="md" p={2}>
+              <Flex alignItems="center" gap={2}>
+                <Box flex="1">
+                  <Text fontSize="sm">Operator: {showroom.adShowroomOperators[0].operator.name}</Text>
+                  <Text fontSize="sm">Phone: {showroom.adShowroomOperators[0].operator.phone}</Text>
+                </Box>
+                <IconButton 
+                  icon={<FaTrash />} 
+                  aria-label="Remove operator" 
+                  size="sm" 
+                  bg="red.500" 
+                  color="white" 
+                  _hover={{ bg: "red.600" }} 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedOperator(showroom.adShowroomOperators[0]);
+                    setIsDeleteOperatorDialogOpen(true);
+                  }} 
+                  isLoading={isDeleting && selectedOperator?.id === showroom.adShowroomOperators[0].id} 
+                />
+              </Flex>
+            </Box>
+          ) : (
+            <Button 
+              leftIcon={<FaUserPlus />} 
+              size="sm" 
+              bg="#4F7598" 
+              color="white" 
+              _hover={{ bg: "#3182CE" }} 
+              mt={2} 
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsAddOperatorModalOpen(true);
+              }} 
+              width="full"
+            >
+              Add Operator
+            </Button>
+          )}
         </Box>
       </Box>
 
-      {/* Delete Confirmation Dialog */}
-      <DeleteConfirmationDialog
-        isOpen={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
-        onConfirm={handleDeleteConfirm}
-        itemName="Showroom"
-        isLoading={isDeleting}
+      <DeleteConfirmationDialog 
+        isOpen={isDeleteDialogOpen} 
+        onClose={() => setIsDeleteDialogOpen(false)} 
+        onConfirm={handleDeleteConfirm} 
+        itemName="Showroom" 
+        isLoading={isDeleting} 
+      />
+
+      <DeleteConfirmationDialog 
+        isOpen={isDeleteOperatorDialogOpen} 
+        onClose={() => {
+          setIsDeleteOperatorDialogOpen(false);
+          setSelectedOperator(null);
+        }} 
+        onConfirm={handleDeleteOperator} 
+        itemName="Operator" 
+        isLoading={isDeleting} 
+      />
+
+<AddOperatorModal
+        isOpen={isAddOperatorModalOpen}
+        onClose={() => setIsAddOperatorModalOpen(false)}
+        showroomId={showroom.id}
+        onOperatorAdded={handleAddOperator} // Pass the new prop here
       />
     </>
   );

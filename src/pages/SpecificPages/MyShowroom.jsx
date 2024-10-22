@@ -244,6 +244,7 @@ const MyShowroom = () => {
                         onClick={handleShowroomSelect}
                         onEdit={handleShowroomEdit}
                         onDeleteSuccess={handleShowroomDelete}
+                        
                       />
                     </SwiperSlide>
                   ))}

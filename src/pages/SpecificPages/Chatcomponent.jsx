@@ -15,7 +15,6 @@ import ChatListItem from '../../components/Specific/chat/ChatListitem';
 import ChatInfo from '../../components/Specific/chat/ChatInfo';
 import { useAuth } from '../../Hooks/AuthContext';
 
-
 const ChatComponent = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -89,56 +88,72 @@ const ChatComponent = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100 w-full md:w-[90%] mx-auto">
-      <TabNavigation activeTab={activeTab} onTabChange={handleTabChange} />
-      
-      {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 flex items-center justify-between p-4 bg-[#0071BC] z-10">
-        <Menu onClick={toggleDrawer} className="text-white cursor-pointer" />
-        <h1 className="text-white font-semibold">Chats</h1>
-      </div>
-      
-      {/* Chat Drawer for Mobile */}
-      <div className={`md:hidden fixed inset-y-0 left-0 transform ${isDrawerOpen ? 'translate-x-0' : '-translate-x-full'} w-[70%] bg-white transition-transform duration-300 ease-in-out z-20`}>
-        <div className="h-full flex flex-col pt-16">
-          <div className="p-4 bg-[#0071BC] text-white flex justify-between items-center">
-            <h2 className="font-semibold">Chat List</h2>
-            <button onClick={toggleDrawer} className="text-white">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <div className="flex-1 overflow-y-auto bg-[#0071BC1A]">
-            <ChatList
-              chats={chats}
-              isLoading={isLoading}
-              activeTab={activeTab}
-              onSelectChat={(chat) => {
-                setSelectedChat(chat);
-                setIsDrawerOpen(false);
-              }}
-              selectedChatId={selectedChat?.id}
-            />
-          </div>
+    <div className="flex flex-col h-screen bg-gray-100">
+      <div className="w-full md:w-[90%] mx-auto flex flex-col flex-grow h-full">
+        {/* Tab Navigation */}
+        <div className="flex-none bg-white">
+          <TabNavigation activeTab={activeTab} onTabChange={handleTabChange} />
         </div>
-      </div>
 
-      {/* Chat Details Container */}
-      <div className="flex flex-1">
-        <div className="hidden md:block w-1/3 border-r border-gray-300 overflow-y-auto bg-[#0071BC1A]">
-          <ChatList
-            chats={chats}
-            isLoading={isLoading}
-            activeTab={activeTab}
-            onSelectChat={setSelectedChat}
-            selectedChatId={selectedChat?.id}
-          />
+        {/* Mobile Header */}
+        <div className="md:hidden flex-none h-16 fixed top-0 left-0 right-0 bg-[#0071BC] z-10">
+          <div className="flex items-center justify-between p-4">
+            <Menu onClick={toggleDrawer} className="text-white cursor-pointer" />
+            <h1 className="text-white font-semibold">Chats</h1>
+          </div>
         </div>
-        
-        {/* Chat Content Area */}
-        <div className="flex-1 md:w-2/3">
-          <ChatDetailsContainer selectedChat={selectedChat} isLoading={isLoading} />
+
+        {/* Main Content Area */}
+        <div className="flex flex-grow overflow-hidden h-[calc(100vh-theme(spacing.16))] bg-white">
+          {/* Chat List - Desktop */}
+          <div className="hidden md:flex w-1/3 flex-col bg-[#0071BC1A] border-r border-gray-300">
+            <div className="flex-grow overflow-y-auto">
+              <ChatList
+                chats={chats}
+                isLoading={isLoading}
+                activeTab={activeTab}
+                onSelectChat={setSelectedChat}
+                selectedChatId={selectedChat?.id}
+              />
+            </div>
+          </div>
+
+          {/* Chat Content Area */}
+          <div className="flex-grow flex flex-col min-w-0 bg-[#0071BC1A]">
+            <ChatDetailsContainer selectedChat={selectedChat} isLoading={isLoading} />
+          </div>
+        </div>
+
+        {/* Mobile Drawer */}
+        <div
+          className={`md:hidden fixed inset-y-0 left-0 transform ${
+            isDrawerOpen ? 'translate-x-0' : '-translate-x-full'
+          } w-[70%] bg-white transition-transform duration-300 ease-in-out z-20`}
+        >
+          <div className="flex flex-col h-full pt-16">
+            <div className="flex-none p-4 bg-[#0071BC] text-white">
+              <div className="flex justify-between items-center">
+                <h2 className="font-semibold">Chat List</h2>
+                <button onClick={toggleDrawer} className="text-white">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div className="flex-grow overflow-y-auto bg-[#0071BC1A]">
+              <ChatList
+                chats={chats}
+                isLoading={isLoading}
+                activeTab={activeTab}
+                onSelectChat={(chat) => {
+                  setSelectedChat(chat);
+                  setIsDrawerOpen(false);
+                }}
+                selectedChatId={selectedChat?.id}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -169,7 +184,7 @@ const ChatList = ({ chats, isLoading, activeTab, onSelectChat, selectedChatId })
 };
 
 const ChatDetailsContainer = ({ selectedChat, isLoading }) => (
-  <div className="w-full h-full flex flex-col">
+  <div className="flex flex-col h-full">
     {isLoading ? (
       <SkeletonChatDetails />
     ) : selectedChat ? (
@@ -196,7 +211,6 @@ const ChatDetails = ({ chat }) => {
           },
         }
       );
-
       setChatDetails(response.data);
     } catch (error) {
       console.error('Error fetching chat details:', error);
@@ -234,7 +248,7 @@ const ChatDetails = ({ chat }) => {
   };
 
   if (loading) {
-    return <SkeletonChatDetails />; // Display loading state
+    return <SkeletonChatDetails />;
   }
 
   if (!chatDetails) {
@@ -246,20 +260,20 @@ const ChatDetails = ({ chat }) => {
   }
 
   return (
-    <div className="flex flex-col h-screen max-h-screen overflow-hidden bg-[#0071BC1A]">
-      <div className="flex-none p-2">
+    <div className="flex flex-col h-full bg-[#0071BC1A]">
+      <div className="flex-none">
         <ChatHeader chat={chat} />
       </div>
       
-      <div className="flex-none p-2">
+      <div className="flex-none">
         <ChatInfo chat={chat} />
       </div>
       
-      <div className="flex-1 p-2 min-h-[300px]">
+      <div className="flex-grow overflow-y-auto min-h-0 p-4">
         <ChatMessages chats={chatDetails} />
       </div>
       
-      <div className="flex-none">
+      <div className="flex-none mt-auto">
         <ChatInput
           message={message}
           setMessage={setMessage}
