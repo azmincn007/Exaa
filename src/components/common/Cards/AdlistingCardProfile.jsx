@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Image, Text, Badge, IconButton, useDisclosure } from '@chakra-ui/react';
 import { Eye, Heart, MapPin, Edit, Trash2 } from 'lucide-react';
 import { BASE_URL } from '../../../config/config';
-import SellModal from '../../modals/othermodals/SellModal';
 import SellModalEdit from '../../modals/othermodals/SellmodalEdit';
 import DeleteConfirmationDialog from '../../modals/othermodals/DeleteConfirmation';
 

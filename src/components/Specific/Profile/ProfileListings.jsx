@@ -6,7 +6,8 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination } from "swiper/modules";
 import emptyillus from "../../../assets/empty.png";
 import emptyExpiredIllus from "../../../assets/empty.png";
-import AdListingCardProfile from "../../common/Cards/AdListingCardProfile";
+// Add this import statement
+import AdListingCardProfile from "../../common/Cards/AdlistingCardProfile";
 
 
 export const ProfileListings = ({
