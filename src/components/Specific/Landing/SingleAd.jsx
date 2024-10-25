@@ -14,6 +14,7 @@ import SkeletonSingleAdPage from '../../Skelton/singleadPageskelton';
 import LoginModal from '../../modals/Authentications/LoginModal';
 import { useAuth } from '../../../Hooks/AuthContext';
 import PriceAdjuster from '../AdSingleStructure/PriceAdjuster';
+import SimilarAds from './SimilarAds';
 
 const fetchAdData = async ({ queryKey }) => {
   const [_, adCategoryId, adId, token] = queryKey;
@@ -22,6 +23,7 @@ const fetchAdData = async ({ queryKey }) => {
   };
   
   const { data } = await axios.get(`${BASE_URL}/api/find-one-ad/${adCategoryId}/${adId}`, config);
+  console.log(data.data);
   console.log(data.data);
   
   return data.data;
@@ -161,6 +163,24 @@ function SingleAd() {
     setCurrentImageIndex((prevIndex) => (prevIndex === imageCount - 1 ? 0 : prevIndex + 1));
   };
 
+  const handleSellerProfileClick = () => {
+    if (adData?.adSeller) {
+      console.log("Seller Data:", {
+      
+        fullData: adData.adSeller
+      });
+      
+      navigate(`/customer-profile/${adData.adSeller.id}`, {
+        state: {
+          sellerId: adData.adSeller.id,
+          sellerName: adData.adSeller.name,
+          sellerPhone:adData.adSeller.phone,
+          sellerProfile:adData.adSeller.profileImage?.url
+        }
+      });
+    }
+  };
+
   if (isLoading) return <SkeletonSingleAdPage />;
   if (error) return <div>An error occurred: {error.message}</div>;
   if (!adData) return <div>No data available for this ad.</div>;
@@ -239,7 +259,7 @@ function SingleAd() {
               </div>
             </div>
             <div className="flex items-center justify-between bg-white p-4 rounded-lg shadow-md">
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-4"   onClick={handleSellerProfileClick}>
                 <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
                   {adData.adSeller?.profileImage?.url && (
                     <img 
@@ -259,6 +279,14 @@ function SingleAd() {
           <div className="font-semibold text-lg md:text-xl">Description</div>
           <p className="text-sm md:text-base text-gray-500">{adData.description || 'No description available.'}</p>
         </div>
+      </div>
+
+      <div>
+      <SimilarAds 
+  adId={adId}
+  adCategoryId={adCategoryId}
+
+/>
       </div>
 
       <PriceAdjuster

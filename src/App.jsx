@@ -21,6 +21,9 @@ import { BASE_URL } from './config/config';
 import { SearchProvider } from './Hooks/SearchContext';
 import Packages from './pages/SpecificPages/Packages';
 import PaymentButton from './Services/RazorpayPayment';
+import CustomerProfile from './pages/SpecificPages/CustomerProfile';
+import LocationSelects from './components/modals/Authentications/LocationSelects';
+import HelpAndSupport from './components/ui/HelpAndSupport';
 
 export const TownContext = createContext();
 export const UserdataContext = createContext();
@@ -120,6 +123,8 @@ function App() {
                 <Route path="/showroom" element={<Layout><Showroom /></Layout>} />
                 <Route path="/my-showroom" element={<Layout><MyShowroom /></Layout>} />
                 <Route path="/showroom/:id" element={<Layout><Showroomsingle /></Layout>} />
+                <Route  path="/customer-profile/:customerId"  element={<Layout><CustomerProfile /></Layout>} />
+                <Route path="/help-and-support" element={<Layout><HelpAndSupport /></Layout>} />
                 <Route path="/my-ads" element={<Layout><MyAdsPage /></Layout>} />
                 <Route path="/chats" element={<Layout><ChatComponent /></Layout>}>
                   <Route index element={<Navigate to="/chats/all" replace />} />
@@ -128,6 +133,8 @@ function App() {
                   <Route path="selling" element={<ChatComponent />} />
                 </Route>
                 <Route path="payment" element={<PaymentButton />} />
+                <Route path="test" element={<LocationSelects />} />
+
               </Routes>
             </Router>
           </TownContext.Provider>

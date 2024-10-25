@@ -20,6 +20,7 @@ import {
 import { FiSearch } from 'react-icons/fi';
 import SubscriptionCard from '../../components/common/Cards/SubscriptionCard';
 import { BASE_URL } from '../../config/config';
+import { useAuth } from '../../Hooks/AuthContext';
 
 const EmptyState = ({ title, description }) => {
   return (
@@ -50,6 +51,16 @@ const PackagesAndOrders = () => {
   const [activeBoostError, setActiveBoostError] = useState(null);
   const [expiredBoostError, setExpiredBoostError] = useState(null);
   const [selectedTab, setSelectedTab] = useState(0);
+
+
+const { isLoggedIn, isInitialized } = useAuth();
+
+// 3. The useEffect hook that handles the navigation
+useEffect(() => {
+  if (isInitialized && !isLoggedIn) {
+    navigate("/");
+  }
+}, [isInitialized, isLoggedIn, navigate]);
 
   useEffect(() => {
     const path = location.pathname.split('/').pop();

@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { useQuery } from 'react-query';
 import { useForm, Controller } from 'react-hook-form';
@@ -46,11 +44,12 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
   const [completeAdData, setCompleteAdData] = useState(null);
   const [selectedBrandId, setSelectedBrandId] = useState(null);
   const [selectedModelId, setSelectedModelId] = useState(null);
+  const [selectedVariantId, setSelectedVariantId] = useState(null);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [categoryChanged, setCategoryChanged] = useState(false);
   const [initialCategoryId, setInitialCategoryId] = useState(null);
 
-  const { register, handleSubmit, control, formState: { errors }, setValue, reset, getValues, watch } = useForm();
+  const { register, handleSubmit, control, formState: { errors }, setValue, getValues, reset } = useForm();
   const getUserToken = useCallback(() => localStorage.getItem('UserToken'), []);
   const toast = useToast();
   const navigate = useNavigate();
@@ -60,23 +59,19 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
   const headingSize = useBreakpointValue({ base: "xl", md: "2xl" });
   const imageBoxSize = useBreakpointValue({ base: "100px", md: "150px" });
 
-  const { data: categories, isLoading: isCategoriesLoading, isError: isCategoriesError } = useCategories(isOpen, getUserToken);
-  const { data: subCategories, isLoading: isSubCategoriesLoading, isError: isSubCategoriesError } = useSubCategories(isOpen, getUserToken, selectedCategoryId);
-  const { data: districts, isLoading: isDistrictsLoading, isError: isDistrictsError } = useDistricts(isOpen, getUserToken);
-  const { data: towns, isLoading: isTownsLoading, isError: isTownsError } = useTowns(isOpen, getUserToken, selectedDistrictId);
+  const { data: categories, isLoading: isCategoriesLoading } = useCategories(isOpen, getUserToken);
+  const { data: subCategories, isLoading: isSubCategoriesLoading } = useSubCategories(isOpen, getUserToken, selectedCategoryId);
+  const { data: districts, isLoading: isDistrictsLoading } = useDistricts(isOpen, getUserToken);
+  const { data: towns, isLoading: isTownsLoading } = useTowns(isOpen, getUserToken, selectedDistrictId);
   const { data: brands, isLoading: isBrandsLoading } = useBrands(isOpen, getUserToken, selectedSubCategoryId);
   const { data: models, isLoading: isModelsLoading } = useModels(isOpen, getUserToken, selectedBrandId, selectedSubCategoryId);
-  const { data: variants, isLoading: isVariantsLoading } = useVariants(isOpen, getUserToken, selectedModelId, selectedSubCategoryId);   
-
-  const watchBrand = watch('brand');
-  const watchModel = watch('model');
+  const { data: variants, isLoading: isVariantsLoading } = useVariants(isOpen, getUserToken, selectedModelId, selectedSubCategoryId);
 
   const fetchCompleteAdData = async (userToken, adCategoryId, adId) => {
     if (!userToken || !adCategoryId || !adId) return null;
     const { data } = await axios.get(`${BASE_URL}/api/find-one-ad/${adCategoryId}/${adId}`, {
       headers: { 'Authorization': `Bearer ${userToken}` },
     });
-    console.log('Fetched complete ad data:', data.data);
     return data.data;
   };
 
@@ -86,7 +81,6 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
     { 
       enabled: isOpen && !!getUserToken() && !!listingData?.adCategory?.id && !!listingData?.id,
       onSuccess: (data) => {
-        console.log('Complete ad data fetched successfully:', data);
         setCompleteAdData(data);
         setIsDataLoaded(true);
       },
@@ -111,13 +105,16 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
       setSelectedDistrictId(completeAdData.locationDistrict?.id);
       setSelectedBrandId(completeAdData.brand?.id);
       setSelectedModelId(completeAdData.model?.id);
+      setSelectedVariantId(completeAdData.variant?.id);
 
+      // Set form values for all fields
       Object.entries(completeAdData).forEach(([key, value]) => {
         if (typeof value !== 'object') {
           setValue(key, value);
         }
       });
-      
+
+      // Set form values for objects
       setValue('adCategory', completeAdData.adCategory?.id);
       setValue('adSubCategory', completeAdData.adSubCategory?.id);
       setValue('locationDistrict', completeAdData.locationDistrict?.id);
@@ -126,6 +123,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
       setValue('model', completeAdData.model?.id);
       setValue('variant', completeAdData.variant?.id);
 
+      // Handle images
       const images = Array.isArray(completeAdData.images) 
         ? completeAdData.images 
         : completeAdData.images 
@@ -148,22 +146,6 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
     }
   }, [selectedSubCategoryId, getUserToken]);
 
-  useEffect(() => {
-    if (!isDataLoaded && watchBrand) {
-      setSelectedBrandId(watchBrand);
-      setValue('model', '');
-      setValue('variant', '');
-      setSelectedModelId(null);
-    }
-  }, [watchBrand, setValue, isDataLoaded]);
-
-  useEffect(() => {
-    if (!isDataLoaded && watchModel) {
-      setSelectedModelId(watchModel);
-      setValue('variant', '');
-    }
-  }, [watchModel, setValue, isDataLoaded]);
-
   const handleCategoryChange = (e) => {
     const newCategoryId = e.target.value;
     setCategoryChanged(newCategoryId !== initialCategoryId);
@@ -172,12 +154,26 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
     setSubCategoryDetails(null);
     setValue('adCategory', newCategoryId);
     setValue('adSubCategory', '');
+    // Clear dependent fields
+    setValue('brand', '');
+    setValue('model', '');
+    setValue('variant', '');
+    setSelectedBrandId(null);
+    setSelectedModelId(null);
+    setSelectedVariantId(null);
   };
 
   const handleSubCategoryChange = (e) => {
     const newSubCategoryId = e.target.value;
     setSelectedSubCategoryId(newSubCategoryId);
     setValue('adSubCategory', newSubCategoryId);
+    // Clear dependent fields
+    setValue('brand', '');
+    setValue('model', '');
+    setValue('variant', '');
+    setSelectedBrandId(null);
+    setSelectedModelId(null);
+    setSelectedVariantId(null);
   };
 
   const handleImageUpload = (event) => {
@@ -224,7 +220,6 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
 
   const onSubmit = async (data) => {
     try {
-      // Check ad creation possibility only if category has changed
       if (categoryChanged) {
         const isCreationPossible = await checkAdCreationPossibility(data.adCategory);
         
@@ -242,10 +237,14 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
         }
       }
 
-      console.log('Form submitted with values:', data);
       const formData = new FormData();
+      const alwaysIncludeFields = ['brand', 'model', 'variant', 'type'];
+
       Object.keys(data).forEach(key => {
-        if (data[key] !== "") {
+        // Include if it's in alwaysIncludeFields list, even if empty
+        if (alwaysIncludeFields.includes(key)) {
+          formData.append(key, data[key] || ''); // Use empty string if value is null/undefined
+        } else if (data[key] !== "") {
           formData.append(key, data[key]);
         }
       });
@@ -268,7 +267,6 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
       });
 
       const imageFiles = await Promise.all(imagePromises);
-
       imageFiles.forEach((file, index) => {
         formData.append('images', file);
       });
@@ -288,7 +286,6 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
       });
 
       if (response.status === 200) {
-        console.log('API Response:', response.data);
         toast({
           title: "Ad updated successfully",
           status: "success",
@@ -311,11 +308,35 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
     }
   };
 
+ 
   const renderField = (fieldName) => {
     const config = getFieldConfig(fieldName, districts, towns, brands, models, variants);
     if (!config) return null;
 
     switch(config.type) {
+      case 'radio':
+        return (
+          <FormControl key={fieldName} isInvalid={errors[fieldName]} fontSize={fontSize}>
+            <FormLabel>{config.label}</FormLabel>
+            <Controller
+              name={fieldName}
+              control={control}
+              defaultValue=""
+              render={({ field: { onChange, value } }) => (
+                <RadioGroup onChange={onChange} value={value}>
+                  <Stack direction="row" spacing={4}>
+                    {config.options.map(option => (
+                      <Radio key={option} value={option}>
+                        {option}
+                      </Radio>
+                    ))}
+                  </Stack>
+                </RadioGroup>
+              )}
+            />
+            <FormErrorMessage>{errors[fieldName]?.message}</FormErrorMessage>
+          </FormControl>
+        );
       case 'select':
         return (
           <FormControl key={fieldName} isInvalid={errors[fieldName]} fontSize={fontSize}>
@@ -331,20 +352,33 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
                 false
               }
               onChange={(e) => {
+                const newValue = e.target.value;
+                setValue(fieldName, newValue);
+
                 if (fieldName === 'locationDistrict') {
-                  setSelectedDistrictId(e.target.value);
+                  setSelectedDistrictId(newValue);
                   setValue('locationTown', '');
                 } else if (fieldName === 'brand') {
-                  setSelectedBrandId(e.target.value);
+                  setSelectedBrandId(newValue);
                   setValue('model', '');
                   setValue('variant', '');
                   setSelectedModelId(null);
+                  setSelectedVariantId(null);
                 } else if (fieldName === 'model') {
-                  setSelectedModelId(e.target.value);
+                  setSelectedModelId(newValue);
                   setValue('variant', '');
+                  setSelectedVariantId(null);
+                } else if (fieldName === 'variant') {
+                  setSelectedVariantId(newValue);
                 }
               }}
-              value={getValues(fieldName) || ''}
+              value={
+                fieldName === 'locationDistrict' ? selectedDistrictId || '' :
+                fieldName === 'brand' ? selectedBrandId || '' :
+                fieldName === 'model' ? selectedModelId || '' :
+                fieldName === 'variant' ? selectedVariantId || '' :
+                getValues(fieldName) || ''
+              }
             >
               <option value="">Select {config.label}</option>
               {config.options?.map(option => (
@@ -353,27 +387,6 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
                 </option>
               ))}
             </Select>
-            <FormErrorMessage>{errors[fieldName]?.message}</FormErrorMessage>
-          </FormControl>
-        );
-      case 'radio':
-        return (
-          <FormControl key={fieldName} isInvalid={errors[fieldName]} fontSize={fontSize}>
-            <FormLabel>{config.label}</FormLabel>
-            <Controller
-              name={fieldName}
-              control={control}
-              rules={config.rules}
-              render={({ field }) => (
-                <RadioGroup {...field}>
-                  <Stack direction="row">
-                    {config.options.map(option => (
-                      <Radio key={option} value={option}>{option}</Radio>
-                    ))}
-                  </Stack>
-                </RadioGroup>
-              )}
-            />
             <FormErrorMessage>{errors[fieldName]?.message}</FormErrorMessage>
           </FormControl>
         );

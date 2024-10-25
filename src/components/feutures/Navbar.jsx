@@ -18,10 +18,12 @@ import SellModal from "../modals/othermodals/SellModal";
 import SkeletonNavbar from "../Skelton/SkwltonNavbar";
 import { useQueryClient } from "react-query";
 import { useSearch } from "../../Hooks/SearchContext";
+import LogoutConfirmationModal from "../modals/othermodals/LogOutCOnfirmation";
 
 
 
 function Navbar({ onShowPackagesAndOrders,setSearchResults  }) {
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isProfileDropdownOpenMobile, setIsProfileDropdownOpenMobile] = useState(false);
   const profileDropdownRef = useRef(null);
@@ -74,10 +76,22 @@ function Navbar({ onShowPackagesAndOrders,setSearchResults  }) {
     };
   }, []);
 
-  const handleLogout = () => {
-    logout();
-    closeProfileDropdown();
-  };
+ // Update the handleLogout function
+ const handleLogout = () => {
+  setIsLogoutModalOpen(true);
+};
+
+// Add confirmation handler
+const handleConfirmLogout = () => {
+  logout();
+  closeProfileDropdown();
+  setIsLogoutModalOpen(false);
+};
+
+// Add close handler
+const handleCloseLogoutModal = () => {
+  setIsLogoutModalOpen(false);
+};
 
   const handleSuccessfulSubmit = () => {
     queryClient.invalidateQueries('userAds'); // Invalidate the 'userAds' query, causing a refetch
@@ -233,7 +247,12 @@ function Navbar({ onShowPackagesAndOrders,setSearchResults  }) {
         isOpen={isSellModalOpen} 
         onClose={onSellModalClose} 
         onSuccessfulSubmit={handleSuccessfulSubmit} // Trigger refetch when submission is successful
-      />    </nav>
+      />   
+        <LogoutConfirmationModal
+        isOpen={isLogoutModalOpen}
+        onClose={handleCloseLogoutModal}
+        onConfirm={handleConfirmLogout}
+      /> </nav>
   );
 }
 

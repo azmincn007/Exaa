@@ -55,6 +55,14 @@ const AdListingCardProfile = ({ listing, onDelete }) => {
     return `${day} ${month}`;
   };
 
+  const truncateDescription = (text, wordLimit) => {
+    const words = text.split(' ');
+    if (words.length > wordLimit) {
+      return words.slice(0, wordLimit).join(' ') + '...';
+    }
+    return text;
+  };
+
   return (
     <>
       {/* Card Container */}
@@ -110,9 +118,9 @@ const AdListingCardProfile = ({ listing, onDelete }) => {
               </div>
             </div>
 
-            {/* Description */}
-            <Text className="text-sm line-clamp-2 md:line-clamp-none">
-              {description}
+            {/* Description - Hidden on mobile, truncated on desktop */}
+            <Text className="text-sm hidden md:block">
+              {truncateDescription(description, 5)}
             </Text>
 
             {/* Price */}
@@ -137,7 +145,7 @@ const AdListingCardProfile = ({ listing, onDelete }) => {
               </div>
 
               {/* Location and date */}
-              <div className="flex flex-col md:flex-row md:justify-between gap-2 pt-2 border-t border-gray-100">
+              <div className="flex flex-col md:flex-row md:justify-between gap-2  border-t border-gray-100">
                 <div className="flex items-center">
                   <MapPin className="text-gray-500" size={16} />
                   <Text className="ml-1 text-sm text-gray-500">

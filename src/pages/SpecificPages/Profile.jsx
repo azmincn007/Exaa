@@ -1,3 +1,4 @@
+// Profile.js (Updated)
 import React, { useContext, useState } from "react";
 import { Box, Button, Flex, useBreakpointValue, Skeleton, SkeletonCircle, useDisclosure, useToast } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
@@ -6,16 +7,11 @@ import axios from "axios";
 import { FaGoogle, FaUser } from "react-icons/fa";
 import { IoLogoWhatsapp } from "react-icons/io5";
 import { IoIosMail } from "react-icons/io";
-import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/css';
-import 'swiper/css/pagination';
-import { Pagination } from "swiper/modules";
 import { BASE_URL } from "../../config/config";
-import emptyillus from "../../assets/empty.png";
 import { UserdataContext } from "../../App";
 import SellModal from "../../components/modals/othermodals/SellModal";
 import { useAuth } from "../../Hooks/AuthContext";
-import AdListingCardProfile from "../../components/common/Cards/AdlistingCardProfile";
+import { ProfileListings } from "../../components/Specific/Profile/ProfileListings";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -25,8 +21,6 @@ const Profile = () => {
   const { userData, isLoading: isUserDataLoading } = useContext(UserdataContext);
   const { isLoggedIn, isInitialized, getToken } = useAuth();
   const { isOpen: isSellModalOpen, onOpen: onSellModalOpen, onClose: onSellModalClose } = useDisclosure();
-
-  const [visibleAds, setVisibleAds] = useState(3);
 
   const fetchUserAds = async () => {
     const token = await getToken();
@@ -38,9 +32,29 @@ const Profile = () => {
     return response.data.data;
   };
 
+  const fetchExpiredAds = async () => {
+    const token = await getToken();
+    const response = await axios.get(`${BASE_URL}/api/find-user-expired-ads`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log(response.data.data);
+    
+    return response.data.data;
+  };
+
   const { data: userListings, isLoading: isListingsLoading, error: listingsError, refetch: refetchUserAds } = useQuery(
     "userAds",
     fetchUserAds,
+    {
+      enabled: isLoggedIn,
+    }
+  );
+
+  const { data: expiredListings, isLoading: isExpiredLoading, error: expiredError, refetch: refetchExpiredAds } = useQuery(
+    "expiredAds",
+    fetchExpiredAds,
     {
       enabled: isLoggedIn,
     }
@@ -60,7 +74,9 @@ const Profile = () => {
     {
       onSuccess: () => {
         queryClient.invalidateQueries("userAds");
+        queryClient.invalidateQueries("expiredAds");
         refetchUserAds();
+        refetchExpiredAds();
         toast({
           title: "Ad deleted successfully",
           status: "success",
@@ -103,8 +119,9 @@ const Profile = () => {
     console.log(`Editing ad with id: ${adId}`);
   };
 
-  const handleShowMore = () => {
-    setVisibleAds(prevVisible => prevVisible + 3);
+  const handleRepostAd = (adId) => {
+    // Implement repost functionality
+    console.log(`Reposting ad with id: ${adId}`);
   };
 
   const isMobile = useBreakpointValue({ base: true, md: false });
@@ -180,85 +197,6 @@ const Profile = () => {
     );
   };
 
-  const renderRightSide = () => {
-    if (isListingsLoading) {
-      return <Skeleton height="200px" width="100%" />;
-    }
-
-    if (listingsError) {
-      return <Box width="100%">Error loading listings: {listingsError.message}</Box>;
-    }
-
-    if (!userListings || userListings.length === 0) {
-      return (
-        <Flex direction="column" alignItems="center" textAlign="center" p={6} rounded="lg" shadow="sm" maxWidth="sm" mx="auto">
-          <img
-            src={emptyillus}
-            alt="Empty state illustration"
-            className="max-h-[200px] w-auto mb-4 md:max-h-[250px] md:max-w-[250px]"
-          />
-          <Button onClick={handleSellClick} colorScheme="blue" className="text-white font-medium py-6 px-16 rounded">
-            Start Selling
-          </Button>
-        </Flex>
-      );
-    }
-
-    if (isMobile) {
-      return (
-        <Box width="100%">
-          <Swiper
-            modules={[Pagination]}
-            spaceBetween={20}
-            slidesPerView={1.5}
-            pagination={{ clickable: true }}
-          >
-            {userListings.slice(0, visibleAds).map((listing) => (
-              <SwiperSlide key={listing.id}>
-                <AdListingCardProfile
-                  listing={listing}
-                  onEdit={() => handleEditListing(listing.id)}
-                  onDelete={() => handleDeleteListing(listing.id, listing.adSubCategory.id)}
-                />
-              </SwiperSlide>
-            ))}
-          </Swiper>
-          {visibleAds < userListings.length && (
-            <Button onClick={handleShowMore} colorScheme="blue" variant="outline" mt={4} width="100%">
-              Show More
-            </Button>
-          )}
-          <Button onClick={handleSellClick} colorScheme="blue" className="text-white font-medium py-6 px-16 rounded mt-4 mx-auto block">
-            Start Selling
-          </Button>
-        </Box>
-      );
-    }
-
-    return (
-      <Box width="100%">
-        <Flex direction="column" gap={4}>
-          {userListings.slice(0, visibleAds).map((listing) => (
-            <AdListingCardProfile
-              key={listing.id}
-              listing={listing}
-              onEdit={() => handleEditListing(listing.id)}
-              onDelete={() => handleDeleteListing(listing.id, listing.adSubCategory.id)}
-            />
-          ))}
-        </Flex>
-        {visibleAds < userListings.length && (
-          <Button onClick={handleShowMore} colorScheme="blue" variant="outline" mt={4} width="100%">
-            Show More
-          </Button>
-        )}
-        <Button onClick={handleSellClick} colorScheme="blue" className="text-white font-medium py-2 px-16 rounded mt-4 mx-auto block">
-          Start Selling
-        </Button>
-      </Box>
-    );
-  };
-
   return (
     <Box maxWidth="" margin="auto" padding={{ base: 4, md: 8 }} className="font-Inter">
       <Flex direction={{ base: "column", lg: "row" }} gap={6}>
@@ -266,14 +204,28 @@ const Profile = () => {
           {renderLeftSide()}
         </Box>
         <Box width={{ base: "100%", lg: "70%" }}>
-          {renderRightSide()}
+        <ProfileListings
+            userListings={userListings}
+            expiredListings={expiredListings}
+            isListingsLoading={isListingsLoading}
+            isExpiredLoading={isExpiredLoading}
+            listingsError={listingsError}
+            expiredError={expiredError}
+            handleEditListing={handleEditListing}
+            handleDeleteListing={handleDeleteListing}
+            handleRepostAd={handleRepostAd}
+            handleSellClick={handleSellClick}
+          />
         </Box>
       </Flex>
       
       <SellModal 
         isOpen={isSellModalOpen} 
         onClose={onSellModalClose} 
-        onSuccessfulSubmit={refetchUserAds}
+        onSuccessfulSubmit={() => {
+          refetchUserAds();
+          refetchExpiredAds();
+        }}
       />
     </Box>
   );

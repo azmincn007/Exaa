@@ -38,6 +38,8 @@ import { useTypes } from '../../common/config/Api/UseTypes.jsx';
 import { useNavigate } from 'react-router-dom';
 
 const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
+  const [isUpdatingFields, setIsUpdatingFields] = useState(false);
+
   const queryClient = useQueryClient();
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [selectedSubCategoryId, setSelectedSubCategoryId] = useState(null);
@@ -177,20 +179,34 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
         return;
       }
   
-      // If creation is possible, proceed with the original submit logic
+      // Get the required fields from subcategory details
       const relevantFields = subCategoryDetails?.requiredFields || [];
-      const filteredData = Object.keys(data)
-        .filter(key => relevantFields.includes(key) || ['adCategory', 'adSubCategory', 'locationDistrict', 'locationTown'].includes(key))
-        .reduce((obj, key) => {
-          if (data[key] !== "" && key !== 'adShowroom') {
-            obj[key] = data[key];
-          }
-          return obj;
-        }, {});
-  
+      
+      // Define fields that should always be included even if empty
+      const alwaysIncludeFields = ['brand', 'model', 'variant', 'type'];
+      
+      // Filter and process the form data
+      const filteredData = Object.keys(data).reduce((obj, key) => {
+        // Include if it's a relevant field AND has a value
+        if (relevantFields.includes(key) && data[key] !== "") {
+          obj[key] = data[key];
+        }
+        // Include if it's a required base field
+        else if (['adCategory', 'adSubCategory', 'locationDistrict', 'locationTown'].includes(key) && data[key] !== "") {
+          obj[key] = data[key];
+        }
+        // Include if it's in alwaysIncludeFields list, even if empty
+        else if (alwaysIncludeFields.includes(key)) {
+          obj[key] = data[key] || ''; // Use empty string if value is null/undefined
+        }
+        return obj;
+      }, {});
+
+      // Add required empty arrays/fields
       filteredData.adShowroom = [];
-      filteredData.adBoostTag = ''; // Add adBoostTag with null value
+      filteredData.adBoostTag = '';
   
+      // Create FormData and append all fields
       const formData = new FormData();
       Object.keys(filteredData).forEach(key => {
         if (key === 'adShowroom') {
@@ -200,11 +216,13 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
         }
       });
   
+      // Handle image uploads
       const imageFiles = uploadedImages.map(image => image.file);
       imageFiles.forEach((file) => {
         formData.append('images', file);
       });
   
+      // Make API request
       const apiUrl = `${BASE_URL}/api/${subCategoryDetails.apiUrl}`;
       const token = getUserToken();
       if (!token) {
@@ -232,7 +250,6 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
           onSuccessfulSubmit();
         }
   
-        // Pass isTagCreationPossible to CongratulationsModal
         setIsTagCreationPossible(isTagCreationPossible);
       } else {
         throw new Error('Failed to add ad');
@@ -275,27 +292,28 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
     const watchModel = watch('model');
 
     useEffect(() => {
-      if (watchBrand) {
+      if (watchBrand && !isUpdatingFields) {
+        setIsUpdatingFields(true);
         setSelectedBrandId(watchBrand);
-        // Reset the model and variant fields when brand changes
         setValue('model', '');
         setValue('variant', '');
         setSelectedModelId(null);
+        setIsUpdatingFields(false);
       }
     }, [watchBrand, setValue]);
   
-    // Update selectedModelId when model changes
+    // Handle model change
     useEffect(() => {
-      if (watchModel) {
+      if (watchModel && !isUpdatingFields) {
+        setIsUpdatingFields(true);
         setSelectedModelId(watchModel);
-        // Reset the variant field when model changes
         setValue('variant', '');
+        setIsUpdatingFields(false);
       }
     }, [watchModel, setValue]);
-
-    
+  
     const renderField = (fieldName) => {
-      const config = getFieldConfig(fieldName, districts, towns, brands, models, variants, types,selectedSubCategoryId);
+      const config = getFieldConfig(fieldName, districts, towns, brands, models, variants, types, selectedSubCategoryId);
       
       if (!config) return null;
       
@@ -304,37 +322,49 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
           return (
             <FormControl key={fieldName} isInvalid={errors[fieldName]} fontSize={fontSize}>
               <FormLabel>{config.label}</FormLabel>
-              <Select 
-                {...register(fieldName, config.rules)}
-                isDisabled={
-                  fieldName === 'locationDistrict' ? isDistrictsLoading : 
-                  fieldName === 'locationTown' ? isTownsLoading || !selectedDistrictId :
-                  fieldName === 'brand' ? isBrandsLoading :
-                  fieldName === 'model' ? isModelsLoading :
-                  fieldName === 'variant' ? isVariantsLoading || !selectedModelId :
-                  false
-                }
-                onChange={(e) => {
-                  if (fieldName === 'locationDistrict') {
-                    setSelectedDistrictId(e.target.value);
-                    setValue('locationTown', '');
-                  } else if (fieldName === 'brand') {
-                    setSelectedBrandId(e.target.value);
-                    setValue('model', '');
-                    setValue('variant', '');
-                    setSelectedModelId(null);
-                  } else if (fieldName === 'model') {
-                    setSelectedModelId(e.target.value);
-                    setValue('variant', '');
-                  }
-                }}
-              >
-                <option value="">Select {config.label}</option>
-                {config.options.map(option => (
-                  <option key={option.id || option} value={option.id || option}>{option.name || option}</option>
-                ))}
-              </Select>
-              <FormErrorMessage>{errors[fieldName] && errors[fieldName].message}</FormErrorMessage>
+              <Controller
+                name={fieldName}
+                control={control}
+                rules={config.rules}
+                render={({ field }) => (
+                  <Select
+                    {...field}
+                    isDisabled={
+                      fieldName === 'locationDistrict' ? isDistrictsLoading : 
+                      fieldName === 'locationTown' ? isTownsLoading || !selectedDistrictId :
+                      fieldName === 'brand' ? isBrandsLoading :
+                      fieldName === 'model' ? isModelsLoading || !watchBrand :
+                      fieldName === 'variant' ? isVariantsLoading || !watchModel :
+                      false
+                    }
+                    onChange={(e) => {
+                      field.onChange(e);
+                      if (fieldName === 'locationDistrict') {
+                        setSelectedDistrictId(e.target.value);
+                        setValue('locationTown', '');
+                      } else if (fieldName === 'brand') {
+                        setSelectedBrandId(e.target.value);
+                        setValue('model', '');
+                        setValue('variant', '');
+                        setSelectedModelId(null);
+                      } else if (fieldName === 'model') {
+                        setSelectedModelId(e.target.value);
+                        setValue('variant', '');
+                      }
+                    }}
+                  >
+                    <option value="">Select {config.label}</option>
+                    {config.options.map(option => (
+                      <option key={option.id || option} value={option.id || option}>
+                        {option.name || option}
+                      </option>
+                    ))}
+                  </Select>
+                )}
+              />
+              <FormErrorMessage>
+                {errors[fieldName] && errors[fieldName].message}
+              </FormErrorMessage>
             </FormControl>
           );
       case 'radio':

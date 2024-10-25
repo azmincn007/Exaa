@@ -61,7 +61,7 @@ const ProfileDropdown = ({ onLogout, onClose }) => {
     {
       label: 'Help & Support',
       icon: FiHelpCircle,
-      onClick: () => handleItemClick(() => {/* Add help & support action */})
+      onClick: () =>  handleItemClick(() => navigate('/help-and-support'))
     },
     {
       label: 'Settings',

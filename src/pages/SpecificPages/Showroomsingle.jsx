@@ -1,7 +1,10 @@
-import React, { useState, useMemo, useContext } from "react";
-import { useParams } from "react-router-dom";
+import React, { useState, useMemo, useContext, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "react-query";
 import axios from "axios";
+import { Swiper, SwiperSlide } from 'swiper/react';
+import 'swiper/css';
+import 'swiper/css/pagination';
 import Showroomsingleimg from "../../assets/showroomsingle.png";
 import { Select, Button } from "@chakra-ui/react";
 import { VscSettings } from "react-icons/vsc";
@@ -10,6 +13,9 @@ import { FaChevronRight } from "react-icons/fa";
 import CardShowroom from "../../components/common/Cards/CardShowroom";
 import { BASE_URL } from "../../config/config";
 import { DistrictContext, TownContext } from "../../App";
+import ShowroomDetails from "../../components/Specific/showroom/ShowroomDetails";
+import { useAuth } from "../../Hooks/AuthContext";
+import ShowroomSingleSkeleton from "../../components/Skelton/Showroomskelton";
 
 function Showroomsingle() {
   const { id } = useParams();
@@ -19,6 +25,28 @@ function Showroomsingle() {
   const [visibleCards, setVisibleCards] = useState(6);
   const [selectedTown] = useContext(TownContext);
   const [selectedDistrict] = useContext(DistrictContext);
+  const [isMobile, setIsMobile] = useState(false);
+
+  const navigate = useNavigate();
+const { isLoggedIn, isInitialized } = useAuth();
+
+// 3. The useEffect hook that handles the navigation
+useEffect(() => {
+  if (isInitialized && !isLoggedIn) {
+    navigate("/");
+  }
+}, [isInitialized, isLoggedIn, navigate]);
+
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768); // md breakpoint is typically 768px
+    };
+
+    checkIfMobile();
+    window.addEventListener('resize', checkIfMobile);
+
+    return () => window.removeEventListener('resize', checkIfMobile);
+  }, []);
 
   const fetchShowroomData = async () => {
     const token = localStorage.getItem('UserToken');
@@ -108,7 +136,7 @@ function Showroomsingle() {
   };
 
   if (isLoadingShowroom || isLoadingOtherAds) {
-    return <div>Loading...</div>;
+    return <ShowroomSingleSkeleton />;
   }
 
   if (showroomError || otherAdsError) {
@@ -122,20 +150,14 @@ function Showroomsingle() {
   return (
     <div className="w-[80%] mx-auto font-Inter">
       <h1 className="py-2 font-semibold flex justify-center">Showroom</h1>
-      <div className="w-full overflow-hidden font-sans bg-blue-600 rounded-xl">
-        <div className="h-[200px] w-[60%] mx-auto object-contain overflow-hidden ">
-          <img 
-            src={imageUrl} 
-            alt="Showroom image" 
-            className="w-full h-full object-cover p-2 rounded-xl" 
-          />
-        </div>
-        <div className="text-white p-4 flex justify-center flex-col items-center">
-          <h1 className="text-2xl font-bold m-0">{showroomData?.name || 'Name not available'}</h1>
-          <p className="text-sm mt-1 mb-0">Category: {showroomData?.adCategory?.name || 'Category not available'}</p>
-          <p className="text-sm mt-1 mb-0">Showroom Category: {showroomData?.adShowroomCategory?.name || 'Category not available'}</p>
-        </div>
-      </div>
+      <ShowroomDetails
+        imageUrl={imageUrl}
+        name={showroomData?.name}
+        category={showroomData?.adCategory?.name}
+        showroomCategory={showroomData?.adShowroomCategory?.name}
+        userRating={showroomData.userRating}
+        showroomId={showroomData.id}
+      />
       <div className="py-2">
         <h1 className="font-semibold py-2">All Ads</h1>
         <div className="bg-[#0071BC1A] flex justify-between items-center">
@@ -179,31 +201,47 @@ function Showroomsingle() {
             </button>
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-          {sortedAndFilteredAds.slice(0, visibleCards).map((ad) => (
-            <CardShowroom
-              key={ad.id}
-              imageUrl={`${BASE_URL}${ad.images.url}`}
-              status={ad.status}
-              title={ad.title}
-              price={ad.price}
-              views={ad.views}
-              likes={ad.likes}
-              adCategory={ad.adCategory?.id}
-              id={ad.id}
-              location={ad.locationTown.name}
-              postedDate={new Date(ad.createdAt).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })}
-            />
-          ))}
-        </div>
+        
+        {isMobile ? (
+          <div className="mt-4">
+             <Swiper
+      spaceBetween={16}
+      slidesPerView={1.6}
+      centeredSlides={false}
+      pagination={{ clickable: true }}
+      className="mySwiper"
+      breakpoints={{
+        0: {
+          slidesPerView: 1.2, // 1.2 slides per view for devices below 400px
+        },
+        400: {
+          slidesPerView: 1.6, // Default for devices 400px and above
+        },
+      }}
+    >
+      {sortedAndFilteredAds.slice(0, visibleCards).map((ad) => (
+        <SwiperSlide key={ad.id}>
+          <CardShowroom ad={ad} />
+        </SwiperSlide>
+      ))}
+    </Swiper>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-4 mt-4">
+            {sortedAndFilteredAds.slice(0, visibleCards).map((ad) => (
+              <CardShowroom key={ad.id} ad={ad} />
+            ))}
+          </div>
+        )}
+
         {visibleCards < sortedAndFilteredAds.length && (
           <div className="flex justify-end mt-4">
             <Button
               onClick={loadMore}
-              className='bg-[#0071BC] text-white px-4 flex gap-4 font-Inter font-400 rounded-lg'
+              className="bg-[#0071BC] text-white px-4 flex gap-4 font-Inter font-400 rounded-lg"
               size="sm"
             >
-              <span className='text-12'>See all</span> <FaChevronRight />
+              <span className="text-12">See all</span> <FaChevronRight />
             </Button>
           </div>
         )}

@@ -11,9 +11,9 @@ function CardUser({ id, imageUrl, price, title, location, postedDate, adBoostTag
   const [isAdFavourite, setIsAdFavourite] = useState(initialIsAdFavourite);
   const [isAnimating, setIsAnimating] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const completeImageUrl = `${BASE_URL}${imageUrl}`;
   const isFeatured = adBoostTag === "Featured";
   const queryClient = useQueryClient();
+
 
   useEffect(() => {
     setIsAdFavourite(initialIsAdFavourite);
@@ -110,7 +110,7 @@ function CardUser({ id, imageUrl, price, title, location, postedDate, adBoostTag
           <CardBody className='p-2'>
             <div className='relative'>
               <Image
-                src={completeImageUrl}
+                src={`${BASE_URL}${imageUrl}`}
                 alt={title}
                 height='170px'
                 width='100%'
