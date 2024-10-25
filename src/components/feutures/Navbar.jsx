@@ -18,7 +18,7 @@ import SellModal from "../modals/othermodals/SellModal";
 import SkeletonNavbar from "../Skelton/SkwltonNavbar";
 import { useQueryClient } from "react-query";
 import { useSearch } from "../../Hooks/SearchContext";
-import LogoutConfirmationModal from "../modals/othermodals/LogOutCOnfirmation";
+import LogoutConfirmationModal from "../modals/othermodals/Logoutconfirmation";
 
 
 
