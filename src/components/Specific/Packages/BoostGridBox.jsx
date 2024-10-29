@@ -13,24 +13,24 @@ import { useMutation } from 'react-query';
 import axios from 'axios';
 import { BASE_URL } from '../../../config/config';
 
-const PackageGrid = ({ packages }) => {
-  const [selectedPackage, setSelectedPackage] = useState(null);
-  console.log(packages);
-
-  
+const BoostGridBox = ({ boostTags }) => {
+  const [selectedBoost, setSelectedBoost] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const toast = useToast();
 
+  console.log(boostTags);
+  
+
   // Mutation for creating initial order
   const createOrderMutation = useMutation(
-    async (packageData) => {
+    async (boostData) => {
       const token = localStorage.getItem('UserToken');
       if (!token) throw new Error('User not authenticated');
 
       const response = await axios.post(
-        `${BASE_URL}/api/create-ad-subscription-order-id`,
-        packageData,
+        `${BASE_URL}/api/create-ad-boost-order-id`,
+        boostData,
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -42,14 +42,14 @@ const PackageGrid = ({ packages }) => {
   );
 
   // Mutation for post-payment API call
-  const completePackageMutation = useMutation(
-    async (packageData) => {
+  const completeBoostMutation = useMutation(
+    async (boostData) => {
       const token = localStorage.getItem('UserToken');
       if (!token) throw new Error('User not authenticated');
 
       const response = await axios.post(
-        `${BASE_URL}/api/ad-subscriptions`,
-        packageData,
+        `${BASE_URL}/api/ad-boosts`,
+        boostData,
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -62,8 +62,8 @@ const PackageGrid = ({ packages }) => {
     {
       onSuccess: () => {
         toast({
-          title: 'Subscription Activated',
-          description: 'Your subscription has been successfully activated',
+          title: 'Boost Activated',
+          description: 'Your boost has been successfully activated',
           status: 'success',
           duration: 5000,
           isClosable: true,
@@ -72,8 +72,8 @@ const PackageGrid = ({ packages }) => {
       },
       onError: (error) => {
         toast({
-          title: 'Subscription Activation Failed',
-          description: error.message || 'Failed to activate subscription',
+          title: 'Boost Activation Failed',
+          description: error.message || 'Failed to activate boost',
           status: 'error',
           duration: 5000,
           isClosable: true,
@@ -98,22 +98,22 @@ const PackageGrid = ({ packages }) => {
     console.log('Payment successful:', paymentId, orderId);
     
     try {
-      const selectedPkg = packages.find(pkg => pkg.id === selectedPackage);
-      const packageData = {
+      const selectedBoostTag = boostTags.find(boost => boost.id === selectedBoost);
+      const boostData = {
         orderId: orderData.id,
-        amount: selectedPkg.amount,
-        totalAdCount: selectedPkg.noOfAds.toString(),
-        adSubscriptionPackage: selectedPackage,
+        amount: selectedBoostTag.amount,
+        totalTagCount:selectedBoostTag.noOfTags.toString(),
+        adBoostPackage: selectedBoostTag.id,
         paymentId: paymentId
       };
 
-      await completePackageMutation.mutateAsync(packageData);
+      await completeBoostMutation.mutateAsync(boostData);
       
     } catch (error) {
-      console.error('Error completing package setup:', error);
+      console.error('Error completing boost setup:', error);
       toast({
         title: 'Error',
-        description: 'Failed to complete subscription setup. Please contact support.',
+        description: 'Failed to complete boost setup. Please contact support.',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -123,9 +123,9 @@ const PackageGrid = ({ packages }) => {
     }
   };
 
-  // Main function to handle subscription
-  const handleSubscribe = async () => {
-    if (!selectedPackage) return;
+  // Main function to handle boost purchase
+  const handleBoost = async () => {
+    if (!selectedBoost) return;
 
     try {
       setIsLoading(true);
@@ -137,10 +137,10 @@ const PackageGrid = ({ packages }) => {
       }
 
       // 2. Create order using mutation
-      const selectedPkg = packages.find(pkg => pkg.id === selectedPackage);
+      const selectedBoostTag = boostTags.find(boost => boost.id === selectedBoost);
       const orderData = await createOrderMutation.mutateAsync({
-        packageId: selectedPackage,
-        amount: selectedPkg.amount
+       
+        amount: selectedBoostTag.amount
       });
 
       // 3. Configure Razorpay options
@@ -149,7 +149,7 @@ const PackageGrid = ({ packages }) => {
         amount: orderData.amount,
         currency: 'INR',
         name: 'Your Company Name',
-        description: 'Package Subscription',
+        description: 'Boost Purchase',
         order_id: orderData.orderId,
         handler: function(response) {
           handlePaymentSuccess(
@@ -192,8 +192,8 @@ const PackageGrid = ({ packages }) => {
     }
   };
 
-  const handlePackageSelect = (packageId) => {
-    setSelectedPackage(packageId === selectedPackage ? null : packageId);
+  const handleBoostSelect = (boostId) => {
+    setSelectedBoost(boostId === selectedBoost ? null : boostId);
   };
 
   return (
@@ -206,17 +206,17 @@ const PackageGrid = ({ packages }) => {
         }}
         gap={6}
       >
-        {packages.map((pkg) => (
+        {boostTags.map((boost) => (
           <Box
-            key={pkg.id}
+            key={boost.id}
             borderWidth="1px"
             borderColor="#16273C"
             borderRadius="lg"
             p={4}
             textAlign="center"
-            bg={selectedPackage === pkg.id ? "blue.50" : "white"}
+            bg={selectedBoost === boost.id ? "blue.50" : "white"}
             cursor="pointer"
-            onClick={() => handlePackageSelect(pkg.id)}
+            onClick={() => handleBoostSelect(boost.id)}
             transition="all 0.2s"
             _hover={{ 
               boxShadow: 'md',
@@ -228,7 +228,7 @@ const PackageGrid = ({ packages }) => {
               fontWeight="bold" 
               mb={2}
             >
-              {pkg.noOfAds} Ads
+              {boost.noOfTags} Tags
             </Text>
             <Text 
               color="green.500" 
@@ -236,7 +236,7 @@ const PackageGrid = ({ packages }) => {
               fontWeight="semibold" 
               mb={4}
             >
-              ₹{pkg.amount}
+              ₹{boost.amount}
             </Text>
             <Flex 
               justify="center" 
@@ -245,27 +245,27 @@ const PackageGrid = ({ packages }) => {
               fontSize="sm"
             >
               <CheckCircle size={16} />
-              <Text ml={1}>Select Package</Text>
+              <Text ml={1}>Select Boost</Text>
             </Flex>
           </Box>
         ))}
       </Grid>
 
-      {selectedPackage && (
+      {selectedBoost && (
         <Flex justify="center" mt={6}>
           <Button
             bg="#16273C"
             color="white"
             px={16}
             fontWeight="400"
-            isLoading={isLoading || createOrderMutation.isLoading || completePackageMutation.isLoading}
+            isLoading={isLoading || createOrderMutation.isLoading || completeBoostMutation.isLoading}
             loadingText="Processing..."
             _hover={{
               bg: "#233D5C"
             }}
-            onClick={handleSubscribe}
+            onClick={handleBoost}
           >
-            Subscribe Now
+            Boost Now
           </Button>
         </Flex>
       )}
@@ -273,4 +273,4 @@ const PackageGrid = ({ packages }) => {
   );
 };
 
-export default PackageGrid;
+export default BoostGridBox;

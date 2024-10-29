@@ -6,12 +6,13 @@ const PhoneInputShowroom = React.forwardRef(({ onChange, onBlur, name, error, va
   const displayValue = value && value.startsWith('+91') ? value.slice(3) : value;
 
   return (
-    <InputGroup>
+    <InputGroup className=" border-black">
       <InputLeftElement
         pointerEvents="none"
         color="gray.300"
         fontSize="1.2em"
         children="+91"
+     
       />
       <Input
         pl="50px"

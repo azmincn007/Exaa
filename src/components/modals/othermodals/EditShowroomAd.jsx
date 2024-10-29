@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter,
   ModalBody, ModalCloseButton, Button, FormControl, FormLabel,
@@ -15,8 +15,24 @@ import { useBrands } from '../../common/config/Api/UseBrands.jsx';
 import { useModels } from '../../common/config/Api/UseModels.jsx';
 import { useVariants } from '../../common/config/Api/UseVarient.jsx';
 import { useTypes } from '../../common/config/Api/UseTypes.jsx';
+import { LogIn } from 'lucide-react';
+import TestModal from './TestModal';
 
-const EditShowroomad = ({ isOpen, onClose, ad, onSuccess, categoryId, subCategoryId, districtId, townId, showroomId }) => {
+
+const EditShowroomad = ({ 
+  isOpen, 
+  onClose, 
+  ad, 
+  onSuccess, 
+  categoryId, 
+  subCategoryId, 
+  districtId, 
+  townId, 
+  showroomId,
+  onShowSuccess 
+}) => {
+  console.log(categoryId);
+  
   const [isLoading, setIsLoading] = useState(false);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [adData, setAdData] = useState(null);
@@ -33,10 +49,22 @@ const EditShowroomad = ({ isOpen, onClose, ad, onSuccess, categoryId, subCategor
   const imageBoxSize = useBreakpointValue({ base: "100px", md: "150px" });
   const token = localStorage.getItem('UserToken');
 
-  const { data: brands } = useBrands(isOpen, () => token, subCategoryId);
-  const { data: models } = useModels(isOpen, () => token, selectedBrandId, subCategoryId);
-  const { data: variants } = useVariants(isOpen, () => token, selectedModelId, subCategoryId);
-  const { data: types } = useTypes(isOpen, () => token, subCategoryId);
+  // Add new state to track if these fields are needed
+  const [requiredFields, setRequiredFields] = useState({
+    brand: false,
+    model: false,
+    variant: false,
+    type: false
+  });
+
+  // Modify the API hooks to include the required field check
+  const { data: brands } = useBrands(isOpen && requiredFields.brand, () => token, subCategoryId);
+  const { data: models } = useModels(isOpen && requiredFields.model, () => token, selectedBrandId, subCategoryId);
+  const { data: variants } = useVariants(isOpen && requiredFields.variant, () => token, selectedModelId, subCategoryId);
+  const { data: types } = useTypes(isOpen && requiredFields.type, () => token, subCategoryId);
+
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showTestModal, setShowTestModal] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -54,7 +82,17 @@ const EditShowroomad = ({ isOpen, onClose, ad, onSuccess, categoryId, subCategor
         ]);
 
         if (subCategoryResponse.data.success) {
-          setSubCategoryDetails(subCategoryResponse.data.data);
+          const subCategoryData = subCategoryResponse.data.data;
+          setSubCategoryDetails(subCategoryData);
+          
+          // Check which fields are required based on the subcategory
+          const fields = subCategoryData.fields || [];
+          setRequiredFields({
+            brand: fields.includes('brand'),
+            model: fields.includes('model'),
+            variant: fields.includes('variant'),
+            type: fields.includes('type')
+          });
         }
 
         if (adResponse.data.success) {
@@ -166,11 +204,6 @@ const EditShowroomad = ({ isOpen, onClose, ad, onSuccess, categoryId, subCategor
       </FormControl>
     );
 
-    console.log(`Rendering field: ${fieldName}`, {
-      value: getValues(fieldName),
-      options: config.options
-    });
-
     switch (config.type) {
       case 'text':
       case 'number':
@@ -253,18 +286,21 @@ const EditShowroomad = ({ isOpen, onClose, ad, onSuccess, categoryId, subCategor
     setIsLoading(true);
     const formData = new FormData();
     
-    formData.append('adShowroom', JSON.stringify(showroomId ? [showroomId] : []));
+    formData.append('adShowroom', showroomId);
     formData.append('adCategory', categoryId);
     formData.append('adSubCategory', subCategoryId);
     formData.append('locationDistrict', districtId);
     formData.append('locationTown', townId);
-  
+    formData.append('adBoostTag', data.adBoostTag?.id || '');
+
+    // Handle other form data
     Object.entries(data).forEach(([key, value]) => {
-      if (value !== undefined && value !== '' && key !== 'adShowroom') {
+      if (value !== undefined && value !== '' && key !== 'adShowroom' && key !== 'adBoostTag') {
         formData.append(key, value);
       }
     });
-  
+
+    // Handle images
     const imagePromises = uploadedImages.map(async (image, index) => {
       if (image.file) {
         return image.file;
@@ -274,16 +310,20 @@ const EditShowroomad = ({ isOpen, onClose, ad, onSuccess, categoryId, subCategor
         return new File([blob], `existing_image_${index}.jpg`, { type: 'image/jpeg' });
       }
     });
-  
+
     const imageFiles = await Promise.all(imagePromises);
     imageFiles.forEach((file) => {
       if (file) {
         formData.append('images', file);
       }
     });
-  
-    console.log('Data being sent to API:', Object.fromEntries(formData.entries()));
-  
+
+    // Log FormData contents
+    console.log('FormData contents:');
+    for (let pair of formData.entries()) {
+      console.log(pair[0], pair[1]);
+    }
+
     try {
       const response = await axios.put(
         `${BASE_URL}/api/${subCategoryDetails.apiUrl}/${ad.id}`,
@@ -295,20 +335,57 @@ const EditShowroomad = ({ isOpen, onClose, ad, onSuccess, categoryId, subCategor
           },
         }
       );
-  
+
+      // Log the API response
+      console.log('API Response:', response.data);
+
       if (response.data.success) {
-        onSuccess();
+        // Convert uploaded images to File objects
+        const imageFiles = await Promise.all(
+          uploadedImages.map(async (image, index) => {
+            if (image.file) {
+              return image.file; // New uploaded file
+            } else if (image.isExisting) {
+              try {
+                const response = await fetch(image.preview);
+                const blob = await response.blob();
+                return new File([blob], `image_${index}.jpg`, { type: 'image/jpeg' });
+              } catch (error) {
+                console.error('Error converting existing image to file:', error);
+                return null;
+              }
+            }
+            return null;
+          })
+        );
+
+        // Filter out any null values and create the callback data
+        const validImageFiles = imageFiles.filter(file => file !== null);
+        
+        console.log('Prepared image files:', validImageFiles);
+
+        const callbackData = {
+          adData: {
+            ...response.data.data,
+            adShowroom: showroomId,
+            locationDistrict: districtId,
+            locationTown: townId
+          },
+          subCategoryDetails: subCategoryDetails,
+          images: validImageFiles // Add images array to callback data
+        };
+
+        console.log('Data being passed to parent via onShowSuccess:', callbackData);
+
         onClose();
-        toast({
-          title: 'Success',
-          description: 'Ad updated successfully',
-          status: 'success',
-          duration: 3000,
-          isClosable: true,
-        });
+        onShowSuccess(callbackData);
       }
     } catch (error) {
       console.error('Error updating ad:', error);
+      // Log the error response if available
+      if (error.response) {
+        console.error('Error response:', error.response.data);
+      }
       toast({
         title: 'Error',
         description: 'Failed to update ad',
@@ -321,92 +398,130 @@ const EditShowroomad = ({ isOpen, onClose, ad, onSuccess, categoryId, subCategor
     }
   };
 
+  const showSuccessToast = () => {
+    toast({
+      title: 'Success',
+      description: 'Ad updated successfully',
+      status: 'success',
+      duration: 3000,
+      isClosable: true,
+    });
+  };
+
+  const handleShowSuccessModal = useCallback(async (data) => {
+    // Convert image URLs to File objects
+    const imagePromises = data.adData.images.map(async (image, index) => {
+      try {
+        const response = await fetch(`${BASE_URL}${image.url}`);
+        const blob = await response.blob();
+        return new File([blob], `image_${index}.jpg`, { type: 'image/jpeg' });
+      } catch (error) {
+        console.error('Error converting image to file:', error);
+        return null;
+      }
+    });
+
+    const imageFiles = await Promise.all(imagePromises);
+    const validImageFiles = imageFiles.filter(file => file !== null);
+
+    setUpdatedAd({
+      ...data.adData,
+      images: validImageFiles // Pass the images as File objects
+    });
+    setSubCategoryDetails(data.subCategoryDetails);
+    setShowSuccessModal(true);
+  }, []);
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size={modalSize}>
-      <ModalOverlay />
-      <ModalContent className="bg-gray-100">
-        <ModalHeader>Edit Showroom Ad</ModalHeader>
-        <ModalCloseButton />
-        <ModalBody>
-          {isDataLoaded ? (
-            <form onSubmit={handleSubmit(onSubmit)}>
-              <VStack spacing={4} align="stretch">
-                {adData && Object.keys(adData).map(fieldName => renderField(fieldName))}
-                
-                <FormControl>
-                  <FormLabel fontSize={fontSize}>Images (Max 4)</FormLabel>
-                  <Flex gap={3} flexWrap="wrap" justifyContent="center">
-                    {uploadedImages.map((image, index) => (
-                      <Box key={index} position="relative">
-                        <Box className="relative w-[150px] h-[150px] bg-[#4F7598] rounded-md">
-                          <Image src={image.preview} alt={`Image ${index + 1}`} className="object-cover w-full h-full rounded-md" />
-                          <IoClose
-                            className="absolute top-1 right-1 bg-[#4F7598] text-white rounded-full h-5 w-5 cursor-pointer"
-                            onClick={() => removeImage(index)}
-                          />
+    <>
+      <Modal isOpen={isOpen} onClose={onClose} size={modalSize}>
+        <ModalOverlay />
+        <ModalContent className="bg-gray-100">
+          <ModalHeader>Edit Showroom Ad</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            {isDataLoaded ? (
+              <form onSubmit={handleSubmit(onSubmit)}>
+                <VStack spacing={4} align="stretch">
+                  {adData && Object.keys(adData).map(fieldName => renderField(fieldName))}
+                  
+                  <FormControl>
+                    <FormLabel fontSize={fontSize}>Images (Max 4)</FormLabel>
+                    <Flex gap={3} flexWrap="wrap" justifyContent="center">
+                      {uploadedImages.map((image, index) => (
+                        <Box key={index} position="relative">
+                          <Box className="relative w-[150px] h-[150px] bg-[#4F7598] rounded-md">
+                            <Image src={image.preview} alt={`Image ${index + 1}`} className="object-cover w-full h-full rounded-md" />
+                            <IoClose
+                              className="absolute top-1 right-1 bg-[#4F7598] text-white rounded-full h-5 w-5 cursor-pointer"
+                              onClick={() => removeImage(index)}
+                            />
+                          </Box>
+                          <Text className="text-xs text-center mt-1">{image.isExisting ? 'Existing' : 'New'}</Text>
                         </Box>
-                        <Text className="text-xs text-center mt-1">{image.isExisting ? 'Existing' : 'New'}</Text>
-                      </Box>
-                    ))}
-                    
-                    {uploadedImages.length < 4 && (
-                      <Box>
-                        <Box
-                          className="w-[150px] h-[150px] bg-[#4F7598] rounded-md flex flex-col items-center justify-center cursor-pointer"
-                          onClick={() => document.getElementById('imageUpload').click()}
-                        >
-                          <IoAddOutline className="w-5 h-5 text-white" />
-                          <Text className="text-xs text-center mt-1 text-white">
-                            {uploadedImages.length === 0 ? 'Add image' : 'Upload more'}
+                      ))}
+                      
+                      {uploadedImages.length < 4 && (
+                        <Box>
+                          <Box
+                            className="w-[150px] h-[150px] bg-[#4F7598] rounded-md flex flex-col items-center justify-center cursor-pointer"
+                            onClick={() => document.getElementById('imageUpload').click()}
+                          >
+                            <IoAddOutline className="w-5 h-5 text-white" />
+                            <Text className="text-xs text-center mt-1 text-white">
+                              {uploadedImages.length === 0 ? 'Add image' : 'Upload more'}
+                            </Text>
+                          </Box>
+                          <Text className="text-xs text-center mt-1">
+                            {4 - uploadedImages.length} remaining
                           </Text>
                         </Box>
-                        <Text className="text-xs text-center mt-1">
-                          {4 - uploadedImages.length} remaining
-                        </Text>
-                      </Box>
-                    )}
-                    <input
-                      id="imageUpload"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleImageUpload}
-                    />
-                  </Flex>
-                  <Text className="text-xs text-gray-500 mt-2">
-                    Tip: You can upload up to 4 images in total. Click on the 'x' icon to remove an image.
-                  </Text>
-                </FormControl>
-              </VStack>
+                      )}
+                      <input
+                        id="imageUpload"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleImageUpload}
+                      />
+                    </Flex>
+                    <Text className="text-xs text-gray-500 mt-2">
+                      Tip: You can upload up to 4 images in total. Click on the 'x' icon to remove an image.
+                    </Text>
+                  </FormControl>
+                </VStack>
 
-              <div>
-                <Button
-                  className='w-full mt-4'
-                  colorScheme='blue'
-                  type="submit"
-                  isLoading={isLoading}
-                  loadingText="Updating..."
-                >
-                  Update Ad
-                </Button>
-              </div>
-              
-              <Flex justify="flex-end" mt={6} gap={3}>
-                <Button
-                  variant="ghost"
-                  onClick={onClose}
-                  disabled={isLoading}
-                >
-                  Cancel
-                </Button>
-              </Flex>
-            </form>
-          ) : (
-            <div>Loading...</div>
-          )}
-        </ModalBody>
-      </ModalContent>
-    </Modal>
+                <div>
+                  <Button
+                    className='w-full mt-4'
+                    colorScheme='blue'
+                    type="submit"
+                    isLoading={isLoading}
+                    loadingText="Updating..."
+                  >
+                    Update Ad
+                  </Button>
+                </div>
+                
+                <Flex justify="flex-end" mt={6} gap={3}>
+                  <Button
+                    variant="ghost"
+                    onClick={onClose}
+                    disabled={isLoading}
+                  >
+                    Cancel
+                  </Button>
+                </Flex>
+              </form>
+            ) : (
+              <div>Loading...</div>
+            )}
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+      
+     
+    </>
   );
 };
 

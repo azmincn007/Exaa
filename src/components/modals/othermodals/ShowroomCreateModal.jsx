@@ -1,32 +1,12 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { useQuery, useQueryClient, useMutation } from "react-query";import axios from "axios";
+import { useQuery, useQueryClient, useMutation } from "react-query";
+import axios from "axios";
 import { useForm, Controller } from "react-hook-form";
-import {
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalBody,
-  ModalFooter,
-  Button,
-  Select,
-  FormControl,
-  FormLabel,
-  FormErrorMessage,
-  Box,
-  Image,
-  Icon,
-  Flex,
-  Text,
-  useBreakpointValue,
-  useToast,
-  Textarea,
-} from "@chakra-ui/react";
+import { Modal, ModalOverlay, ModalContent, ModalBody, ModalFooter, Button, Select, FormControl, FormLabel, FormErrorMessage, Box, Image, Icon, Flex, Text, useBreakpointValue, useToast, Textarea } from "@chakra-ui/react";
 import { BASE_URL } from "../../../config/config";
 import { IoAddOutline, IoClose } from "react-icons/io5";
 import SellInput from "../../../components/forms/Input/SellInput.jsx";
 import PhoneInputShowroom from "../../../components/forms/Input/MobileInputShowroom.jsx";
-
-
 
 const fetchCategories = async (userToken) => {
   const { data } = await axios.get(`${BASE_URL}/api/find-showroom-categories`, {
@@ -63,11 +43,12 @@ const fetchTowns = async (userToken, districtId) => {
   return data.data;
 };
 
-const ShowroomCreateModal = ({ isOpen, onClose ,onSuccess}) => {
+const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [selectedSubCategoryId, setSelectedSubCategoryId] = useState(null);
   const [selectedDistrictId, setSelectedDistrictId] = useState(null);
   const [uploadedImage, setUploadedImage] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     register,
@@ -93,6 +74,7 @@ const ShowroomCreateModal = ({ isOpen, onClose ,onSuccess}) => {
       onSuccess: (response) => {
         console.log("Showroom created:", response.data.data);
         onSuccess(response.data.data);
+        setIsSubmitting(false);
       },
       onError: (error) => {
         console.error("Error creating showroom:", error);
@@ -103,10 +85,10 @@ const ShowroomCreateModal = ({ isOpen, onClose ,onSuccess}) => {
           duration: 3000,
           isClosable: true,
         });
+        setIsSubmitting(false);
       },
     }
   );
-
 
   const modalSize = useBreakpointValue({ base: "full", md: "xl" });
   const fontSize = useBreakpointValue({ base: "sm", md: "md" });
@@ -121,15 +103,9 @@ const ShowroomCreateModal = ({ isOpen, onClose ,onSuccess}) => {
     enabled: isOpen && !!userToken && !!selectedCategoryId,
   });
 
-  
-
-  const showroomCategoriesQuery = useQuery(
-    ["showroomCategories", userToken, selectedSubCategoryId],
-    () => fetchShowroomCategories(userToken, selectedSubCategoryId),
-    {
-      enabled: isOpen && !!userToken && !!selectedSubCategoryId,
-    }
-  );
+  const showroomCategoriesQuery = useQuery(["showroomCategories", userToken, selectedSubCategoryId], () => fetchShowroomCategories(userToken, selectedSubCategoryId), {
+    enabled: isOpen && !!userToken && !!selectedSubCategoryId,
+  });
 
   const districtsQuery = useQuery(["districts", userToken], () => fetchDistricts(userToken), {
     enabled: isOpen && !!userToken,
@@ -176,26 +152,33 @@ const ShowroomCreateModal = ({ isOpen, onClose ,onSuccess}) => {
     setUploadedImage(null);
   };
 
-  const onSubmit = useCallback(async (data) => {
-    const formData = new FormData();
-    Object.keys(data).forEach((key) => {
-      if (key === 'phone' || key === 'whatsappNumber') {
-        formData.append(key, `+91${data[key]}`);
-      } else {
-        formData.append(key, data[key]);
+  const onSubmit = useCallback(
+    async (data) => {
+      if (isSubmitting) return; // Prevent multiple submissions
+
+      setIsSubmitting(true);
+      const formData = new FormData();
+      Object.keys(data).forEach((key) => {
+        if (key === "phone" || key === "whatsappNumber") {
+          formData.append(key, `+91${data[key]}`);
+        } else {
+          formData.append(key, data[key]);
+        }
+      });
+
+      if (uploadedImage) {
+        formData.append("images", uploadedImage.file);
       }
-    });
 
-    if (uploadedImage) {
-      formData.append("images", uploadedImage.file);
-    }
-
-    try {
-      await createShowroomMutation.mutateAsync(formData);
-    } catch (error) {
-      console.error("Error in onSubmit:", error);
-    }
-  }, [createShowroomMutation, uploadedImage]);
+      try {
+        await createShowroomMutation.mutateAsync(formData);
+      } catch (error) {
+        console.error("Error in onSubmit:", error);
+        setIsSubmitting(false);
+      }
+    },
+    [createShowroomMutation, uploadedImage, isSubmitting]
+  );
 
   useEffect(() => {
     if (isOpen) {
@@ -209,21 +192,7 @@ const ShowroomCreateModal = ({ isOpen, onClose ,onSuccess}) => {
   }, [isOpen, reset]);
 
   const ImageUploadBox = ({ onClick, children }) => (
-    <Box
-      w={imageBoxSize}
-      h={imageBoxSize}
-      backgroundColor="#4F7598"
-      border="2px"
-      borderColor="gray.300"
-      borderRadius="md"
-      display="flex"
-      flexDirection="column"
-      alignItems="center"
-      justifyContent="center"
-      cursor="pointer"
-      color="white"
-      onClick={onClick}
-    >
+    <Box w={imageBoxSize} h={imageBoxSize} backgroundColor="#4F7598" border="2px" borderColor="gray.300" borderRadius="md" display="flex" flexDirection="column" alignItems="center" justifyContent="center" cursor="pointer" color="white" onClick={onClick}>
       {children}
     </Box>
   );
@@ -236,15 +205,7 @@ const ShowroomCreateModal = ({ isOpen, onClose ,onSuccess}) => {
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3 py-3">
             <h3 className={`text-${headingSize} font-bold mb-3`}>Create New Showroom</h3>
 
-            <SellInput
-              label="Name"
-              type="text"
-              name="name"
-              register={register}
-              rules={{ required: "Name is required" }}
-              error={errors.name}
-              fontSize={fontSize}
-            />
+            <SellInput label="Name" type="text" name="name" register={register} rules={{ required: "Name is required" }} error={errors.name} fontSize={fontSize} />
 
             <FormControl isInvalid={errors.phone}>
               <FormLabel fontSize={fontSize}>Mobile Number</FormLabel>
@@ -258,9 +219,7 @@ const ShowroomCreateModal = ({ isOpen, onClose ,onSuccess}) => {
                     message: "Invalid mobile number",
                   },
                 }}
-                render={({ field }) => (
-                  <PhoneInputShowroom {...field} error={errors.phone} />
-                )}
+                render={({ field }) => <PhoneInputShowroom {...field} error={errors.phone} />}
               />
               <FormErrorMessage>{errors.phone && errors.phone.message}</FormErrorMessage>
             </FormControl>
@@ -277,30 +236,16 @@ const ShowroomCreateModal = ({ isOpen, onClose ,onSuccess}) => {
                     message: "Invalid WhatsApp number",
                   },
                 }}
-                render={({ field }) => (
-                  <PhoneInputShowroom {...field} error={errors.whatsappNumber} />
-                )}
+                render={({ field }) => <PhoneInputShowroom {...field} error={errors.whatsappNumber} />}
               />
               <FormErrorMessage>{errors.whatsappNumber && errors.whatsappNumber.message}</FormErrorMessage>
             </FormControl>
 
-            <SellInput
-              label="Address"
-              type="text"
-              name="address"
-              register={register}
-              rules={{ required: "Address is required" }}
-              error={errors.address}
-              fontSize={fontSize}
-            />
+            <SellInput label="Address" type="text" name="address" register={register} rules={{ required: "Address is required" }} error={errors.address} fontSize={fontSize} />
 
             <FormControl isInvalid={errors.description}>
               <FormLabel fontSize={fontSize}>Description</FormLabel>
-              <Textarea
-                {...register("description", { required: "Description is required" })}
-                placeholder="Enter showroom description"
-                fontSize={fontSize}
-              />
+              <Textarea {...register("description", { required: "Description is required" })} placeholder="Enter showroom description" fontSize={fontSize} className="border-black" />
               <FormErrorMessage>{errors.description && errors.description.message}</FormErrorMessage>
             </FormControl>
 
@@ -309,11 +254,11 @@ const ShowroomCreateModal = ({ isOpen, onClose ,onSuccess}) => {
               type="url"
               name="websiteLink"
               register={register}
-              rules={{ 
+              rules={{
                 pattern: {
                   value: /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/,
-                  message: "Invalid URL format"
-                }
+                  message: "Invalid URL format",
+                },
               }}
               error={errors.websiteLink}
               fontSize={fontSize}
@@ -323,10 +268,10 @@ const ShowroomCreateModal = ({ isOpen, onClose ,onSuccess}) => {
               label="Facebook Page Link"
               name="facebookPageLink"
               register={register}
-              rules={{ 
+              rules={{
                 pattern: {
-                  message: "Invalid Facebook page URL"
-                }
+                  message: "Invalid Facebook page URL",
+                },
               }}
               error={errors.facebookPageLink}
               fontSize={fontSize}
@@ -334,12 +279,7 @@ const ShowroomCreateModal = ({ isOpen, onClose ,onSuccess}) => {
 
             <FormControl isInvalid={errors.adCategory} fontSize={fontSize}>
               <FormLabel>Category</FormLabel>
-              <Select
-                placeholder="Select Category"
-                isDisabled={categoriesQuery.isLoading}
-                {...register("adCategory", { required: "Category is required" })}
-                onChange={handleCategoryChange}
-              >
+              <Select className="border-black" placeholder="Select Category" isDisabled={categoriesQuery.isLoading} {...register("adCategory", { required: "Category is required" })} onChange={handleCategoryChange}>
                 {categoriesQuery.data?.map(({ id, name }) => (
                   <option key={id} value={id}>
                     {name}
@@ -352,6 +292,7 @@ const ShowroomCreateModal = ({ isOpen, onClose ,onSuccess}) => {
             <FormControl isInvalid={errors.adShowroomCategory} fontSize={fontSize}>
               <FormLabel>Showroom Category</FormLabel>
               <Select
+                className="border-black"
                 placeholder="Select Showroom Category"
                 isDisabled={!selectedCategoryId || subCategoriesQuery.isLoading}
                 {...register("adShowroomCategory", { required: "Showroom Category is required" })}
@@ -368,11 +309,7 @@ const ShowroomCreateModal = ({ isOpen, onClose ,onSuccess}) => {
 
             <FormControl isInvalid={errors.adSubCategory} fontSize={fontSize}>
               <FormLabel>Sub Category</FormLabel>
-              <Select
-                placeholder="Select Sub Category"
-                isDisabled={!selectedSubCategoryId || showroomCategoriesQuery.isLoading}
-                {...register("adSubCategory", { required: "Sub Category is required" })}
-              >
+              <Select className="border-black" placeholder="Select Sub Category" isDisabled={!selectedSubCategoryId || showroomCategoriesQuery.isLoading} {...register("adSubCategory", { required: "Sub Category is required" })}>
                 {showroomCategoriesQuery.data?.map(({ id, name }) => (
                   <option key={id} value={id}>
                     {name}
@@ -385,6 +322,7 @@ const ShowroomCreateModal = ({ isOpen, onClose ,onSuccess}) => {
             <FormControl isInvalid={errors.locationDistrict} fontSize={fontSize}>
               <FormLabel>District</FormLabel>
               <Select
+                className="border-black"
                 placeholder="Select District"
                 isDisabled={districtsQuery.isLoading}
                 {...register("locationDistrict", { required: "District is required" })}
@@ -404,11 +342,7 @@ const ShowroomCreateModal = ({ isOpen, onClose ,onSuccess}) => {
 
             <FormControl isInvalid={errors.locationTown} fontSize={fontSize}>
               <FormLabel>Town</FormLabel>
-              <Select
-                placeholder="Select Town"
-                isDisabled={!selectedDistrictId || townsQuery.isLoading}
-                {...register("locationTown", { required: "Town is required" })}
-              >
+              <Select className="border-black" placeholder="Select Town" isDisabled={!selectedDistrictId || townsQuery.isLoading} {...register("locationTown", { required: "Town is required" })}>
                 {townsQuery.data?.map(({ id, name }) => (
                   <option key={id} value={id}>
                     {name}
@@ -449,7 +383,15 @@ const ShowroomCreateModal = ({ isOpen, onClose ,onSuccess}) => {
               </Flex>
             </FormControl>
 
-            <Button type="submit" colorScheme="blue" mt={3} fontSize={fontSize}>
+            <Button 
+              type="submit" 
+              colorScheme="blue" 
+              mt={3} 
+              fontSize={fontSize}
+              isLoading={isSubmitting}
+              loadingText="Creating..."
+              disabled={isSubmitting}
+            >
               Create Showroom
             </Button>
           </form>

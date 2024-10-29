@@ -49,6 +49,12 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
   const { register, handleSubmit, control, formState: { errors }, setValue, reset, getValues, watch } = useForm();
   const getUserToken = useCallback(() => localStorage.getItem('UserToken'), []);
   const toast = useToast();
+  const [submittedFormData, setSubmittedFormData] = useState(null);
+  const [submittedApiUrl, setSubmittedApiUrl] = useState(null);
+  const [isTagCreationPossible, setIsTagCreationPossible] = useState(false);
+  const [submittedImages, setSubmittedImages] = useState([]);
+  const [submittedAdId, setSubmittedAdId] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const modalSize = useBreakpointValue({ base: "full", md: "xl" });
   const fontSize = useBreakpointValue({ base: "sm", md: "md" });
@@ -84,54 +90,109 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
     }
   }, [subCategoryId, reset]);
 
-  const onSubmit = async (data) => {
-    const relevantFields = subCategoryDetails?.requiredFields || [];
-    const filteredData = relevantFields.reduce((obj, key) => {
-      obj[key] = data[key] !== undefined ? data[key] : "";
-      return obj;
-    }, {});
-  
-    filteredData.adShowroom = showroomid ? [showroomid] : [];
-    filteredData.adCategory = categoryId;
-    filteredData.adSubCategory = subCategoryId;
-    filteredData.locationDistrict = districtId;
-    filteredData.locationTown = townId;
-    filteredData.adSubscription = ""; 
-
-    const formData = new FormData();
-    Object.keys(filteredData).forEach(key => {
-      if (key === 'adShowroom') {
-        formData.append(key, JSON.stringify(filteredData[key]));
-      } else {
-        formData.append(key, filteredData[key]);
-      }
-    });
-  
-    const imageFiles = uploadedImages.map(image => image.file);
-    imageFiles.forEach((file) => {
-      formData.append('images', file);
-    });
-  
-    console.log("FormData being sent to API:");
-    for (let [key, value] of formData.entries()) {
-      console.log(key, value);
-    }
-  
+  const checkAdCreationPossibility = async (categoryId) => {
     try {
+      const token = getUserToken();
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await axios.get(`${BASE_URL}/api/ad-categories/${categoryId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      return {
+        isAdCreationPossible: response.data.data.isAdCreationPossible,
+        isTagCreationPossible: response.data.data.isTagCreationPossible
+      };
+    } catch (error) {
+      console.error('Error checking ad creation possibility:', error);
+      toast({
+        title: "Error checking category permission",
+        description: error.response?.data?.message || "Something went wrong",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return { isAdCreationPossible: false, isTagCreationPossible: false };
+    }
+  };
+
+  const onSubmit = async (data) => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
+    try {
+      // First check if ad creation is possible
+      const { isAdCreationPossible, isTagCreationPossible } = await checkAdCreationPossibility(categoryId);
+      
+      if (!isAdCreationPossible) {
+        onClose();
+        navigate('/packages/post-more-ads');
+        toast({
+          title: "Package Required",
+          description: "You need to purchase a package to post more ads in this category. Redirecting you to available packages.",
+          status: "info",
+          duration: 5000,
+          isClosable: true,
+        });
+        return;
+      }
+
+      const relevantFields = subCategoryDetails?.requiredFields || [];
+      const filteredData = relevantFields.reduce((obj, key) => {
+        obj[key] = data[key] !== undefined ? data[key] : "";
+        return obj;
+      }, {});
+    
+      filteredData.adShowroom = showroomid ? [showroomid] : [];
+      filteredData.adCategory = categoryId;
+      filteredData.adSubCategory = subCategoryId;
+      filteredData.locationDistrict = districtId;
+      filteredData.locationTown = townId;
+      filteredData.adSubscription = ""; 
+
+      const formData = new FormData();
+      Object.keys(filteredData).forEach(key => {
+        if (key === 'adShowroom') {
+          formData.append(key, JSON.stringify(filteredData[key]));
+        } else {
+          formData.append(key, filteredData[key]);
+        }
+      });
+    
+      const imageFiles = uploadedImages.map(image => image.file);
+      imageFiles.forEach((file) => {
+        formData.append('images', file);
+      });
+    
+      console.log("FormData being sent to API:");
+      for (let [key, value] of formData.entries()) {
+        console.log(key, value);
+      }
+    
       const apiUrl = `${BASE_URL}/api/${subCategoryDetails.apiUrl}`;
       const token = getUserToken();
       if (!token) {
         throw new Error('No authentication token found');
       }
-  
+    
       const response = await axios.post(apiUrl, formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
         }
       });
-  
+    
       if (response.status === 200 || response.status === 201) {
+        const adId = response.data.data.id;
+        setSubmittedAdId(adId);
+        setSubmittedFormData(filteredData);
+        setSubmittedApiUrl(subCategoryDetails.apiUrl);
+        setSubmittedImages(imageFiles); // Pass the actual file objects
+        setIsTagCreationPossible(isTagCreationPossible);
         setShowCongratulations(true);
         reset();
         setUploadedImages([]);
@@ -150,7 +211,7 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
       } else if (error.message) {
         errorMessage = error.message;
       }
-  
+    
       if (error.response && error.response.status === 404) {
         navigate('/packages/post-more-ads');
       } else {
@@ -162,6 +223,8 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
           isClosable: true,
         });
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -215,6 +278,7 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
           <FormControl key={fieldName} isInvalid={errors[fieldName]} fontSize={fontSize}>
             <FormLabel>{config.label}</FormLabel>
             <Select 
+            className='border-black'
               {...register(fieldName, config.rules)}
               onChange={(e) => {
                 if (fieldName === 'brand') {
@@ -366,6 +430,11 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
       {showCongratulations && (
         <CongratulationsModal
           adType="Showroom Ad"
+          formData={submittedFormData}
+          apiUrl={submittedApiUrl}
+          isTagCreationPossible={isTagCreationPossible}
+          images={submittedImages}
+          adId={submittedAdId}
           onClose={() => setShowCongratulations(false)}
         />
       )}

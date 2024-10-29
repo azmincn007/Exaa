@@ -40,6 +40,8 @@ function RecommendedAdsGrid() {
     }
 
     const response = await axios.get(endpoint, { params, ...config });
+    console.log(response.data.data);
+    
     return response.data.data;
   };
 
@@ -70,7 +72,7 @@ function RecommendedAdsGrid() {
         title={ad.title}
         location={ad.locationTown.name}
         postedDate={ad.postedDate}
-        adBoostTag={ad.adBoostTag}
+        adBoostTag={ad.adBoostTag?.name}
         isAdFavourite={ad.isAdFavourite}
       />
     </SwiperSlide>

@@ -220,7 +220,7 @@ const CategoryBasedGrid = () => {
                       title={ad.title}
                       location={ad.locationTown.name}
                       postedDate={ad.postedDate}
-                      adBoostTag={ad.adBoostTag}
+                      adBoostTag={ad.adBoostTag?.name}
                       isAdFavourite={ad.isAdFavourite}
                     />
                   ))}

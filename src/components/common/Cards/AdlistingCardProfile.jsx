@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Image, Text, Badge, IconButton, useDisclosure } from '@chakra-ui/react';
-import { Eye, Heart, MapPin, Edit, Trash2 } from 'lucide-react';
+import { Eye, Heart, MapPin, Edit, Trash2, RefreshCw } from 'lucide-react';
 import { BASE_URL } from '../../../config/config';
 import SellModalEdit from '../../modals/othermodals/SellmodalEdit';
 import DeleteConfirmationDialog from '../../modals/othermodals/DeleteConfirmation';
 
-const AdListingCardProfile = ({ listing, onDelete }) => {
+const AdListingCardProfile = ({ listing, onDelete, onRepost, isExpired }) => {
   const {
     id,
     isActive,
@@ -73,14 +73,22 @@ const AdListingCardProfile = ({ listing, onDelete }) => {
             <Image
               src={`${BASE_URL}${images?.url}`}
               alt={title}
-              className="object-cover w-full h-full"
+              className={`object-cover w-full h-full ${isExpired ? 'opacity-60' : ''}`}
             />
-            {isActive && (
+            {isActive && !isExpired && (
               <Badge 
                 className="absolute top-2 left-2" 
                 colorScheme="green"
               >
                 Active
+              </Badge>
+            )}
+            {isExpired && (
+              <Badge 
+                className="absolute top-2 left-2" 
+                colorScheme="red"
+              >
+                Expired
               </Badge>
             )}
           </div>
@@ -97,6 +105,16 @@ const AdListingCardProfile = ({ listing, onDelete }) => {
                   {adCategory?.name}
                 </Badge>
                 <div className="flex gap-1">
+                  {isExpired && (
+                    <IconButton
+                      icon={<RefreshCw size={16} />}
+                      aria-label="Renew Ad"
+                      size="sm"
+                      colorScheme="green"
+                      variant="ghost"
+                      onClick={() => onRepost(id)}
+                    />
+                  )}
                   <IconButton
                     icon={<Edit size={16} />}
                     aria-label="Edit"

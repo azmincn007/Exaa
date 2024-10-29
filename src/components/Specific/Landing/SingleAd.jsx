@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FaChevronLeft, FaChevronRight, FaCommentDollar, FaComments } from 'react-icons/fa';
-import { MdRemoveRedEye } from 'react-icons/md';
-import { CiHeart } from 'react-icons/ci';
-import { ArrowRight } from 'lucide-react';
+import { FaChevronLeft, FaChevronRight, FaCommentDollar, FaComments, FaWhatsapp } from 'react-icons/fa';
+import { ArrowRight, Copy } from 'lucide-react';
 import { useQuery, useMutation } from 'react-query';
 import axios from 'axios';
-import { Button, Modal, ModalOverlay, ModalContent, ModalBody, ModalCloseButton, useDisclosure } from '@chakra-ui/react';
+import { Button, Modal, ModalOverlay, ModalContent, ModalBody, ModalCloseButton, useDisclosure, useToast } from '@chakra-ui/react';
 import { BASE_URL } from '../../../config/config';
 import CarCar from '../AdSingleStructure/CarCar';
 import Rest from '../AdSingleStructure/Rest';
@@ -23,16 +21,12 @@ const fetchAdData = async ({ queryKey }) => {
   };
   
   const { data } = await axios.get(`${BASE_URL}/api/find-one-ad/${adCategoryId}/${adId}`, config);
-  console.log(data.data);
-  console.log(data.data);
-  
   return data.data;
 };
 
 const findOrCreateChat = async ({ adId, adCategoryId, adBuyerId, adSellerId, token, message, isOfferMessage }) => {
   try {
     if (isOfferMessage) {
-      // Always create a new chat for offers
       const { data } = await axios.post(
         `${BASE_URL}/api/ad-chats`,
         {
@@ -50,7 +44,6 @@ const findOrCreateChat = async ({ adId, adCategoryId, adBuyerId, adSellerId, tok
       );
       return { data, isNewChat: true };
     } else {
-      // For regular chats, try to find existing chat first
       const { data } = await axios.get(
         `${BASE_URL}/api/find-one-chat/${adId}/${adCategoryId}/${adBuyerId}/${adSellerId}`,
         {
@@ -63,7 +56,6 @@ const findOrCreateChat = async ({ adId, adCategoryId, adBuyerId, adSellerId, tok
     }
   } catch (error) {
     if (error.response && error.response.status === 404) {
-      // Create new chat if not found
       const { data } = await axios.post(
         `${BASE_URL}/api/ad-chats`,
         {
@@ -92,6 +84,7 @@ function SingleAd() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isPriceAdjusterOpen, setIsPriceAdjusterOpen] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const toast = useToast();
 
   const { isLoggedIn, token } = useAuth();
 
@@ -142,7 +135,6 @@ function SingleAd() {
   };
 
   const handleOfferSubmit = (adjustedPrice) => {
-    console.log(`Offer submitted: ₹${adjustedPrice.toFixed(2)}`);
     chatMutation.mutate({
       adId,
       adCategoryId,
@@ -165,20 +157,41 @@ function SingleAd() {
 
   const handleSellerProfileClick = () => {
     if (adData?.adSeller) {
-      console.log("Seller Data:", {
-      
-        fullData: adData.adSeller
-      });
-      
       navigate(`/customer-profile/${adData.adSeller.id}`, {
         state: {
           sellerId: adData.adSeller.id,
           sellerName: adData.adSeller.name,
-          sellerPhone:adData.adSeller.phone,
-          sellerProfile:adData.adSeller.profileImage?.url
+          sellerPhone: adData.adSeller.phone,
+          sellerProfile: adData.adSeller.profileImage?.url
         }
       });
     }
+  };
+
+  const handleCopyLink = () => {
+    const currentUrl = window.location.href;
+    navigator.clipboard.writeText(currentUrl).then(() => {
+      toast({
+        title: "Link copied!",
+        status: "success",
+        duration: 2000,
+        position: "top",
+      });
+    }).catch(() => {
+      toast({
+        title: "Failed to copy link",
+        status: "error",
+        duration: 2000,
+        position: "top",
+      });
+    });
+  };
+
+  const handleWhatsAppShare = () => {
+    const currentUrl = window.location.href;
+    const shareText = `Check out this ad: ${currentUrl}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   if (isLoading) return <SkeletonSingleAdPage />;
@@ -246,11 +259,17 @@ function SingleAd() {
                 </Button>
               </div>
               <div className="flex gap-4 px-4">
-                <Button className="w-full bg-gray-200 gap-2 text-gray-700 text-sm md:text-base">
-                  <MdRemoveRedEye /> {adData.adViewCount || 0}
+                <Button 
+                  className="w-full bg-green-600 gap-2 text-white text-sm md:text-base"
+                  onClick={handleWhatsAppShare}
+                >
+                  <FaWhatsapp className="text-lg" /> Share
                 </Button>
-                <Button className="w-full bg-gray-200 gap-2 text-gray-700 text-sm md:text-base">
-                  <CiHeart /> {adData.adFavouriteCount || 0}
+                <Button 
+                  className="w-full bg-gray-600 gap-2 text-white text-sm md:text-base"
+                  onClick={handleCopyLink}
+                >
+                  <Copy className="text-lg" /> Copy Link
                 </Button>
               </div>
               <div className="flex justify-between items-end mt-8">
@@ -258,8 +277,9 @@ function SingleAd() {
                 <p>{adData.id}</p>
               </div>
             </div>
+            
             <div className="flex items-center justify-between bg-white p-4 rounded-lg shadow-md">
-              <div className="flex items-center space-x-4"   onClick={handleSellerProfileClick}>
+              <div className="flex items-center space-x-4" onClick={handleSellerProfileClick}>
                 <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
                   {adData.adSeller?.profileImage?.url && (
                     <img 
@@ -275,6 +295,7 @@ function SingleAd() {
             </div>
           </div>
         </div>
+        
         <div className="mt-8">
           <div className="font-semibold text-lg md:text-xl">Description</div>
           <p className="text-sm md:text-base text-gray-500">{adData.description || 'No description available.'}</p>
@@ -282,11 +303,10 @@ function SingleAd() {
       </div>
 
       <div>
-      <SimilarAds 
-  adId={adId}
-  adCategoryId={adCategoryId}
-
-/>
+        <SimilarAds 
+          adId={adId}
+          adCategoryId={adCategoryId}
+        />
       </div>
 
       <PriceAdjuster

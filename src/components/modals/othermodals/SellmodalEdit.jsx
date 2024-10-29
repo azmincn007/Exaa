@@ -48,6 +48,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [categoryChanged, setCategoryChanged] = useState(false);
   const [initialCategoryId, setInitialCategoryId] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { register, handleSubmit, control, formState: { errors }, setValue, getValues, reset } = useForm();
   const getUserToken = useCallback(() => localStorage.getItem('UserToken'), []);
@@ -219,6 +220,9 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
   };
 
   const onSubmit = async (data) => {
+    if (isSubmitting) return; // Prevent multiple submissions
+
+    setIsSubmitting(true);
     try {
       if (categoryChanged) {
         const isCreationPossible = await checkAdCreationPossibility(data.adCategory);
@@ -233,6 +237,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
             duration: 5000,
             isClosable: true,
           });
+          setIsSubmitting(false);
           return;
         }
       }
@@ -305,6 +310,8 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
         duration: 3000,
         isClosable: true,
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -521,7 +528,15 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
                 </Flex>
               </FormControl>
               
-              <Button type="submit" colorScheme="blue" mt={3} fontSize={fontSize}>
+              <Button 
+                type="submit" 
+                colorScheme="blue" 
+                mt={3} 
+                fontSize={fontSize}
+                isLoading={isSubmitting}
+                loadingText="Updating..."
+                disabled={isSubmitting}
+              >
                 Update Ad
               </Button>
             </form>

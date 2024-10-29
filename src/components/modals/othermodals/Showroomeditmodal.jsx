@@ -65,6 +65,7 @@ const fetchTowns = async (userToken, districtId) => {
 const ShowroomEditModal = ({ isOpen, onClose, showroom, onSuccess }) => {
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [selectedSubCategoryId, setSelectedSubCategoryId] = useState(null);
+  const [selectedShowroomSubCategoryId, setSelectedShowroomSubCategoryId] = useState(null);
   const [selectedDistrictId, setSelectedDistrictId] = useState(null);
   const [selectedTownId, setSelectedTownId] = useState(null);
   const [uploadedImage, setUploadedImage] = useState(null);
@@ -78,6 +79,7 @@ const ShowroomEditModal = ({ isOpen, onClose, showroom, onSuccess }) => {
     reset,
     control,
   } = useForm();
+
   const [userToken, setUserToken] = useState(localStorage.getItem("UserToken"));
   const toast = useToast();
   const queryClient = useQueryClient();
@@ -91,9 +93,13 @@ const ShowroomEditModal = ({ isOpen, onClose, showroom, onSuccess }) => {
     enabled: isOpen && !!userToken,
   });
 
-  const subCategoriesQuery = useQuery(["adSubCategories", userToken, selectedCategoryId], () => fetchSubCategories(userToken, selectedCategoryId), {
-    enabled: isOpen && !!userToken && !!selectedCategoryId,
-  });
+  const subCategoriesQuery = useQuery(
+    ["adSubCategories", userToken, selectedCategoryId],
+    () => fetchSubCategories(userToken, selectedCategoryId),
+    {
+      enabled: isOpen && !!userToken && !!selectedCategoryId,
+    }
+  );
 
   const showroomCategoriesQuery = useQuery(
     ["showroomCategories", userToken, selectedSubCategoryId],
@@ -107,13 +113,17 @@ const ShowroomEditModal = ({ isOpen, onClose, showroom, onSuccess }) => {
     enabled: isOpen && !!userToken,
   });
 
-  const townsQuery = useQuery(["towns", userToken, selectedDistrictId], () => fetchTowns(userToken, selectedDistrictId), {
-    enabled: isOpen && !!userToken && !!selectedDistrictId,
-  });
+  const townsQuery = useQuery(
+    ["towns", userToken, selectedDistrictId],
+    () => fetchTowns(userToken, selectedDistrictId),
+    {
+      enabled: isOpen && !!userToken && !!selectedDistrictId,
+    }
+  );
 
   useEffect(() => {
     if (isOpen && showroom) {
-      reset({
+      const formData = {
         name: showroom.name,
         phone: showroom.phone.replace("+91", ""),
         whatsappNumber: showroom.whatsappNumber?.replace("+91", ""),
@@ -126,13 +136,16 @@ const ShowroomEditModal = ({ isOpen, onClose, showroom, onSuccess }) => {
         adSubCategory: showroom.adSubCategory?.id,
         locationDistrict: showroom.locationDistrict?.id,
         locationTown: showroom.locationTown?.id,
-      });
+      };
+
+      reset(formData);
+      
       setSelectedCategoryId(showroom.adCategory?.id);
       setSelectedSubCategoryId(showroom.adShowroomCategory?.id);
+      setSelectedShowroomSubCategoryId(showroom.adSubCategory?.id);
       setSelectedDistrictId(showroom.locationDistrict?.id);
       setSelectedTownId(showroom.locationTown?.id);
-      setUserToken(localStorage.getItem("UserToken"));
-
+      
       if (showroom.images) {
         setUploadedImage({ preview: `${BASE_URL}${showroom.images.url}` });
         fetch(`${BASE_URL}${showroom.images.url}`)
@@ -141,9 +154,6 @@ const ShowroomEditModal = ({ isOpen, onClose, showroom, onSuccess }) => {
             const file = new File([blob], "existing_image.jpg", { type: "image/jpeg" });
             setImageFile(file);
           });
-      } else {
-        setUploadedImage(null);
-        setImageFile(null);
       }
     }
   }, [isOpen, showroom, reset]);
@@ -156,6 +166,7 @@ const ShowroomEditModal = ({ isOpen, onClose, showroom, onSuccess }) => {
       setValue("adShowroomCategory", "");
       setValue("adSubCategory", "");
       setSelectedSubCategoryId(null);
+      setSelectedShowroomSubCategoryId(null);
     },
     [setValue]
   );
@@ -166,6 +177,16 @@ const ShowroomEditModal = ({ isOpen, onClose, showroom, onSuccess }) => {
       setSelectedSubCategoryId(newSubCategoryId);
       setValue("adShowroomCategory", newSubCategoryId);
       setValue("adSubCategory", "");
+      setSelectedShowroomSubCategoryId(null);
+    },
+    [setValue]
+  );
+
+  const handleShowroomSubCategoryChange = useCallback(
+    (e) => {
+      const newSubCategoryId = e.target.value;
+      setSelectedShowroomSubCategoryId(newSubCategoryId);
+      setValue("adSubCategory", newSubCategoryId);
     },
     [setValue]
   );
@@ -222,24 +243,22 @@ const ShowroomEditModal = ({ isOpen, onClose, showroom, onSuccess }) => {
     }
 
     try {
-      const apiUrl = `${BASE_URL}/api/ad-showrooms/${showroom.id}`;
-      console.log("API URL:", apiUrl);
-
-      const response = await axios.put(apiUrl, formData, {
-        headers: {
-          Authorization: `Bearer ${userToken}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      console.log("API Response:", response.data);
+      const response = await axios.put(
+        `${BASE_URL}/api/ad-showrooms/${showroom.id}`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${userToken}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
 
       if (response.status === 200) {
         queryClient.invalidateQueries("showrooms");
         onSuccess();
         onClose();
-      } else {
-        throw new Error("Failed to update showroom");
+ 
       }
     } catch (error) {
       console.error("API Error:", error.response || error);
@@ -252,6 +271,7 @@ const ShowroomEditModal = ({ isOpen, onClose, showroom, onSuccess }) => {
       });
     }
   };
+
   const ImageUploadBox = ({ onClick, children }) => (
     <Box
       w={imageBoxSize}
@@ -321,7 +341,9 @@ const ShowroomEditModal = ({ isOpen, onClose, showroom, onSuccess }) => {
                 }}
                 render={({ field }) => <PhoneInputShowroom {...field} error={errors.whatsappNumber} />}
               />
-              <FormErrorMessage>{errors.whatsappNumber && errors.whatsappNumber.message}</FormErrorMessage>
+              <FormErrorMessage>
+                {errors.whatsappNumber && errors.whatsappNumber.message}
+              </FormErrorMessage>
             </FormControl>
 
             <SellInput
@@ -349,11 +371,11 @@ const ShowroomEditModal = ({ isOpen, onClose, showroom, onSuccess }) => {
               type="url"
               name="websiteLink"
               register={register}
-              rules={{ 
+              rules={{
                 pattern: {
                   value: /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/,
-                  message: "Invalid URL format"
-                }
+                  message: "Invalid URL format",
+                },
               }}
               error={errors.websiteLink}
               fontSize={fontSize}
@@ -363,11 +385,11 @@ const ShowroomEditModal = ({ isOpen, onClose, showroom, onSuccess }) => {
               label="Facebook Page Link"
               name="facebookPageLink"
               register={register}
-              rules={{ 
+              rules={{
                 pattern: {
                   value: /^(https?:\/\/)?(www\.)?facebook.com\/.+/,
-                  message: "Invalid Facebook page URL"
-                }
+                  message: "Invalid Facebook page URL",
+                },
               }}
               error={errors.facebookPageLink}
               fontSize={fontSize}
@@ -376,10 +398,10 @@ const ShowroomEditModal = ({ isOpen, onClose, showroom, onSuccess }) => {
             <FormControl isInvalid={errors.adCategory} fontSize={fontSize}>
               <FormLabel>Category</FormLabel>
               <Select
+                className="border-black"
                 placeholder="Select Category"
-                isDisabled={categoriesQuery.isLoading}
+                isDisabled={true} // This disables the category selection
                 {...register("adCategory", { required: "Category is required" })}
-                onChange={handleCategoryChange}
                 value={selectedCategoryId || ""}
               >
                 {categoriesQuery.data?.map(({ id, name }) => (
@@ -415,7 +437,8 @@ const ShowroomEditModal = ({ isOpen, onClose, showroom, onSuccess }) => {
                 placeholder="Select Sub Category"
                 isDisabled={!selectedSubCategoryId || showroomCategoriesQuery.isLoading}
                 {...register("adSubCategory", { required: "Sub Category is required" })}
-                value={showroom?.adSubCategory?.id || ""}
+                value={selectedShowroomSubCategoryId || ""}
+                onChange={handleShowroomSubCategoryChange}
               >
                 {showroomCategoriesQuery.data?.map(({ id, name }) => (
                   <option key={id} value={id}>

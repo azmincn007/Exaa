@@ -18,7 +18,6 @@ import {
 import { BASE_URL } from '../../config/config';
 
 const RatingModal = ({ isOpen, onClose, showroomId }) => {
-    console.log(showroomId);
     
   const [selectedRating, setSelectedRating] = useState(3);
   const [hoveredRating, setHoveredRating] = useState(null);

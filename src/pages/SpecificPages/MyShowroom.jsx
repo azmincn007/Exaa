@@ -21,6 +21,7 @@ import CarListingCard from "../../components/common/Cards/ShowroomuserAdCard";
 import ShowroomuserAdCard from "../../components/common/Cards/ShowroomuserAdCard";
 import EditShowroomModal from "../../components/modals/othermodals/EditShowroomAd";
 import EditShowroomad from "../../components/modals/othermodals/EditShowroomAd";
+import CongratulationsModal from "../../components/modals/othermodals/SellSuccessmodal";
 
 const fetchShowrooms = async (token) => {
   const response = await axios.get(`${BASE_URL}/api/find-user-ad-showrooms`, {
@@ -50,6 +51,11 @@ const MyShowroom = () => {
   const [showroomToEdit, setShowroomToEdit] = useState(null);
   const [isEditAdModalOpen, setIsEditAdModalOpen] = useState(false);
   const [adToEdit, setAdToEdit] = useState(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [updatedAd, setUpdatedAd] = useState(null);
+  const [subCategoryDetails, setSubCategoryDetails] = useState(null);
+  console.log(selectedShowroom);
+  
 
   const { isLoggedIn, isInitialized, token } = useAuth();
   const queryClient = useQueryClient();
@@ -127,8 +133,16 @@ const MyShowroom = () => {
    
   }, [refetchShowrooms, selectedShowroom, showrooms, toast]);
 
-  const handleAdCreated = useCallback(async () => {
+  const handleAdCreated = useCallback(async (newAd) => {
+    // Update the local cache with the new ad
+    queryClient.setQueryData(
+      ["showroomAds", selectedShowroom.id],
+      (oldData) => oldData ? [newAd, ...oldData] : [newAd]
+    );
+
+    // Optionally, you can still refetch to ensure consistency with the server
     await refetchShowroomAds();
+    
     handleSellModalClose();
     toast({
       title: "Ad created successfully",
@@ -136,7 +150,7 @@ const MyShowroom = () => {
       duration: 3000,
       isClosable: true,
     });
-  }, [refetchShowroomAds, handleSellModalClose, toast]);
+  }, [queryClient, selectedShowroom, refetchShowroomAds, handleSellModalClose, toast]);
 
   const handleShowroomEdit = useCallback((showroom) => {
     setShowroomToEdit(showroom);
@@ -172,21 +186,44 @@ const MyShowroom = () => {
 
   const handleEditAdSuccess = useCallback(async () => {
     await refetchShowroomAds();
-    handleEditAdModalClose();
-   
-  }, [refetchShowroomAds, handleEditAdModalClose, toast]);
+    setShowSuccessModal(false);
+  }, [refetchShowroomAds]);
 
-  
+  // Add new handler for success modal
+  const handleShowSuccessModal = useCallback((data) => {
+ 
+    console.log('adData:', data.adData);
+    console.log('subCategoryDetails:', data.subCategoryDetails);
+    console.log('Received image files:', data.images);
+
+    setUpdatedAd({
+      ...data.adData,
+      adCategory: data.adData.adCategory?.id, // Extract just the ID from adCategory
+      adSubCategory: data.adData.adSubCategory?.id, // Extract just the ID from adSubCategory
+      images: data.images // Use the received image files directly
+    });
+    setSubCategoryDetails(data.subCategoryDetails);
+    setShowSuccessModal(true);
+  }, []);
+
   const handleAdDeleted = useCallback((deletedAdId) => {
-    // Update the local state
-    if (selectedShowroom) {
-      queryClient.setQueryData(
-        ["showroomAds", selectedShowroom.id],
-        (oldData) => oldData ? oldData.filter(ad => ad.id !== deletedAdId) : []
-      );
-    }
+    if (!deletedAdId || !selectedShowroom?.id) return;
+  
+    queryClient.setQueryData(
+      ["showroomAds", selectedShowroom.id],
+      (oldData) => {
+        // Ensure oldData is an array and handle null/undefined cases
+        if (!Array.isArray(oldData)) return [];
+        return oldData.filter(ad => ad && ad.id && ad.id !== deletedAdId);
+      }
+    );
     
-   
+    toast({
+      title: "Ad deleted successfully",
+      status: "success",
+      duration: 3000,
+      isClosable: true,
+    });
   }, [queryClient, selectedShowroom, toast]);
 
   if (showroomsLoading || !isInitialized || adsLoading) {
@@ -288,7 +325,7 @@ const MyShowroom = () => {
           {selectedShowroom ? (
             <VStack spacing={4} align="stretch" height="100%">
               <div className="flex justify-between items-center">
-                <h2 className="font-semibold text-xl">My Showroom - {selectedShowroom.name}</h2>
+                <h2 className="font-semibold text-xl">My Showroom - {selectedShowroom?.name}</h2>
                 <Button leftIcon={<CiLocationOn />} className="bg-[#D2BA8580]" variant="solid" size="sm">
                   {selectedShowroom.locationTown?.name || "Location not set"}
                 </Button>
@@ -314,6 +351,8 @@ const MyShowroom = () => {
                     onClick={handleSellModalOpen}
                     alignSelf="center"
                     mt={4}
+                    isDisabled={!selectedShowroom || !selectedShowroom.locationTown?.name}
+                    title={!selectedShowroom.locationTown?.name ? "Please set a location for this showroom first" : ""}
                   >
                     New Post
                   </Button>
@@ -324,7 +363,15 @@ const MyShowroom = () => {
                   <Text fontSize="lg" fontWeight="medium" mb={4}>
                     No posts yet in this showroom
                   </Text>
-                  <Button leftIcon={<MdAddCircleOutline />} colorScheme="blue" size="lg" borderRadius="xl" onClick={handleSellModalOpen}>
+                  <Button 
+                    leftIcon={<MdAddCircleOutline />} 
+                    colorScheme="blue" 
+                    size="lg" 
+                    borderRadius="xl" 
+                    onClick={handleSellModalOpen}
+                    isDisabled={!selectedShowroom || !selectedShowroom.locationTown?.name}
+                    title={!selectedShowroom.locationTown?.name ? "Please set a location for this showroom first" : ""}
+                  >
                     New Post
                   </Button>
                 </Center>
@@ -356,7 +403,6 @@ const MyShowroom = () => {
           townId={selectedShowroom.locationTown?.id}
           showroomid={selectedShowroom.id}
           onAdCreated={handleAdCreated}
-         
         />
       )}
 
@@ -373,6 +419,25 @@ const MyShowroom = () => {
           districtId={selectedShowroom.locationDistrict?.id}
           townId={selectedShowroom.locationTown?.id}
           showroomId={selectedShowroom.id}
+          onShowSuccess={(data) => {
+            console.log('onShowSuccess callback triggered with data:', data);
+            handleShowSuccessModal(data);
+          }}
+        />
+      )}
+
+      {showSuccessModal && updatedAd && subCategoryDetails && (
+        <CongratulationsModal
+          adType="Showroom Ad"
+          onClose={() => {
+            setShowSuccessModal(false);
+            handleEditAdSuccess();
+          }}
+          adId={updatedAd.id}
+          formData={updatedAd}
+          apiUrl={subCategoryDetails.apiUrl}
+          isTagCreationPossible={true}
+          images={updatedAd.images}
         />
       )}
     </Box>

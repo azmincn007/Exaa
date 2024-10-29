@@ -1,4 +1,3 @@
-// Profile.js (Updated)
 import React, { useContext, useState } from "react";
 import { Box, Button, Flex, useBreakpointValue, Skeleton, SkeletonCircle, useDisclosure, useToast } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
@@ -39,12 +38,26 @@ const Profile = () => {
         Authorization: `Bearer ${token}`,
       },
     });
-    console.log(response.data.data);
-    
     return response.data.data;
   };
 
-  const { data: userListings, isLoading: isListingsLoading, error: listingsError, refetch: refetchUserAds } = useQuery(
+  // New function to fetch pending ads
+  const fetchPendingAds = async () => {
+    const token = await getToken();
+    const response = await axios.get(`${BASE_URL}/api/find-user-pending-ads`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data.data;
+  };
+
+  const { 
+    data: userListings, 
+    isLoading: isListingsLoading, 
+    error: listingsError, 
+    refetch: refetchUserAds 
+  } = useQuery(
     "userAds",
     fetchUserAds,
     {
@@ -52,9 +65,28 @@ const Profile = () => {
     }
   );
 
-  const { data: expiredListings, isLoading: isExpiredLoading, error: expiredError, refetch: refetchExpiredAds } = useQuery(
+  const { 
+    data: expiredListings, 
+    isLoading: isExpiredLoading, 
+    error: expiredError, 
+    refetch: refetchExpiredAds 
+  } = useQuery(
     "expiredAds",
     fetchExpiredAds,
+    {
+      enabled: isLoggedIn,
+    }
+  );
+
+  // New query for pending ads
+  const { 
+    data: pendingListings, 
+    isLoading: isPendingLoading, 
+    error: pendingError,
+    refetch: refetchPendingAds 
+  } = useQuery(
+    "pendingAds",
+    fetchPendingAds,
     {
       enabled: isLoggedIn,
     }
@@ -75,8 +107,10 @@ const Profile = () => {
       onSuccess: () => {
         queryClient.invalidateQueries("userAds");
         queryClient.invalidateQueries("expiredAds");
+        queryClient.invalidateQueries("pendingAds"); // Add pending ads invalidation
         refetchUserAds();
         refetchExpiredAds();
+        refetchPendingAds(); // Refetch pending ads
         toast({
           title: "Ad deleted successfully",
           status: "success",
@@ -190,9 +224,7 @@ const Profile = () => {
         >
           Edit Profile
         </Button>
-        <Button variant="link" className="text-blue-500">
-          Share Profile
-        </Button>
+      
       </Box>
     );
   };
@@ -204,13 +236,16 @@ const Profile = () => {
           {renderLeftSide()}
         </Box>
         <Box width={{ base: "100%", lg: "70%" }}>
-        <ProfileListings
+          <ProfileListings
             userListings={userListings}
             expiredListings={expiredListings}
+            pendingListings={pendingListings}
             isListingsLoading={isListingsLoading}
             isExpiredLoading={isExpiredLoading}
+            isPendingLoading={isPendingLoading}
             listingsError={listingsError}
             expiredError={expiredError}
+            pendingError={pendingError}
             handleEditListing={handleEditListing}
             handleDeleteListing={handleDeleteListing}
             handleRepostAd={handleRepostAd}
@@ -225,6 +260,7 @@ const Profile = () => {
         onSuccessfulSubmit={() => {
           refetchUserAds();
           refetchExpiredAds();
+          refetchPendingAds(); // Add refetch for pending ads
         }}
       />
     </Box>

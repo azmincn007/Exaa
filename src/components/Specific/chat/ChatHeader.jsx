@@ -3,6 +3,7 @@ import { MoreVertical, User } from "lucide-react";
 import { BASE_URL } from "../../../config/config";
 
 const ChatHeader = ({ chat }) => {
+  console.log(chat);
   const receiver = chat.adChatReceiver;
 
   return (
@@ -23,7 +24,7 @@ const ChatHeader = ({ chat }) => {
         </div>
         <div className="text-xs md:text-sm">
           <h2 className="font-semibold">{receiver?.name}</h2>
-          <p>{receiver?.location || 'Location not available'}</p>
+          <p>{chat?.ad?.locationTown?.name || 'Location not available'}</p>
         </div>
       </div>
       <div className='hidden md:flex'>

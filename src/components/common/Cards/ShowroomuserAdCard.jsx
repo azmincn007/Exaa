@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Box, Image, Text, Flex, Badge, Icon, Grid, GridItem, useToast } from '@chakra-ui/react';
-import { FaMapMarkerAlt, FaPencilAlt, FaTrash } from 'react-icons/fa';
 import { Eye, Heart, Calendar } from 'lucide-react';
-import axios from 'axios';
+import { FaMapMarkerAlt, FaPencilAlt, FaTrash } from 'react-icons/fa';
 import { BASE_URL } from '../../../config/config';
 import DeleteConfirmationDialog from '../../modals/othermodals/DeleteConfirmation';
 import { useQueryClient } from 'react-query';
@@ -15,102 +14,108 @@ const formatDate = (dateString) => {
 const ActionButton = ({ icon: Icon, onClick, backgroundColor }) => (
   <Box
     as="button"
-    p={2}
-    borderRadius="md"
-    bg={backgroundColor}
-    color="white"
+    className={`p-2 rounded-md text-white ${backgroundColor === "red.500" ? "bg-red-500" : "bg-blue-600"}`}
     onClick={onClick}
   >
-    <Icon />
+    <Icon className="w-4 h-4" />
   </Box>
 );
 
-const ShowroomuserAdCard = ({ data, onEdit, onDelete, showroomId,token  }) => {
-  const toast = useToast();
-  const queryClient = useQueryClient();
-  const formattedDate = formatDate(data.createdAt);
+const ShowroomuserAdCard = ({ data, onEdit, onDelete, showroomId, token }) => {
+  const toast = useToast();  // Added Chakra UI toast
+  const queryClient = useQueryClient();  
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDeleteClick = () => {
     setIsDeleteDialogOpen(true);
   };
+
   const handleDeleteConfirm = async () => {
+    if (!data?.id || !data?.adSubCategory?.id) {
+      console.error("Invalid ad data:", data);
+   
+      return;
+    }
+
     setIsDeleting(true);
    
     try {
-        const subCategoryResponse = await axios.get(
-            `${BASE_URL}/api/ad-find-one-sub-category/${data.adSubCategory.id}`,
-            {
-                headers: { Authorization: `Bearer ${token}` }
-            }
-        );
-        const apiUrl = subCategoryResponse.data.data.apiUrl;
+      // Get the sub-category details first
+      const subCategoryResponse = await fetch(
+        `${BASE_URL}/api/ad-find-one-sub-category/${data.adSubCategory.id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
 
-        // Optimistically update the UI
-        queryClient.setQueryData(['showroomAds', showroomId], (oldData) => {
-            return oldData ? oldData.filter(ad => ad.id !== data.id) : oldData;
-        });
+      if (!subCategoryResponse.ok) {
+        throw new Error('Failed to fetch sub-category');
+      }
 
-        await axios.delete(
-            `${BASE_URL}/api/${apiUrl}/${data.id}`,
-            {
-                headers: { Authorization: `Bearer ${token}` }
-            }
-        );
+      const subCategoryData = await subCategoryResponse.json();
+      const apiUrl = subCategoryData.data.apiUrl;
 
-        // Invalidate the query to refetch in the background
-        queryClient.invalidateQueries(['showroomAds', showroomId]);
+      // Optimistically update the UI with proper type checking
+      queryClient.setQueryData(['showroomAds', showroomId], (oldData) => {
+        if (!Array.isArray(oldData)) return oldData;
+        return oldData.filter(ad => ad?.id !== data.id);
+      });
 
-        if (onDelete) onDelete(data.id); // Notify parent about deletion
-        toast({
-            title: "Ad Deleted",
-            description: "The ad has been successfully deleted.",
-            status: "success",
-            duration: 3000,
-            isClosable: true,
-        });
+      // Delete the ad
+      const deleteResponse = await fetch(
+        `${BASE_URL}/api/${apiUrl}/${data.id}`,
+        {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      if (!deleteResponse.ok) {
+        throw new Error('Failed to delete ad');
+      }
+
+      // Invalidate the query to refetch in the background
+      queryClient.invalidateQueries(['showroomAds', showroomId]);
+
+      if (onDelete) onDelete(data.id);
+      
+     
     } catch (error) {
-        console.error("Error deleting ad:", error);
-        toast({
-            title: "Error",
-            description: "There was an error deleting the ad. Please try again.",
-            status: "error",
-            duration: 3000,
-            isClosable: true,
-        });
-        // Optionally, you can revert the optimistic update here if needed
+      console.error("Error deleting ad:", error);
+      
+      // Revert the optimistic update
+      queryClient.invalidateQueries(['showroomAds', showroomId]);
+      
+     
     } finally {
-        setIsDeleting(false);
-        setIsDeleteDialogOpen(false);
+      setIsDeleting(false);
+      setIsDeleteDialogOpen(false);
     }
-};
+  };
+
   return (
     <>
-      <Box borderWidth="1px" borderRadius="lg" overflow="hidden" p={1} mb={4} className='border-2 border-black'>
-        <Grid templateColumns="repeat(12, 1fr)" gap={4} className=''>
-          <GridItem colSpan={3} position="relative">
-            <Image src={`${BASE_URL}${data.images?.url}`} alt={data.title} objectFit="cover" w="100%" className='h-[200px]' />
-            <Badge 
-              position="absolute" 
-              top="2" 
-              left="2" 
-              colorScheme="green"
-              p={1} 
-              borderRadius="md"
-            >
+      <Box className="border-2 border-black rounded-lg overflow-hidden p-1 mb-4">
+        <Grid className="grid grid-cols-12 gap-4">
+          <GridItem className="col-span-3 relative">
+            <Image 
+              src={`${BASE_URL}${data?.images?.url}`} 
+              alt={data?.title || 'Ad image'} 
+              className="object-cover w-full h-[200px]" 
+            />
+            <Badge className="absolute top-2 left-2 bg-green-500 text-white p-1 rounded">
               Active
             </Badge>
           </GridItem>
 
-          <GridItem colSpan={9} position="relative">
-            <Flex justifyContent="flex-end" position="absolute" top="2" right="2">
+          <GridItem className="col-span-9 relative">
+            <Flex className="justify-end absolute top-2 right-2 space-x-2">
               <ActionButton
                 icon={FaPencilAlt}
                 onClick={() => onEdit(data)}
                 backgroundColor="#4B7294"
               />
-              <Box width={2} />
               <ActionButton
                 icon={FaTrash}
                 onClick={handleDeleteClick}
@@ -119,25 +124,30 @@ const ShowroomuserAdCard = ({ data, onEdit, onDelete, showroomId,token  }) => {
             </Flex>
 
             <div>
-              <Box>
-                <Text fontWeight="bold" fontSize="xl" mb={2}>{data.title}</Text>
-                <Text fontSize="md" mb={2}>{`${data.description} KM`}</Text>
-                <Text fontWeight="bold" fontSize="lg" mb={2}>₹{data.price.toLocaleString()}</Text>
-                <Flex alignItems="center" mb={2}>
-                  <Icon as={Eye} mr={2} />
-                  <Text mr={4}>{data.adViewCount}</Text>
-                  <Icon as={Heart} mr={2} />
-                  <Text>{data.adFavouriteCount}</Text>
+              <Box className="space-y-2">
+                <Text className="font-bold text-xl">{data?.title}</Text>
+                <Text className="text-md">{`${data?.description} KM`}</Text>
+                <Text className="font-bold text-lg">₹{data?.price?.toLocaleString()}</Text>
+                
+                <Flex className="items-center space-x-4">
+                  <Flex className="items-center">
+                    <Eye className="mr-2 w-4 h-4" />
+                    <Text>{data?.adViewCount}</Text>
+                  </Flex>
+                  <Flex className="items-center">
+                    <Heart className="mr-2 w-4 h-4" />
+                    <Text>{data?.adFavouriteCount}</Text>
+                  </Flex>
                 </Flex>
 
-                <Flex justifyContent="space-between" >
-                  <Flex alignItems="center">
-                    <Icon as={FaMapMarkerAlt} mr={2} />
-                    <Text>{data.locationTown?.name}</Text>
+                <Flex className="justify-between">
+                  <Flex className="items-center">
+                    <FaMapMarkerAlt className="mr-2 w-4 h-4" />
+                    <Text>{data?.locationTown?.name}</Text>
                   </Flex>
-                  <Flex alignItems="center">
-                    <Icon as={Calendar} mr={2} />
-                    <Text>Posted on: {formattedDate}</Text>
+                  <Flex className="items-center">
+                    <Calendar className="mr-2 w-4 h-4" />
+                    <Text>Posted on: {formatDate(data?.createdAt)}</Text>
                   </Flex>
                 </Flex>
               </Box>

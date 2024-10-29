@@ -94,53 +94,46 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-      <SearchProvider>
-        <UserdataContext.Provider value={{ userData, setUserData, isLoading }}>
-        <UserDataRefetchContext.Provider value={fetchUserData}>
-        <DistrictContext.Provider value={[selectedDistrict, setSelectedDistrict]}>
-          <TownContext.Provider value={[selectedTown, setSelectedTown]}>
-            <Router>
-              <Routes>
-              <Route 
-  path="/" 
-  element={
-    <Layout searchType="home">
-      <Home />
-    </Layout>
-  } 
-/>
-                <Route path="/packages-and-orders/:section" element={<Layout><PackagesAndOrders /></Layout>} />
-                <Route path="/packages" element={<Layout><Packages /></Layout>}>
-  <Route index element={<Navigate to="/packages/post-more-ads" replace />} />
-  <Route path="post-more-ads" element={<Packages />} />
-  <Route path="boost-with-tags" element={<Packages />} />
-</Route>                <Route path="/buy-packages/myorders" element={<BuyPackagesAndMyorders />} />
-                <Route path="/category/:categoryId/:categoryName" element={<Layout><CategoryBasedGrid /></Layout>} />
-                <Route path="/category/:categoryId/:categoryName/:subCategoryId" element={<Layout><CategoryBasedGrid /></Layout>} /> 
-                <Route path="/details/:id/:adCategoryId" element={<Layout><SingleAd /></Layout>} />
-                <Route path="/profile" element={<Layout><Profile /></Layout>} />
-                <Route path="/profile/edit-profile" element={<Layout><EditProfile /></Layout>} />
-                <Route path="/showroom" element={<Layout><Showroom /></Layout>} />
-                <Route path="/my-showroom" element={<Layout><MyShowroom /></Layout>} />
-                <Route path="/showroom/:id" element={<Layout><Showroomsingle /></Layout>} />
-                <Route  path="/customer-profile/:customerId"  element={<Layout><CustomerProfile /></Layout>} />
-                <Route path="/help-and-support" element={<Layout><HelpAndSupport /></Layout>} />
-                <Route path="/my-ads" element={<Layout><MyAdsPage /></Layout>} />
-                <Route path="/chats" element={<Layout><ChatComponent /></Layout>}>
-                  <Route index element={<Navigate to="/chats/all" replace />} />
-                  <Route path="all" element={<ChatComponent />} />
-                  <Route path="buying" element={<ChatComponent />} />
-                  <Route path="selling" element={<ChatComponent />} />
-                </Route>
-                <Route path="payment" element={<PaymentButton />} />
-                <Route path="test" element={<LocationSelects />} />
-
-              </Routes>
-            </Router>
-          </TownContext.Provider>
-          </DistrictContext.Provider>
-          </UserDataRefetchContext.Provider>
-        </UserdataContext.Provider>
+        <SearchProvider>
+          <UserdataContext.Provider value={{ userData, setUserData, isLoading }}>
+            <UserDataRefetchContext.Provider value={fetchUserData}>
+              <DistrictContext.Provider value={[selectedDistrict, setSelectedDistrict]}>
+                <TownContext.Provider value={[selectedTown, setSelectedTown]}>
+                  <Router>
+                    <Routes>
+                      <Route path="/" element={<Layout searchType="home"><Home /></Layout>} />
+                      <Route path="/packages-and-orders/:section" element={<Layout><PackagesAndOrders /></Layout>} />
+                      <Route path="/packages" element={<Layout><Packages /></Layout>}>
+                        <Route index element={<Navigate to="/packages/post-more-ads" replace />} />
+                        <Route path="post-more-ads" element={<Packages />} />
+                        <Route path="boost-with-tags" element={<Packages />} />
+                      </Route>
+                      <Route path="/buy-packages/myorders" element={<BuyPackagesAndMyorders />} />
+                      <Route path="/category/:categoryId/:categoryName" element={<Layout><CategoryBasedGrid /></Layout>} />
+                      <Route path="/category/:categoryId/:categoryName/:subCategoryId" element={<Layout><CategoryBasedGrid /></Layout>} />
+                      <Route path="/details/:id/:adCategoryId" element={<Layout><SingleAd /></Layout>} />
+                      <Route path="/profile" element={<Layout><Profile /></Layout>} />
+                      <Route path="/profile/edit-profile" element={<Layout><EditProfile /></Layout>} />
+                      <Route path="/showroom" element={<Layout><Showroom /></Layout>} />
+                      <Route path="/my-showroom" element={<Layout><MyShowroom /></Layout>} />
+                      <Route path="/showroom/:id" element={<Layout><Showroomsingle /></Layout>} />
+                      <Route path="/customer-profile/:customerId" element={<Layout><CustomerProfile /></Layout>} />
+                      <Route path="/help-and-support" element={<Layout><HelpAndSupport /></Layout>} />
+                      <Route path="/my-ads" element={<Layout><MyAdsPage /></Layout>} />
+                      <Route path="/chats" element={<Layout><ChatComponent /></Layout>}>
+                        <Route index element={<Navigate to="/chats/all" replace />} />
+                        <Route path="all" element={<ChatComponent />} />
+                        <Route path="buying" element={<ChatComponent />} />
+                        <Route path="selling" element={<ChatComponent />} />
+                      </Route>
+                      <Route path="payment" element={<PaymentButton />} />
+                      <Route path="test" element={<LocationSelects />} />
+                    </Routes>
+                  </Router>
+                </TownContext.Provider>
+              </DistrictContext.Provider>
+            </UserDataRefetchContext.Provider>
+          </UserdataContext.Provider>
         </SearchProvider>
       </AuthProvider>
     </QueryClientProvider>

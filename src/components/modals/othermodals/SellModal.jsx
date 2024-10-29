@@ -54,10 +54,13 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
   const [submittedFormData, setSubmittedFormData] = useState(null);
   const [submittedApiUrl, setSubmittedApiUrl] = useState(null);
   const [isTagCreationPossible, setIsTagCreationPossible] = useState(false);
+  const [submittedImages, setSubmittedImages] = useState([]);
+  const [submittedAdId, setSubmittedAdId] = useState(null);
   const { register, handleSubmit, control, formState: { errors }, setValue, reset, getValues,watch } = useForm();
   const getUserToken = useCallback(() => localStorage.getItem('UserToken'), []);
   const toast = useToast();
   const navigate=useNavigate()
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const modalSize = useBreakpointValue({ base: "full", md: "xl" });
   const fontSize = useBreakpointValue({ base: "sm", md: "md" });
@@ -76,6 +79,20 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
     selectedSubCategoryId
   );  const { data: variants, isLoading: isVariantsLoading, isError: isVariantsError } = useVariants(isOpen, getUserToken, selectedModelId,selectedSubCategoryId);
   const { data: types, isLoading: isTypesLoading, isError: isTypesError } = useTypes(isOpen, getUserToken, selectedSubCategoryId);
+
+  // Add this new useEffect hook
+  useEffect(() => {
+    if (!isOpen) {
+      // Reset all relevant state when the modal is closed
+      setSelectedCategoryId(null);
+      setSelectedSubCategoryId(null);
+      setSelectedDistrictId(null);
+      setUploadedImages([]);
+      setSubCategoryDetails(null);
+      reset(); // This will reset all form fields
+    }
+  }, [isOpen, reset]);
+
   const clearForm = useCallback(() => {
     reset();
     setSelectedCategoryId(null);
@@ -83,6 +100,7 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
     setSelectedDistrictId(null);
     setUploadedImages([]);
     setSubCategoryDetails(null);
+    // Reset other relevant state variables here
   }, [reset]);
 
   const handleCategoryChange = useCallback((e) => {
@@ -162,9 +180,13 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
     }
   };
   const onSubmit = async (data) => {
+    if (isSubmitting) return; // Prevent multiple submissions
+
+    setIsSubmitting(true);
     try {
       // First check if ad creation is possible
       const { isAdCreationPossible, isTagCreationPossible } = await checkAdCreationPossibility(data.adCategory);
+      console.log(isAdCreationPossible);
       
       if (!isAdCreationPossible) {
         onClose();
@@ -237,9 +259,14 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
       });
   
       if (response.status === 200 || response.status === 201) {
+        // Capture the adID from the response
+        const adId = response.data.data.id; // Adjust this based on your API response structure
+        setSubmittedAdId(adId);
+
         setSubmittedAdType(subCategoryDetails.name);
         setSubmittedFormData(filteredData);
         setSubmittedApiUrl(subCategoryDetails.apiUrl);
+        setSubmittedImages(uploadedImages.map(img => img.file)); // Pass the actual file objects
         setShowCongratulations(true);
         clearForm();
         onClose();
@@ -270,21 +297,24 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
         duration: 3000,
         isClosable: true,
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file && uploadedImages.length < 4) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setUploadedImages(prevImages => [...prevImages, { file, preview: reader.result }]);
-      };
-      reader.readAsDataURL(file);
+      setUploadedImages(prevImages => [...prevImages, { file, preview: URL.createObjectURL(file) }]);
     }
   };
 
   const removeImage = (index) => {
-    setUploadedImages(prevImages => prevImages.filter((_, i) => i !== index));
+    setUploadedImages(prevImages => {
+      const newImages = prevImages.filter((_, i) => i !== index);
+      // Revoke the object URL to free up memory
+      URL.revokeObjectURL(prevImages[index].preview);
+      return newImages;
+    });
   };
 
     // Watch the brand field
@@ -328,6 +358,7 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
                 rules={config.rules}
                 render={({ field }) => (
                   <Select
+                  className='border-black'
                     {...field}
                     isDisabled={
                       fieldName === 'locationDistrict' ? isDistrictsLoading : 
@@ -432,7 +463,10 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
 
   return (
     <>
-      <Modal isOpen={isOpen} onClose={onClose} size={modalSize}>
+      <Modal isOpen={isOpen} onClose={() => {
+        clearForm(); // Call clearForm when closing the modal
+        onClose();
+      }} size={modalSize}>
         <ModalOverlay />
         <ModalContent 
           bg="#F1F1F1" 
@@ -515,7 +549,17 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
                 </FormControl>
               )}
               
-              <Button type="submit" colorScheme="blue" mt={3} fontSize={fontSize}>Submit</Button>
+              <Button 
+                type="submit" 
+                colorScheme="blue" 
+                mt={3} 
+                fontSize={fontSize}
+                isLoading={isSubmitting}
+                loadingText="Submitting..."
+                disabled={isSubmitting}
+              >
+                Submit
+              </Button>
             </form>
           </ModalBody>
           <ModalFooter>
@@ -530,6 +574,8 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
     formData={submittedFormData}
     apiUrl={submittedApiUrl}
     isTagCreationPossible={isTagCreationPossible}
+    images={submittedImages} // This now contains the actual File objects
+    adId={submittedAdId}
     onClose={() => setShowCongratulations(false)}
   />
 )}

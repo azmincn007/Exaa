@@ -3,6 +3,7 @@ import axios from "axios";
 import { useQuery } from "react-query";
 import { BASE_URL } from "../../../config/config";
 import PackageGrid from "./PackagesadsBoxes";
+import BoostGridBox from "./BoostGridBox";
 
 // Fetch Boost Tags
 const fetchBoostTags = async () => {
@@ -75,7 +76,7 @@ const Boostgrid = () => {
       {/* Boost Packages Section */}
       <div className="p-4 mt-6 bg-white rounded-lg shadow">
         <h2 className="text-lg font-semibold mb-4">Available Boost Packages</h2>
-        <PackageGrid packages={packagesData} fromBoost={true} /> {/* Pass fromBoost as true */}
+        <BoostGridBox boostTags={packagesData}  /> {/* Pass fromBoost as true */}
       </div>
     </div>
   );

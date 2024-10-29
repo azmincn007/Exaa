@@ -1,4 +1,3 @@
-// ProfileListings.js
 import React, { useState } from "react";
 import { Box, Button, Flex, Skeleton, Tabs, TabList, TabPanels, Tab, TabPanel } from "@chakra-ui/react";
 import { useBreakpointValue } from "@chakra-ui/react";
@@ -6,17 +5,18 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination } from "swiper/modules";
 import emptyillus from "../../../assets/empty.png";
 import emptyExpiredIllus from "../../../assets/empty.png";
-// Add this import statement
 import AdListingCardProfile from "../../common/Cards/AdlistingCardProfile";
-
 
 export const ProfileListings = ({
   userListings,
   expiredListings,
+  pendingListings,
   isListingsLoading,
   isExpiredLoading,
+  isPendingLoading,
   listingsError,
   expiredError,
+  pendingError,
   handleEditListing,
   handleDeleteListing,
   handleRepostAd,
@@ -39,7 +39,9 @@ export const ProfileListings = ({
       />
       <p className="text-gray-600 mb-4">
         {type === 'active' 
-          ? "You don't have any active ads yet" 
+          ? "You don't have any active ads yet"
+          : type === 'pending'
+          ? "You don't have any pending ads"
           : "You don't have any expired ads"
         }
       </p>
@@ -85,6 +87,7 @@ export const ProfileListings = ({
                     onDelete={() => handleDeleteListing(listing.id, listing.adSubCategory.id)}
                     onRepost={() => handleRepostAd(listing.id)}
                     isExpired={type === 'expired'}
+                    isPending={type === 'pending'}
                   />
                 </SwiperSlide>
               ))}
@@ -125,6 +128,7 @@ export const ProfileListings = ({
                 onDelete={() => handleDeleteListing(listing.id, listing.adSubCategory.id)}
                 onRepost={() => handleRepostAd(listing.id)}
                 isExpired={type === 'expired'}
+                isPending={type === 'pending'}
               />
             ))}
           </Flex>
@@ -149,10 +153,11 @@ export const ProfileListings = ({
     <Tabs 
       variant="soft-rounded" 
       colorScheme="blue"
-      onChange={(index) => setActiveTab(index === 0 ? "active" : "expired")}
+      onChange={(index) => setActiveTab(index === 0 ? "active" : index === 1 ? "pending" : "expired")}
     >
       <TabList mb={4}>
         <Tab className="mr-2">Active Ads ({userListings?.length || 0})</Tab>
+        <Tab className="mr-2">Pending Ads ({pendingListings?.length || 0})</Tab>
         <Tab>Expired Ads ({expiredListings?.length || 0})</Tab>
       </TabList>
 
@@ -161,9 +166,14 @@ export const ProfileListings = ({
           {renderListings(userListings, 'active', isListingsLoading, listingsError)}
         </TabPanel>
         <TabPanel padding={0}>
+          {renderListings(pendingListings, 'pending', isPendingLoading, pendingError)}
+        </TabPanel>
+        <TabPanel padding={0}>
           {renderListings(expiredListings, 'expired', isExpiredLoading, expiredError)}
         </TabPanel>
       </TabPanels>
     </Tabs>
   );
 };
+
+export default ProfileListings;

@@ -55,6 +55,8 @@ useEffect(() => {
         Authorization: `Bearer ${token}`,
       },
     });
+    console.log(response.data.data);
+    
     return response.data.data;
   };
 
@@ -157,6 +159,7 @@ useEffect(() => {
         showroomCategory={showroomData?.adShowroomCategory?.name}
         userRating={showroomData.userRating}
         showroomId={showroomData.id}
+        showroomRating={showroomData.showroomRating}
       />
       <div className="py-2">
         <h1 className="font-semibold py-2">All Ads</h1>

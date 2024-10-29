@@ -25,6 +25,7 @@ const SubscriptionCard = ({
   const total = isBoost ? totalTagCount : totalAdCount;
   const remaining = isBoost ? remainingTagCount : remainingAdCount;
   const used = total - remaining;
+  // Update progress calculation to ensure it's 100% when all items are used
   const progress = (used / total) * 100;
 
   // Use color mode values for subtle theming
@@ -67,9 +68,9 @@ const SubscriptionCard = ({
 
         <Flex justify="space-between" align="center">
           <Text color="gray.600">Amount Paid</Text>
-          <Text fontWeight="bold" color="green.500">
-            ${amount}
-          </Text>
+            <Text fontWeight="bold" color="green.500">
+              ₹ {amount}
+            </Text>
         </Flex>
 
         <Box>

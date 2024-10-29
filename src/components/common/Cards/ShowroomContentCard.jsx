@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, Image, Text, IconButton, Flex, Button } from "@chakra-ui/react";
-import { FaPencilAlt, FaTrash, FaUserPlus } from "react-icons/fa";
+import { FaPencilAlt, FaTrash, FaUserPlus, FaEllipsisH } from "react-icons/fa";
 import { BASE_URL } from "../../../config/config";
 import axios from "axios";
 import { useAuth } from "../../../Hooks/AuthContext";
@@ -18,6 +18,7 @@ const ShowroomContentCard = ({ showroom, isSelected, onClick, onEdit, onDeleteSu
   const showToast = useCustomToast();
   const { token } = useAuth();
   const queryClient = useQueryClient();
+  const [showAllOperators, setShowAllOperators] = React.useState(false);
 
   const handleEdit = (e) => {
     e.stopPropagation();
@@ -124,6 +125,52 @@ const ShowroomContentCard = ({ showroom, isSelected, onClick, onEdit, onDeleteSu
     );
   };
 
+  const renderOperators = () => {
+    const operators = showroom.adShowroomOperators || [];
+    const displayedOperators = showAllOperators ? operators : operators.slice(0, 2);
+
+    return (
+      <Box mt={2} border="1px" borderColor="whiteAlpha.300" borderRadius="md" p={2}>
+        {displayedOperators.map((op, index) => (
+          <Flex key={op.id} alignItems="center" gap={2} mb={index !== displayedOperators.length - 1 ? 2 : 0}>
+            <Box flex="1">
+              <Text fontSize="sm">Operator: {op.operator.name}</Text>
+              <Text fontSize="sm">Phone: {op.operator.phone}</Text>
+            </Box>
+            <IconButton 
+              icon={<FaTrash />} 
+              aria-label="Remove operator" 
+              size="sm" 
+              bg="red.500" 
+              color="white" 
+              _hover={{ bg: "red.600" }} 
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedOperator(op);
+                setIsDeleteOperatorDialogOpen(true);
+              }} 
+              isLoading={isDeleting && selectedOperator?.id === op.id} 
+            />
+          </Flex>
+        ))}
+        {operators.length > 2 && (
+          <Button 
+            size="sm" 
+            variant="link" 
+            color="blue.300" 
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowAllOperators(!showAllOperators);
+            }}
+            mt={2}
+          >
+            {showAllOperators ? "Show Less" : `Show ${operators.length - 2} More`}
+          </Button>
+        )}
+      </Box>
+    );
+  };
+
   return (
     <>
       <Box
@@ -192,28 +239,7 @@ const ShowroomContentCard = ({ showroom, isSelected, onClick, onEdit, onDeleteSu
           <Text fontSize="sm">Category: {showroom.adCategory?.name}</Text>
 
           {showroom.adShowroomOperators && showroom.adShowroomOperators.length > 0 ? (
-            <Box mt={2} border="1px" borderColor="whiteAlpha.300" borderRadius="md" p={2}>
-              <Flex alignItems="center" gap={2}>
-                <Box flex="1">
-                  <Text fontSize="sm">Operator: {showroom.adShowroomOperators[0].operator.name}</Text>
-                  <Text fontSize="sm">Phone: {showroom.adShowroomOperators[0].operator.phone}</Text>
-                </Box>
-                <IconButton 
-                  icon={<FaTrash />} 
-                  aria-label="Remove operator" 
-                  size="sm" 
-                  bg="red.500" 
-                  color="white" 
-                  _hover={{ bg: "red.600" }} 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedOperator(showroom.adShowroomOperators[0]);
-                    setIsDeleteOperatorDialogOpen(true);
-                  }} 
-                  isLoading={isDeleting && selectedOperator?.id === showroom.adShowroomOperators[0].id} 
-                />
-              </Flex>
-            </Box>
+            renderOperators()
           ) : (
             <Button 
               leftIcon={<FaUserPlus />} 
@@ -227,8 +253,27 @@ const ShowroomContentCard = ({ showroom, isSelected, onClick, onEdit, onDeleteSu
                 setIsAddOperatorModalOpen(true);
               }} 
               width="full"
+              isDisabled={showroom.adShowroomOperators?.length >= 5}
             >
               Add Operator
+            </Button>
+          )}
+
+          {showroom.adShowroomOperators && showroom.adShowroomOperators.length > 0 && showroom.adShowroomOperators.length < 5 && (
+            <Button 
+              leftIcon={<FaUserPlus />} 
+              size="sm" 
+              bg="#4F7598" 
+              color="white" 
+              _hover={{ bg: "#3182CE" }} 
+              mt={2} 
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsAddOperatorModalOpen(true);
+              }} 
+              width="full"
+            >
+              Add Another Operator
             </Button>
           )}
         </Box>
@@ -253,11 +298,13 @@ const ShowroomContentCard = ({ showroom, isSelected, onClick, onEdit, onDeleteSu
         isLoading={isDeleting} 
       />
 
-<AddOperatorModal
+      <AddOperatorModal
         isOpen={isAddOperatorModalOpen}
         onClose={() => setIsAddOperatorModalOpen(false)}
         showroomId={showroom.id}
-        onOperatorAdded={handleAddOperator} // Pass the new prop here
+        onOperatorAdded={handleAddOperator}
+        maxOperators={5}
+        currentOperatorsCount={showroom.adShowroomOperators?.length || 0}
       />
     </>
   );
