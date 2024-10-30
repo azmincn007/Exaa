@@ -25,73 +25,14 @@ const ShowroomuserAdCard = ({ data, onEdit, onDelete, showroomId, token }) => {
   const toast = useToast();  // Added Chakra UI toast
   const queryClient = useQueryClient();  
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDeleteClick = () => {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleDeleteConfirm = async () => {
-    if (!data?.id || !data?.adSubCategory?.id) {
-      console.error("Invalid ad data:", data);
-   
-      return;
-    }
-
-    setIsDeleting(true);
-   
-    try {
-      // Get the sub-category details first
-      const subCategoryResponse = await fetch(
-        `${BASE_URL}/api/ad-find-one-sub-category/${data.adSubCategory.id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
-
-      if (!subCategoryResponse.ok) {
-        throw new Error('Failed to fetch sub-category');
-      }
-
-      const subCategoryData = await subCategoryResponse.json();
-      const apiUrl = subCategoryData.data.apiUrl;
-
-      // Optimistically update the UI with proper type checking
-      queryClient.setQueryData(['showroomAds', showroomId], (oldData) => {
-        if (!Array.isArray(oldData)) return oldData;
-        return oldData.filter(ad => ad?.id !== data.id);
-      });
-
-      // Delete the ad
-      const deleteResponse = await fetch(
-        `${BASE_URL}/api/${apiUrl}/${data.id}`,
-        {
-          method: 'DELETE',
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
-
-      if (!deleteResponse.ok) {
-        throw new Error('Failed to delete ad');
-      }
-
-      // Invalidate the query to refetch in the background
-      queryClient.invalidateQueries(['showroomAds', showroomId]);
-
-      if (onDelete) onDelete(data.id);
-      
-     
-    } catch (error) {
-      console.error("Error deleting ad:", error);
-      
-      // Revert the optimistic update
-      queryClient.invalidateQueries(['showroomAds', showroomId]);
-      
-     
-    } finally {
-      setIsDeleting(false);
-      setIsDeleteDialogOpen(false);
-    }
+  const handleDeleteConfirm = () => {
+    onDelete(data);
+    setIsDeleteDialogOpen(false);
   };
 
   return (
@@ -161,7 +102,7 @@ const ShowroomuserAdCard = ({ data, onEdit, onDelete, showroomId, token }) => {
         onClose={() => setIsDeleteDialogOpen(false)}
         onConfirm={handleDeleteConfirm}
         itemName="Ad"
-        isLoading={isDeleting}
+        isLoading={false}
       />
     </>
   );

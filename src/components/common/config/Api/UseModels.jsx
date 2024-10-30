@@ -2,9 +2,9 @@ import { useQuery } from "react-query";
 import axios from "axios";
 import { BASE_URL } from "../../../../config/config";
 
-export const useModels = (isOpen, getUserToken, brandId, subcategoryId) => {
+export const useModels = (isOpen, getUserToken, brandId, subcategoryId, selectedTypeId) => {
   return useQuery(
-    ["models", brandId, subcategoryId],
+    ["models", brandId, subcategoryId, selectedTypeId], // Include selectedTypeId in query key
     async () => {
       const token = getUserToken();
       if (!token) {
@@ -14,7 +14,24 @@ export const useModels = (isOpen, getUserToken, brandId, subcategoryId) => {
       // Ensure subcategoryId is a string
       const subcategoryIdString = String(subcategoryId);
 
-      // Determine the endpoint based on subcategoryId
+      // Special handling for subcategory 18
+      if (subcategoryIdString === "18") {
+        if (!selectedTypeId) {
+          throw new Error("Type ID is required for commercial vehicles");
+        }
+        if (!brandId) {
+          throw new Error("Brand ID is required for commercial vehicles");
+        }
+        const response = await axios.get(
+          `${BASE_URL}/api/ad-com-veh-and-aut-com-veh-model/${selectedTypeId}/${brandId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        return response.data.data;
+      }
+
+      // Handle other subcategories
       let endpoint;
       switch (subcategoryIdString) {
         case "11":
@@ -53,7 +70,7 @@ export const useModels = (isOpen, getUserToken, brandId, subcategoryId) => {
         url = `${BASE_URL}/api/${endpoint}`;
       } else {
         // For other subcategories, we'll fetch all models if no brand is selected
-        url = brandId 
+        url = brandId
           ? `${BASE_URL}/api/${endpoint}/${brandId}`
           : `${BASE_URL}/api/${endpoint}`;
       }
@@ -64,8 +81,9 @@ export const useModels = (isOpen, getUserToken, brandId, subcategoryId) => {
       return response.data.data;
     },
     {
-      enabled: isOpen && !!subcategoryId,
-      // Remove the brandId dependency from the enabled condition
+      enabled: isOpen && Boolean(subcategoryId) && 
+        // Only require both selectedTypeId and brandId for subcategory 18
+        (subcategoryId !== "18" || (Boolean(selectedTypeId) && Boolean(brandId))),
     }
   );
 };

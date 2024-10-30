@@ -4,7 +4,7 @@ import {
   ModalBody, ModalCloseButton, Button, FormControl, FormLabel,
   Input, NumberInput, NumberInputField, Checkbox, RadioGroup, 
   Radio, Stack, useToast, VStack, FormErrorMessage, Box, Flex, 
-  Image, Icon, Text, useBreakpointValue, Select
+  Image, Icon, Text, useBreakpointValue, Select, Spinner, Center
 } from '@chakra-ui/react';
 import axios from 'axios';
 import { BASE_URL } from '../../../config/config';
@@ -58,8 +58,20 @@ const EditShowroomad = ({
   });
 
   // Modify the API hooks to include the required field check
-  const { data: brands } = useBrands(isOpen && requiredFields.brand, () => token, subCategoryId);
-  const { data: models } = useModels(isOpen && requiredFields.model, () => token, selectedBrandId, subCategoryId);
+  const { data: brands } = useBrands(
+    isOpen, 
+    () => token, 
+    subCategoryId,
+    subCategoryId === 18 ? selectedTypeId : null
+  );
+  
+  const { data: models } = useModels(
+    isOpen, 
+    () => token, 
+    selectedBrandId, 
+    subCategoryId,
+    subCategoryId === 18 ? selectedTypeId : null
+  );
   const { data: variants } = useVariants(isOpen && requiredFields.variant, () => token, selectedModelId, subCategoryId);
   const { data: types } = useTypes(isOpen && requiredFields.type, () => token, subCategoryId);
 
@@ -221,7 +233,19 @@ const EditShowroomad = ({
               onChange={(e) => {
                 const value = e.target.value;
                 setValue(fieldName, value);
-                if (fieldName === 'brand') {
+                
+                if (fieldName === 'type') {
+                  setSelectedTypeId(value);
+                  // Reset dependent fields when type changes for subcategory 18
+                  if (subCategoryId === 18) {
+                    setValue('brand', '');
+                    setValue('model', '');
+                    setValue('variant', '');
+                    setSelectedBrandId(null);
+                    setSelectedModelId(null);
+                    setSelectedVariantId(null);
+                  }
+                } else if (fieldName === 'brand') {
                   setSelectedBrandId(value);
                   setValue('model', '');
                   setValue('variant', '');
@@ -231,13 +255,17 @@ const EditShowroomad = ({
                   setSelectedModelId(value);
                   setValue('variant', '');
                   setSelectedVariantId(null);
-                } else if (fieldName === 'type') {
-                  setSelectedTypeId(value);
                 } else if (fieldName === 'variant') {
                   setSelectedVariantId(value);
                 }
               }}
               value={getValues(fieldName) || ''}
+              isDisabled={
+                fieldName === 'brand' ? !subCategoryId || (subCategoryId === 18 && !selectedTypeId) :
+                fieldName === 'model' ? (!selectedBrandId && subCategoryId !== 13) :
+                fieldName === 'variant' ? !selectedModelId :
+                false
+              }
             >
               <option value="">Select {config.label}</option>
               {config.options.map(option => {
@@ -432,6 +460,19 @@ const EditShowroomad = ({
     setShowSuccessModal(true);
   }, []);
 
+  // Add effect to handle type changes for subcategory 18
+  useEffect(() => {
+    if (subCategoryId === 18 && selectedTypeId) {
+      // Reset brand-related fields when type changes
+      setValue('brand', '');
+      setValue('model', '');
+      setValue('variant', '');
+      setSelectedBrandId(null);
+      setSelectedModelId(null);
+      setSelectedVariantId(null);
+    }
+  }, [subCategoryId, selectedTypeId, setValue]);
+
   return (
     <>
       <Modal isOpen={isOpen} onClose={onClose} size={modalSize}>
@@ -514,7 +555,15 @@ const EditShowroomad = ({
                 </Flex>
               </form>
             ) : (
-              <div>Loading...</div>
+              <Center py={8}>
+                <Spinner
+                  thickness='4px'
+                  speed='0.65s'
+                  emptyColor='gray.200'
+                  color='blue.500'
+                  size='xl'
+                />
+              </Center>
             )}
           </ModalBody>
         </ModalContent>

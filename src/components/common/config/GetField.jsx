@@ -113,6 +113,7 @@ const specialFields = {
 
 export const getFieldConfig = (fieldName, districts, towns, brands, models, variants, types, selectedSubCategoryId) => {
   
+  
   const commonRules = { required: `${fieldName} is required` };
   const numberRules = { ...commonRules, min: { value: 0, message: `${fieldName} must be positive` } };
 

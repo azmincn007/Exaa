@@ -2,10 +2,9 @@ import { useQuery } from "react-query";
 import axios from "axios";
 import { BASE_URL } from "../../../../config/config";
 
-export const useBrands = (isOpen, getUserToken, subcategoryId) => {
-
+export const useBrands = (isOpen, getUserToken, subcategoryId, selectedTypeId) => {
   return useQuery(
-    ["brands", subcategoryId], // Include subcategoryId in the query key to refetch on change
+    ["brands", subcategoryId, selectedTypeId], // Include selectedTypeId in query key
     async () => {
       const token = getUserToken();
       if (!token) {
@@ -15,7 +14,21 @@ export const useBrands = (isOpen, getUserToken, subcategoryId) => {
       // Ensure subcategoryId is a string
       const subcategoryIdString = String(subcategoryId);
 
-      // Determine the subcategory based on subcategoryId
+      // Special handling for subcategoryId 18
+      if (subcategoryIdString === "18") {
+        if (!selectedTypeId) {
+          throw new Error("Type ID is required for commercial vehicles");
+        }
+        const response = await axios.get(
+          `${BASE_URL}/api/ad-com-veh-and-aut-com-veh-brand/${selectedTypeId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        return response.data.data;
+      }
+
+      // Handle other subcategories
       let subcategory;
       if (subcategoryIdString === "11") {
         subcategory = "ad-car-brands";
@@ -46,7 +59,9 @@ export const useBrands = (isOpen, getUserToken, subcategoryId) => {
       return response.data.data;
     },
     {
-      enabled: isOpen && Boolean(subcategoryId), // Ensure query runs only when isOpen and subcategoryId are valid
+      enabled: isOpen && Boolean(subcategoryId) && 
+        // Only require selectedTypeId for subcategory 18
+        (subcategoryId !== "18" || Boolean(selectedTypeId)),
     }
   );
 };

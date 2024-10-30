@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useQuery } from 'react-query';
+import { useQuery, useQueryClient } from 'react-query';
 import { useForm, Controller } from 'react-hook-form';
 import axios from 'axios';
 import {
@@ -34,6 +34,8 @@ import { useBrands } from '../../common/config/Api/UseBrands.jsx';
 import { useModels } from '../../common/config/Api/UseModels.jsx';
 import { useVariants } from '../../common/config/Api/UseVarient.jsx';
 import { useNavigate } from 'react-router-dom';
+import CongratulationsModal from './SellSuccessmodal.jsx'; // Update import path to match SellModal
+import { useTypes } from '../../common/config/Api/UseTypes.jsx';
 
 const SellModalEdit = ({ isOpen, onClose, listingData }) => {
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
@@ -49,6 +51,16 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
   const [categoryChanged, setCategoryChanged] = useState(false);
   const [initialCategoryId, setInitialCategoryId] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showCongratulations, setShowCongratulations] = useState(false);
+  const [submittedAdType, setSubmittedAdType] = useState('');
+  const [submittedFormData, setSubmittedFormData] = useState(null);
+  const [submittedApiUrl, setSubmittedApiUrl] = useState(null);
+  const [isTagCreationPossible, setIsTagCreationPossible] = useState(false);
+  const [submittedImages, setSubmittedImages] = useState([]);
+  const [submittedAdId, setSubmittedAdId] = useState(null);
+  const [selectedTypeId, setSelectedTypeId] = useState(null);
+
+  const queryClient = useQueryClient();
 
   const { register, handleSubmit, control, formState: { errors }, setValue, getValues, reset } = useForm();
   const getUserToken = useCallback(() => localStorage.getItem('UserToken'), []);
@@ -64,8 +76,20 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
   const { data: subCategories, isLoading: isSubCategoriesLoading } = useSubCategories(isOpen, getUserToken, selectedCategoryId);
   const { data: districts, isLoading: isDistrictsLoading } = useDistricts(isOpen, getUserToken);
   const { data: towns, isLoading: isTownsLoading } = useTowns(isOpen, getUserToken, selectedDistrictId);
-  const { data: brands, isLoading: isBrandsLoading } = useBrands(isOpen, getUserToken, selectedSubCategoryId);
-  const { data: models, isLoading: isModelsLoading } = useModels(isOpen, getUserToken, selectedBrandId, selectedSubCategoryId);
+  const { data: types, isLoading: isTypesLoading } = useTypes(isOpen, getUserToken, selectedSubCategoryId);
+  const { data: brands, isLoading: isBrandsLoading } = useBrands(
+    isOpen, 
+    getUserToken, 
+    selectedSubCategoryId,
+    selectedSubCategoryId === 18 ? selectedTypeId : null
+  );
+  const { data: models, isLoading: isModelsLoading } = useModels(
+    isOpen, 
+    getUserToken, 
+    selectedBrandId, 
+    selectedSubCategoryId,
+    selectedSubCategoryId === 18 ? selectedTypeId : null
+  );
   const { data: variants, isLoading: isVariantsLoading } = useVariants(isOpen, getUserToken, selectedModelId, selectedSubCategoryId);
 
   const fetchCompleteAdData = async (userToken, adCategoryId, adId) => {
@@ -107,6 +131,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
       setSelectedBrandId(completeAdData.brand?.id);
       setSelectedModelId(completeAdData.model?.id);
       setSelectedVariantId(completeAdData.variant?.id);
+      setSelectedTypeId(completeAdData.type?.id);
 
       // Set form values for all fields
       Object.entries(completeAdData).forEach(([key, value]) => {
@@ -123,6 +148,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
       setValue('brand', completeAdData.brand?.id);
       setValue('model', completeAdData.model?.id);
       setValue('variant', completeAdData.variant?.id);
+      setValue('type', completeAdData.type?.id);
 
       // Handle images
       const images = Array.isArray(completeAdData.images) 
@@ -169,9 +195,11 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
     setSelectedSubCategoryId(newSubCategoryId);
     setValue('adSubCategory', newSubCategoryId);
     // Clear dependent fields
+    setValue('type', '');
     setValue('brand', '');
     setValue('model', '');
     setValue('variant', '');
+    setSelectedTypeId(null);
     setSelectedBrandId(null);
     setSelectedModelId(null);
     setSelectedVariantId(null);
@@ -205,7 +233,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
         }
       });
 
-      return response.data.data.isAdCreationPossible;
+      return { isAdCreationPossible: response.data.data.isAdCreationPossible, isTagCreationPossible: response.data.data.isTagCreationPossible };
     } catch (error) {
       console.error('Error checking ad creation possibility:', error);
       toast({
@@ -215,19 +243,21 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
         duration: 3000,
         isClosable: true,
       });
-      return false;
+      return { isAdCreationPossible: false, isTagCreationPossible: false };
     }
   };
 
   const onSubmit = async (data) => {
-    if (isSubmitting) return; // Prevent multiple submissions
+    if (isSubmitting) return;
 
     setIsSubmitting(true);
     try {
       if (categoryChanged) {
-        const isCreationPossible = await checkAdCreationPossibility(data.adCategory);
+        const { isAdCreationPossible, isTagCreationPossible } = await checkAdCreationPossibility(data.adCategory);
         
-        if (!isCreationPossible) {
+        setIsTagCreationPossible(isTagCreationPossible);
+
+        if (!isAdCreationPossible) {
           onClose();
           navigate('/packages/post-more-ads');
           toast({
@@ -291,13 +321,26 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
       });
 
       if (response.status === 200) {
-        toast({
-          title: "Ad updated successfully",
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
+        // Store all the necessary data for the congratulations modal
+        setSubmittedAdId(response.data.data.id);
+        setSubmittedAdType(subCategoryDetails.name);
+        setSubmittedFormData(data);
+        setSubmittedApiUrl(subCategoryDetails.apiUrl);
+        
+        const processedImages = uploadedImages.map(img => {
+          if (img.file) {
+            return img.file;
+          } else if (img.isExisting) {
+            return img.preview;
+          }
+          return null;
+        }).filter(Boolean);
+        
+        setSubmittedImages(processedImages);
+        setShowCongratulations(true);
         onClose();
+
+        queryClient.invalidateQueries("userAds");
       } else {
         throw new Error('Failed to update ad');
       }
@@ -317,7 +360,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
 
  
   const renderField = (fieldName) => {
-    const config = getFieldConfig(fieldName, districts, towns, brands, models, variants);
+    const config = getFieldConfig(fieldName, districts, towns, brands, models, variants, types, selectedSubCategoryId);
     if (!config) return null;
 
     switch(config.type) {
@@ -354,7 +397,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
                 fieldName === 'locationDistrict' ? isDistrictsLoading : 
                 fieldName === 'locationTown' ? isTownsLoading || !selectedDistrictId :
                 fieldName === 'brand' ? isBrandsLoading :
-                fieldName === 'model' ? isModelsLoading || !selectedBrandId :
+                fieldName === 'model' ? isModelsLoading || (!selectedBrandId && selectedSubCategoryId !== 13) :
                 fieldName === 'variant' ? isVariantsLoading || !selectedModelId :
                 false
               }
@@ -365,6 +408,17 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
                 if (fieldName === 'locationDistrict') {
                   setSelectedDistrictId(newValue);
                   setValue('locationTown', '');
+                } else if (fieldName === 'type') {
+                  setSelectedTypeId(newValue);
+                  // Reset dependent fields when type changes
+                  if (selectedSubCategoryId === 18) {
+                    setValue('brand', '');
+                    setValue('model', '');
+                    setValue('variant', '');
+                    setSelectedBrandId(null);
+                    setSelectedModelId(null);
+                    setSelectedVariantId(null);
+                  }
                 } else if (fieldName === 'brand') {
                   setSelectedBrandId(newValue);
                   setValue('model', '');
@@ -381,6 +435,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
               }}
               value={
                 fieldName === 'locationDistrict' ? selectedDistrictId || '' :
+                fieldName === 'type' ? selectedTypeId || '' :
                 fieldName === 'brand' ? selectedBrandId || '' :
                 fieldName === 'model' ? selectedModelId || '' :
                 fieldName === 'variant' ? selectedVariantId || '' :
@@ -420,57 +475,84 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size={modalSize}>
-      <ModalOverlay />
-      <ModalContent bg="#F1F1F1" color="black">
-        <ModalBody>
-          {isCompleteAdLoading ? (
-            <Text>Loading ad data...</Text>
-          ) : completeAdError ? (
-            <Text color="red.500">Error loading ad data. Please try again.</Text>
-          ) : (
-            <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-3 py-3'>
-              <h3 className={`text-${headingSize} font-bold mb-3`}>Edit your ad</h3>
-              
-              <FormControl isInvalid={errors.adCategory} fontSize={fontSize}>
-                <FormLabel>Category</FormLabel>
-                <Select 
-                  {...register('adCategory', { required: 'Category is required' })}
-                  onChange={handleCategoryChange}
-                  value={selectedCategoryId || ''}
-                  isDisabled={isCategoriesLoading}
-                >
-                  <option value="">Select Category</option>
-                  {categories?.map(({ id, name }) => (
-                    <option key={id} value={id}>{name}</option>
-                  ))}
-                </Select>
-                <FormErrorMessage>{errors.adCategory?.message}</FormErrorMessage>
-              </FormControl>
-  
-              <FormControl isInvalid={errors.adSubCategory} fontSize={fontSize}>
-                <FormLabel>Sub-Category</FormLabel>
-                <Select 
-                  {...register('adSubCategory', { required: 'Sub-category is required' })}
-                  onChange={handleSubCategoryChange}
-                  value={selectedSubCategoryId || ''}
-                  isDisabled={isSubCategoriesLoading || !selectedCategoryId}
-                >
-                  <option value="">Select Sub-Category</option>
-                  {subCategories?.map(({ id, name }) => (
-                    <option key={id} value={id}>{name}</option>
-                  ))}
-                </Select>
-                <FormErrorMessage>{errors.adSubCategory?.message}</FormErrorMessage>
-              </FormControl>
-              
-              {subCategoryDetails && subCategoryDetails.requiredFields?.map(fieldName => renderField(fieldName))}
-              
-              <FormControl fontSize={fontSize}>
-                <FormLabel>Images (Max 4)</FormLabel>
-                <Flex gap={3} flexWrap="wrap" justifyContent="center">
-                  {uploadedImages.map((image, index) => (
-                    <Box key={index} position="relative">
+    <>
+      <Modal isOpen={isOpen} onClose={onClose} size={modalSize}>
+        <ModalOverlay />
+        <ModalContent bg="#F1F1F1" color="black">
+          <ModalBody>
+            {isCompleteAdLoading ? (
+              <Text>Loading ad data...</Text>
+            ) : completeAdError ? (
+              <Text color="red.500">Error loading ad data. Please try again.</Text>
+            ) : (
+              <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-3 py-3'>
+                <h3 className={`text-${headingSize} font-bold mb-3`}>Edit your ad</h3>
+                
+                <FormControl isInvalid={errors.adCategory} fontSize={fontSize}>
+                  <FormLabel>Category</FormLabel>
+                  <Select 
+                    {...register('adCategory', { required: 'Category is required' })}
+                    onChange={handleCategoryChange}
+                    value={selectedCategoryId || ''}
+                    isDisabled={isCategoriesLoading}
+                  >
+                    <option value="">Select Category</option>
+                    {categories?.map(({ id, name }) => (
+                      <option key={id} value={id}>{name}</option>
+                    ))}
+                  </Select>
+                  <FormErrorMessage>{errors.adCategory?.message}</FormErrorMessage>
+                </FormControl>
+    
+                <FormControl isInvalid={errors.adSubCategory} fontSize={fontSize}>
+                  <FormLabel>Sub-Category</FormLabel>
+                  <Select 
+                    {...register('adSubCategory', { required: 'Sub-category is required' })}
+                    onChange={handleSubCategoryChange}
+                    value={selectedSubCategoryId || ''}
+                    isDisabled={isSubCategoriesLoading || !selectedCategoryId}
+                  >
+                    <option value="">Select Sub-Category</option>
+                    {subCategories?.map(({ id, name }) => (
+                      <option key={id} value={id}>{name}</option>
+                    ))}
+                  </Select>
+                  <FormErrorMessage>{errors.adSubCategory?.message}</FormErrorMessage>
+                </FormControl>
+                
+                {subCategoryDetails && subCategoryDetails.requiredFields?.map(fieldName => renderField(fieldName))}
+                
+                <FormControl fontSize={fontSize}>
+                  <FormLabel>Images (Max 4)</FormLabel>
+                  <Flex gap={3} flexWrap="wrap" justifyContent="center">
+                    {uploadedImages.map((image, index) => (
+                      <Box key={index} position="relative">
+                        <Box
+                          w={imageBoxSize}
+                          h={imageBoxSize}
+                          backgroundColor='#4F7598'
+                          border="2px"
+                          borderColor="gray.300"
+                          borderRadius="md"
+                          overflow="hidden"
+                        >
+                          <Image src={image.preview} alt={`Uploaded ${index + 1}`} objectFit="cover" w="100%" h="100%" />
+                          <Icon
+                            as={IoClose}
+                            position="absolute"
+                            top={1}
+                            right={1}
+                            bg="#4F7598"
+                            color="white"
+                            borderRadius="full"
+                            boxSize={5}
+                            cursor="pointer"
+                            onClick={() => removeImage(index)}
+                          />
+                        </Box>
+                      </Box>
+                    ))}
+                    {uploadedImages.length < 4 && (
                       <Box
                         w={imageBoxSize}
                         h={imageBoxSize}
@@ -478,77 +560,65 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
                         border="2px"
                         borderColor="gray.300"
                         borderRadius="md"
-                        overflow="hidden"
+                        display="flex"
+                        flexDirection="column"
+                        alignItems="center"
+                        justifyContent="center"
+                        cursor="pointer"
+                        color='white'
+                        onClick={() => document.getElementById('imageUpload').click()}
                       >
-                        <Image src={image.preview} alt={`Uploaded ${index + 1}`} objectFit="cover" w="100%" h="100%" />
-                        <Icon
-                          as={IoClose}
-                          position="absolute"
-                          top={1}
-                          right={1}
-                          bg="#4F7598"
-                          color="white"
-                          borderRadius="full"
-                          boxSize={5}
-                          cursor="pointer"
-                          onClick={() => removeImage(index)}
-                        />
+                        <Icon as={IoAddOutline} w={5} h={5} />
+                        <Text fontSize="xs" textAlign="center" mt={1}>
+                          {uploadedImages.length === 0 ? 'Add image' : 'Upload more'}
+                        </Text>
                       </Box>
-                    </Box>
-                  ))}
-                  {uploadedImages.length < 4 && (
-                    <Box
-                      w={imageBoxSize}
-                      h={imageBoxSize}
-                      backgroundColor='#4F7598'
-                      border="2px"
-                      borderColor="gray.300"
-                      borderRadius="md"
-                      display="flex"
-                      flexDirection="column"
-                      alignItems="center"
-                      justifyContent="center"
-                      cursor="pointer"
-                      color='white'
-                      onClick={() => document.getElementById('imageUpload').click()}
-                    >
-                      <Icon as={IoAddOutline} w={5} h={5} />
-                      <Text fontSize="xs" textAlign="center" mt={1}>
-                        {uploadedImages.length === 0 ? 'Add image' : 'Upload more'}
-                      </Text>
-                    </Box>
-                  )}
-                  <input
-                    id="imageUpload"
-                    type="file"
-                    accept="image/*"
-                    style={{ display: 'none' }}
-                    onChange={handleImageUpload}
-                  />
-                </Flex>
-              </FormControl>
-              
-              <Button 
-                type="submit" 
-                colorScheme="blue" 
-                mt={3} 
-                fontSize={fontSize}
-                isLoading={isSubmitting}
-                loadingText="Updating..."
-                disabled={isSubmitting}
-              >
-                Update Ad
-              </Button>
-            </form>
-          )}
-        </ModalBody>
-        <ModalFooter>
-          <Button colorScheme="gray" mr={3} onClick={onClose} fontSize={fontSize}>
-            Close
-          </Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
+                    )}
+                    <input
+                      id="imageUpload"
+                      type="file"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      onChange={handleImageUpload}
+                    />
+                  </Flex>
+                </FormControl>
+                
+                <Button 
+                  type="submit" 
+                  colorScheme="blue" 
+                  mt={3} 
+                  fontSize={fontSize}
+                  isLoading={isSubmitting}
+                  loadingText="Updating..."
+                  disabled={isSubmitting}
+                >
+                  Update Ad
+                </Button>
+              </form>
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="gray" mr={3} onClick={onClose} fontSize={fontSize}>
+              Close
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {showCongratulations && (
+        <CongratulationsModal 
+          adType={submittedAdType}
+          formData={submittedFormData}
+          apiUrl={submittedApiUrl}
+          isTagCreationPossible={isTagCreationPossible}
+          images={submittedImages}
+          adId={submittedAdId}
+          onClose={() => setShowCongratulations(false)}
+          mode="edit" // Optional: if you want to differentiate between create/edit
+        />
+      )}
+    </>
   );
 }
   export default SellModalEdit

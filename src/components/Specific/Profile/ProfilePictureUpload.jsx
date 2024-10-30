@@ -1,19 +1,23 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import axios from 'axios';
 import { Box, Text, Button, VStack, Grid, GridItem, Image, Center, Icon, useToast } from '@chakra-ui/react';
 import { BiImageAdd } from 'react-icons/bi';
 import { MdOutlineModeEdit } from 'react-icons/md';
 import { BASE_URL } from '../../../config/config';
-import GoogleIcon from '../../../assets/googleicon.png';
 import { UserdataContext } from '../../../App';
 
 const ProfilePictureUpload = () => {
   const { userData, setUserData } = useContext(UserdataContext);
   const { register, handleSubmit } = useForm();
-  const [previewImage, setPreviewImage] = useState(userData?.ProfileImage || null);
+  const [previewImage, setPreviewImage] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const toast = useToast();
+
+  useEffect(() => {
+    // Set the initial preview image to the user's existing profile picture
+    setPreviewImage(`${BASE_URL}${userData?.profileImage?.url}`);
+  }, [userData]);
 
   const fetchUserData = async () => {
     const token = localStorage.getItem('UserToken');
@@ -73,7 +77,8 @@ const ProfilePictureUpload = () => {
           isClosable: true,
         });
         // Fetch latest user data immediately after successful upload
-        fetchUserData();
+        await fetchUserData();
+        setPreviewImage(userData?.profileImage || null);
       }
     } catch (error) {
       console.error('Error uploading image:', error);
@@ -181,24 +186,6 @@ const ProfilePictureUpload = () => {
                   loadingText="Uploading..."
                 >
                   Upload
-                </Button>
-                <Text textAlign="center" fontSize="sm" color="gray.500">
-                  or
-                </Text>
-                <Button
-                  leftIcon={
-                    <Image
-                      src={GoogleIcon}
-                      alt="Google"
-                      width="18px"
-                      height="18px"
-                    />
-                  }
-                  variant="outline"
-                  width="100%"
-                  borderColor="gray.300"
-                >
-                  Continue with Google
                 </Button>
               </div>
             </VStack>

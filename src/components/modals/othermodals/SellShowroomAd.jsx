@@ -61,8 +61,19 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
   const headingSize = useBreakpointValue({ base: "xl", md: "2xl" });
   const imageBoxSize = useBreakpointValue({ base: "100px", md: "150px" });
 
-  const { data: brands } = useBrands(isOpen, getUserToken, subCategoryId);
-  const { data: models } = useModels(isOpen, getUserToken, selectedBrandId, subCategoryId);
+  const { data: brands } = useBrands(
+    isOpen, 
+    getUserToken, 
+    subCategoryId,
+    subCategoryId === 18 ? selectedTypeId : null
+  );
+  const { data: models } = useModels(
+    isOpen, 
+    getUserToken, 
+    selectedBrandId, 
+    subCategoryId,
+    subCategoryId === 18 ? selectedTypeId : null
+  );
   const { data: variants } = useVariants(isOpen, getUserToken, selectedModelId, subCategoryId);
   const { data: types } = useTypes(isOpen, getUserToken, subCategoryId);
 
@@ -277,28 +288,52 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
         return (
           <FormControl key={fieldName} isInvalid={errors[fieldName]} fontSize={fontSize}>
             <FormLabel>{config.label}</FormLabel>
-            <Select 
-            className='border-black'
-              {...register(fieldName, config.rules)}
-              onChange={(e) => {
-                if (fieldName === 'brand') {
-                  setSelectedBrandId(e.target.value);
-                  setValue('model', '');
-                  setValue('variant', '');
-                  setSelectedModelId(null);
-                } else if (fieldName === 'model') {
-                  setSelectedModelId(e.target.value);
-                  setValue('variant', '');
-                } else if (fieldName === 'type') {
-                  setSelectedTypeId(e.target.value);
-                }
-              }}
-            >
-              <option value="">Select {config.label}</option>
-              {config.options.map(option => (
-                <option key={option.id || option} value={option.id || option}>{option.name || option}</option>
-              ))}
-            </Select>
+            <Controller
+              name={fieldName}
+              control={control}
+              rules={config.rules}
+              render={({ field }) => (
+                <Select 
+                  {...field}
+                  className='border-black'
+                  isDisabled={
+                    fieldName === 'brand' ? !subCategoryId || (subCategoryId === 18 && !selectedTypeId) :
+                    fieldName === 'model' ? (!selectedBrandId && subCategoryId !== 13) :
+                    fieldName === 'variant' ? !selectedModelId :
+                    false
+                  }
+                  onChange={(e) => {
+                    field.onChange(e);
+                    if (fieldName === 'type') {
+                      setSelectedTypeId(e.target.value);
+                      // Reset dependent fields when type changes for subcategory 18
+                      if (subCategoryId === 18) {
+                        setValue('brand', '');
+                        setValue('model', '');
+                        setValue('variant', '');
+                        setSelectedBrandId(null);
+                        setSelectedModelId(null);
+                      }
+                    } else if (fieldName === 'brand') {
+                      setSelectedBrandId(e.target.value);
+                      setValue('model', '');
+                      setValue('variant', '');
+                      setSelectedModelId(null);
+                    } else if (fieldName === 'model') {
+                      setSelectedModelId(e.target.value);
+                      setValue('variant', '');
+                    }
+                  }}
+                >
+                  <option value="">Select {config.label}</option>
+                  {config.options.map(option => (
+                    <option key={option.id || option} value={option.id || option}>
+                      {option.name || option}
+                    </option>
+                  ))}
+                </Select>
+              )}
+            />
             <FormErrorMessage>{errors[fieldName] && errors[fieldName].message}</FormErrorMessage>
           </FormControl>
         );

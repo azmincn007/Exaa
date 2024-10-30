@@ -13,7 +13,7 @@ import { useMutation } from 'react-query';
 import axios from 'axios';
 import { BASE_URL } from '../../../config/config';
 
-const BoostGridBox = ({ boostTags }) => {
+const BoostGridBox = ({ boostTags,id }) => {
   const [selectedBoost, setSelectedBoost] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -138,6 +138,8 @@ const BoostGridBox = ({ boostTags }) => {
 
       // 2. Create order using mutation
       const selectedBoostTag = boostTags.find(boost => boost.id === selectedBoost);
+      console.log(selectedBoostTag);
+      
       const orderData = await createOrderMutation.mutateAsync({
        
         amount: selectedBoostTag.amount
@@ -150,7 +152,13 @@ const BoostGridBox = ({ boostTags }) => {
         currency: 'INR',
         name: 'Your Company Name',
         description: 'Boost Purchase',
-        order_id: orderData.orderId,
+        order_id: orderData.id,
+        notes: {
+          totalTagCount: selectedBoostTag.noOfTags.toString(),
+          adBoostPackage: selectedBoostTag.id.toString(),
+          userId:id
+          
+        },
         handler: function(response) {
           handlePaymentSuccess(
             response.razorpay_payment_id,

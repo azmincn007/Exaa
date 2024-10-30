@@ -71,13 +71,18 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
   const { data: subCategories, isLoading: isSubCategoriesLoading, isError: isSubCategoriesError, error: subCategoriesError } = useSubCategories(isOpen, getUserToken, selectedCategoryId);
   const { data: districts, isLoading: isDistrictsLoading, isError: isDistrictsError } = useDistricts(isOpen, getUserToken);
   const { data: towns, isLoading: isTownsLoading, isError: isTownsError } = useTowns(isOpen, getUserToken, selectedDistrictId);
-  const { data: brands, isLoading: isBrandsLoading, isError: isBrandsError } = useBrands(isOpen, getUserToken,selectedSubCategoryId);
-  const { data: models, isLoading: isModelsLoading, error } = useModels(
-    isOpen, 
-    getUserToken, 
-    selectedBrandId, 
-    selectedSubCategoryId
-  );  const { data: variants, isLoading: isVariantsLoading, isError: isVariantsError } = useVariants(isOpen, getUserToken, selectedModelId,selectedSubCategoryId);
+  const {
+    data: brands,
+    isLoading: isBrandsLoading,
+    isError: isBrandsError,
+  } = useBrands(
+    isOpen,
+    getUserToken,
+    selectedSubCategoryId,
+    selectedSubCategoryId === '18' ? selectedTypeId : null
+  );
+  const { data: models, isLoading: isModelsLoading, error } = useModels(isOpen, getUserToken, selectedBrandId, selectedSubCategoryId, selectedSubCategoryId === '18' ? selectedTypeId : null);
+  const { data: variants, isLoading: isVariantsLoading, isError: isVariantsError } = useVariants(isOpen, getUserToken, selectedModelId, selectedSubCategoryId);
   const { data: types, isLoading: isTypesLoading, isError: isTypesError } = useTypes(isOpen, getUserToken, selectedSubCategoryId);
 
   // Add this new useEffect hook
@@ -358,13 +363,13 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
                 rules={config.rules}
                 render={({ field }) => (
                   <Select
-                  className='border-black'
+                    className='border-black'
                     {...field}
                     isDisabled={
                       fieldName === 'locationDistrict' ? isDistrictsLoading : 
                       fieldName === 'locationTown' ? isTownsLoading || !selectedDistrictId :
                       fieldName === 'brand' ? isBrandsLoading :
-                      fieldName === 'model' ? isModelsLoading || !watchBrand :
+                      fieldName === 'model' ? isModelsLoading || (!watchBrand && selectedSubCategoryId !== '13') :
                       fieldName === 'variant' ? isVariantsLoading || !watchModel :
                       false
                     }
@@ -373,6 +378,16 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
                       if (fieldName === 'locationDistrict') {
                         setSelectedDistrictId(e.target.value);
                         setValue('locationTown', '');
+                      } else if (fieldName === 'type') {
+                        setSelectedTypeId(e.target.value);
+                        // Reset dependent fields when type changes
+                        if (selectedSubCategoryId === '18') {
+                          setValue('brand', '');
+                          setValue('model', '');
+                          setValue('variant', '');
+                          setSelectedBrandId(null);
+                          setSelectedModelId(null);
+                        }
                       } else if (fieldName === 'brand') {
                         setSelectedBrandId(e.target.value);
                         setValue('model', '');

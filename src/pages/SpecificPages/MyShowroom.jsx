@@ -54,7 +54,6 @@ const MyShowroom = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [updatedAd, setUpdatedAd] = useState(null);
   const [subCategoryDetails, setSubCategoryDetails] = useState(null);
-  console.log(selectedShowroom);
   
 
   const { isLoggedIn, isInitialized, token } = useAuth();
@@ -206,25 +205,64 @@ const MyShowroom = () => {
     setShowSuccessModal(true);
   }, []);
 
-  const handleAdDeleted = useCallback((deletedAdId) => {
-    if (!deletedAdId || !selectedShowroom?.id) return;
-  
-    queryClient.setQueryData(
-      ["showroomAds", selectedShowroom.id],
-      (oldData) => {
-        // Ensure oldData is an array and handle null/undefined cases
-        if (!Array.isArray(oldData)) return [];
-        return oldData.filter(ad => ad && ad.id && ad.id !== deletedAdId);
-      }
-    );
-    
-    toast({
-      title: "Ad deleted successfully",
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-    });
-  }, [queryClient, selectedShowroom, toast]);
+  const handleAdDeleted = useCallback(async (adData) => {
+    if (!adData?.id || !adData?.adSubCategory?.id) {
+      console.error("Invalid ad data:", adData);
+      return;
+    }
+
+    try {
+      // Get the sub-category details first
+      const { data: subCategoryData } = await axios.get(
+        `${BASE_URL}/api/ad-find-one-sub-category/${adData.adSubCategory.id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      const apiUrl = subCategoryData.data.apiUrl;
+
+      // Optimistically update the UI
+      queryClient.setQueryData(['showroomAds', selectedShowroom.id], (oldData) => {
+        if (!Array.isArray(oldData)) return oldData;
+        return oldData.filter(ad => ad?.id !== adData.id);
+      });
+
+      // Delete the ad using axios
+      await axios.delete(
+        `${BASE_URL}/api/${apiUrl}/${adData.id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      // Show success toast
+      toast({
+        title: "Ad deleted successfully",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+
+      // Invalidate and refetch the showroom ads query
+      await queryClient.invalidateQueries(['showroomAds', selectedShowroom.id]);
+
+    } catch (error) {
+      console.error("Error deleting ad:", error);
+      
+      // Show error toast
+      toast({
+        title: "Error deleting ad",
+        description: error.response?.data?.message || "Please try again later",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      
+      // Revert the optimistic update
+      await queryClient.invalidateQueries(['showroomAds', selectedShowroom.id]);
+    }
+  }, [queryClient, selectedShowroom?.id, token, toast]);
 
   if (showroomsLoading || !isInitialized || adsLoading) {
     return <ShowroomSkeleton />;

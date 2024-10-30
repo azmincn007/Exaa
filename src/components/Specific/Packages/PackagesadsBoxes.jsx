@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { 
   Grid, 
   Box, 
@@ -12,8 +12,13 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation } from 'react-query';
 import axios from 'axios';
 import { BASE_URL } from '../../../config/config';
+import { UserdataContext } from '../../../App';
 
-const PackageGrid = ({ packages }) => {
+const PackageGrid = ({ packages ,id}) => {
+  console.log(id);
+  
+
+  
   const [selectedPackage, setSelectedPackage] = useState(null);
   console.log(packages);
 
@@ -37,6 +42,8 @@ const PackageGrid = ({ packages }) => {
           }
         }
       );
+      console.log(response.data.data);
+      
       return response.data.data;
     }
   );
@@ -56,7 +63,8 @@ const PackageGrid = ({ packages }) => {
           }
         }
       );
-
+   console.log(response.data);
+   
       return response.data;
     },
     {
@@ -150,7 +158,12 @@ const PackageGrid = ({ packages }) => {
         currency: 'INR',
         name: 'Your Company Name',
         description: 'Package Subscription',
-        order_id: orderData.orderId,
+        order_id: orderData.id,
+        notes: {
+          totalAdCount: selectedPkg.noOfAds.toString(),
+          adSubscriptionPackage: selectedPackage.toString(),
+          userId:id
+        },
         handler: function(response) {
           handlePaymentSuccess(
             response.razorpay_payment_id,
@@ -173,6 +186,10 @@ const PackageGrid = ({ packages }) => {
           }
         }
       };
+
+      // Log the options and order data
+      console.log('Razorpay Options:', options);
+      console.log('Order Data:', orderData);
 
       // 4. Initialize and open Razorpay
       const paymentObject = new window.Razorpay(options);

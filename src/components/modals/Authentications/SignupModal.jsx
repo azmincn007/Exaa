@@ -123,11 +123,14 @@ function SignupModal({ isOpen, onClose }) {
       if (registerResponse.data) {
         const jwtToken = registerResponse.data.data.jwt; // Adjust based on your API response structure
 
-        await axios.post(
+        console.log("District ID being sent:", selectedDistrict);
+        console.log("Town ID being sent:", selectedTown);
+
+        const locationResponse = await axios.post(
           `${BASE_URL}/api/user-locations`,
           {
-            districtId: selectedDistrict,
-            townId: selectedTown,
+            locationDistrict: selectedDistrict,
+            locationTown: selectedTown,
           },
           {
             headers: {
@@ -135,6 +138,8 @@ function SignupModal({ isOpen, onClose }) {
             },
           }
         );
+
+        console.log("Location Response:", locationResponse);
 
         toast({
           title: "Registration successful",

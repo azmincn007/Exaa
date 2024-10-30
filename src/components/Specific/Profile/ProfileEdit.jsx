@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import {
   Box,
   Input,
@@ -11,6 +11,7 @@ import {
   InputLeftAddon,
   FormControl,
   useToast,
+  Select,
 } from '@chakra-ui/react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
@@ -25,11 +26,47 @@ const ProfileEditForm = () => {
       name: userData?.name,
       phone: userData?.phone?.slice(-10) || '',
       email: userData?.email,
+      district: userData?.userLocation?.locationDistrict?.id || '',
+      town: userData?.userLocation?.locationTown?.id || '',
     }
   });
   const navigate = useNavigate();
   const toast = useToast();
   const userToken = localStorage.getItem('UserToken'); // Retrieve token once
+
+  const [districts, setDistricts] = useState([]);
+  const [towns, setTowns] = useState([]);
+  const [selectedDistrict, setSelectedDistrict] = useState(userData?.userLocation?.locationDistrict?.id || '');
+
+  useEffect(() => {
+    const fetchDistricts = async () => {
+      try {
+        const response = await axios.get(`${BASE_URL}/api/location-districts`, {
+          headers: { Authorization: `Bearer ${userToken}` },
+        });
+        setDistricts(response.data.data);
+      } catch (error) {
+        console.error('Error fetching districts:', error);
+      }
+    };
+    fetchDistricts();
+  }, [userToken]);
+
+  useEffect(() => {
+    const fetchTowns = async () => {
+      if (selectedDistrict) {
+        try {
+          const response = await axios.get(`${BASE_URL}/api/location-find-district-towns/${selectedDistrict}`, {
+            headers: { Authorization: `Bearer ${userToken}` },
+          });
+          setTowns(response.data.data);
+        } catch (error) {
+          console.error('Error fetching towns:', error);
+        }
+      }
+    };
+    fetchTowns();
+  }, [selectedDistrict, userToken]);
 
   const fetchUserData = async () => {
     try {
@@ -43,13 +80,14 @@ const ProfileEditForm = () => {
   };
 
   const onSubmit = async (data) => {
-    const formData = new FormData();
-    formData.append('name', data.name);
-    formData.append('email', data.email);
-    formData.append('phone', `+91${data.phone}`);
-
     try {
-      const response = await fetch(`${BASE_URL}/api/auth/changeProfile`, {
+      // First API call - Update profile
+      const formData = new FormData();
+      formData.append('name', data.name);
+      formData.append('email', data.email);
+      formData.append('phone', `+91${data.phone}`);
+
+      const profileResponse = await fetch(`${BASE_URL}/api/auth/changeProfile`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${userToken}`,
@@ -57,20 +95,42 @@ const ProfileEditForm = () => {
         body: formData,
       });
 
-      const responseData = await response.json();
-      if (response.ok) {
-        toast({
-          title: "Profile updated successfully",
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
-        fetchUserData(); // Fetch latest user data immediately after successful update
-        navigate('/'); // Navigate to the desired route
-      } else {
-        let errorMessage = responseData?.message || 'Failed to update profile';
-        throw new Error(errorMessage);
+      if (!profileResponse.ok) {
+        const profileData = await profileResponse.json();
+        throw new Error(profileData?.message || 'Failed to update profile');
       }
+
+      // Second API call - Update location
+      if (data.district || data.town) {
+        const locationResponse = await fetch(`${BASE_URL}/api/update-user-location`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${userToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            locationDistrict: data.district,
+            locationTown: data.town,
+          }),
+        });
+
+        if (!locationResponse.ok) {
+          const locationData = await locationResponse.json();
+          throw new Error(locationData?.message || 'Failed to update location');
+        }
+      }
+
+      // If both updates are successful
+      toast({
+        title: "Profile updated successfully",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+      
+      await fetchUserData(); // Fetch latest user data
+      navigate('/');
+      
     } catch (error) {
       console.error('Error details:', error);
       toast({
@@ -85,6 +145,22 @@ const ProfileEditForm = () => {
 
   const handleDiscard = () => {
     navigate('/profile');
+  };
+
+  const getDefaultDistrictName = () => {
+    const defaultDistrictId = userData?.userLocation?.locationDistrict?.id;
+    const defaultDistrict = districts.find(district => district.id === defaultDistrictId);
+    return defaultDistrict?.name || "Select district";
+  };
+
+  const getDefaultTownName = () => {
+    const defaultTownId = userData?.userLocation?.locationTown?.id;
+    const defaultTown = towns.find(town => town.id === defaultTownId);
+    return defaultTown?.name || "Select town";
+  };
+
+  const handleDistrictChange = (e) => {
+    setSelectedDistrict(e.target.value);
   };
 
   return (
@@ -172,33 +248,49 @@ const ProfileEditForm = () => {
             </Grid>
           </Box>
           <Box>
-            <Text fontWeight="semibold" fontSize={{ base: 'lg', md: 'xl' }} mb={2}>Additional Information</Text>
+            <Text fontWeight="semibold" fontSize={{ base: 'lg', md: 'xl' }} mb={2}>Location</Text>
             <Grid templateColumns={{ base: 'repeat(12, 1fr)', md: 'repeat(12, 1fr)' }} gap={2}>
               <GridItem colSpan={{ base: 12, md: 5 }}>
-                <Text fontWeight="bold">Google</Text>
-                <Text fontSize={{ base: 'xs', md: 'sm' }} color="gray.500">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</Text>
+                <FormControl>
+                  <Select
+                    {...register("district")}
+                    placeholder={getDefaultDistrictName()}
+                    border="1px"
+                    borderColor="black"
+                    _hover={{ borderColor: 'black' }}
+                    _focus={{ borderColor: 'blue' }}
+                    onChange={handleDistrictChange}
+                  >
+                    {districts.map((district) => (
+                      <option key={district.id} value={district.id}>
+                        {district.name}
+                      </option>
+                    ))}
+                  </Select>
+                </FormControl>
               </GridItem>
-              <GridItem className='flex justify-end' colSpan={{ base: 12, md: 7 }}>
-                <Button
-                  variant="outline"
-                  borderWidth={1}
-                  borderColor="black"
-                  size="md"
-                  width="100%"
-                  _hover={{
-                    bg: '#0071BC',
-                    color: 'white',
-                    borderColor: 'transparent',
-                    transition: 'background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease',
-                  }}
-                  _active={{
-                    bg: '#005B8C',
-                    transform: 'scale(0.95)',
-                  }}
-                >
-                  Link
-                </Button>
+              <GridItem colSpan={{ base: 12, md: 7 }} />
+              
+              <GridItem colSpan={{ base: 12, md: 5 }}>
+                <FormControl>
+                  <Select
+                    {...register("town")}
+                    placeholder={getDefaultTownName()}
+                    border="1px"
+                    borderColor="black"
+                    _hover={{ borderColor: 'black' }}
+                    _focus={{ borderColor: 'blue' }}
+                    isDisabled={!selectedDistrict}
+                  >
+                    {towns.map((town) => (
+                      <option key={town.id} value={town.id}>
+                        {town.name}
+                      </option>
+                    ))}
+                  </Select>
+                </FormControl>
               </GridItem>
+              <GridItem colSpan={{ base: 12, md: 7 }} />
             </Grid>
           </Box>
           <Grid templateColumns={{ base: 'repeat(12, 1fr)', md: 'repeat(12, 1fr)' }} gap={2}>

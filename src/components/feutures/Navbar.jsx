@@ -33,6 +33,8 @@ function Navbar({ onShowPackagesAndOrders,setSearchResults  }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient(); // Access the query client
   const location = useLocation();
+  
+  
 
   const [searchTerm, setSearchTerm] = useState('');
   const { setHasSearched, resetSearch } = useSearch();
@@ -43,16 +45,18 @@ function Navbar({ onShowPackagesAndOrders,setSearchResults  }) {
   };
 
   const isShowroomPage = location.pathname === '/showroom';
-  console.log(isShowroomPage);
+
   
   const { isOpen: isSellModalOpen, onOpen: onSellModalOpen, onClose: onSellModalClose } = useDisclosure();
   const { isOpen: isLoginModalOpen, onOpen: onLoginModalOpen, onClose: onLoginModalClose } = useDisclosure();
 
   const handleSellClick = () => {
-    if (isLoggedIn) {
-      onSellModalOpen();
-    } else {
+    if (!isLoggedIn) {
       onLoginModalOpen();
+    } else if (!userData.isProfileCompleted) {
+      navigate('/profile/edit-profile');
+    } else {
+      onSellModalOpen();
     }
   };
   const handleLogoClick = () => {
@@ -186,15 +190,15 @@ const handleCloseLogoutModal = () => {
               onSearch={handleSearch}
               isShowroom={isShowroomPage}
             />     </div>
-          <div className="col-span-3 flex gap-2 items-center justify-around">
+          <div className="col-span-2 flex gap-2 items-center justify-around">
             <div className="flex items-center gap-4">
               <FaLocationDot /> <SimpleCountryDropdown />
             </div>
          
           </div>
-          <div className="col-span-3 md:col-span-2 lg:col-span-2 text-center">
+          <div className="col-span-3 md:col-span-3 lg:col-span-3 text-center">
             {isLoggedIn ? (
-              <div className="flex justify-between items-center space-x-2">
+              <div className="flex justify-center gap-2 items-center space-x-2">
                 {renderNavIcons(false)}
               </div>
             ) : (

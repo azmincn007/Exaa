@@ -31,6 +31,9 @@ export const useTypes = (isOpen, getUserToken, subcategoryId) => {
       else if (subcategoryIdString === "8") {
         endpoint = "ad-p-p-g-a-g-h-ts";
       }
+      else if (subcategoryIdString === "18") {
+        endpoint = "ad-c-v-a-a-c-v-ts";
+      }
      else {
         throw new Error("Invalid subcategory ID for types");
       }

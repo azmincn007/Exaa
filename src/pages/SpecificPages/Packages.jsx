@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from 'axios';
 import { useQuery } from 'react-query';
@@ -26,6 +26,7 @@ import PackageGrid from "../../components/Specific/Packages/PackagesadsBoxes";
 import Boostgrid from "../../components/Specific/Packages/Boostgrid";
 import PackagesSkeleton from "../../components/Skelton/PackageSKelton";
 import { useAuth } from "../../Hooks/AuthContext";
+import { UserdataContext } from "../../App";
 
 // Define your base URL here
 
@@ -47,6 +48,9 @@ export default function Packages() {
   const navigate = useNavigate();
   const location = useLocation();
   const { isLoggedIn, isInitialized } = useAuth();
+  const { userData } = useContext(UserdataContext);
+  console.log(userData);
+  
 
   useEffect(() => {
     if (isInitialized && !isLoggedIn) {
@@ -101,16 +105,16 @@ export default function Packages() {
 
       <Box bg="white" color="black" borderRadius="md" p={4}>
         <Tabs isFitted variant="unstyled" index={isPostMoreAdsTab ? 0 : 1} onChange={handleTabChange}>
-          <TabList mb="1em" className="w-[40%] mx-auto border-b border-gray-200">
+          <TabList mb="1em" className="w-[40%] min-w-[300px] mx-auto border-b border-gray-200">
             <Tab 
               _selected={{ color: "blue.500", borderBottom: "2px solid currentColor" }}
-              className="w-1/2 py-2 text-16 font-[600] text-center text-[#16273C] hover:text-gray-700"
+              className="w-1/2 py-2 text-12 md:text-16 font-[600] text-center text-[#16273C] hover:text-gray-700"
             >
               Post more Ads
             </Tab>
             <Tab 
               _selected={{ color: "blue.500", borderBottom: "2px solid currentColor" }}
-              className="w-1/2 py-2 text-16 font-[600] text-center text-[#16273C] hover:text-gray-700"
+              className="w-1/2 py-2 text-12 md:text-16 font-[600] text-center text-[#16273C] hover:text-gray-700"
             >
               Boost to Top with Tags
             </Tab>
@@ -130,7 +134,7 @@ export default function Packages() {
                   <Text className="text-12">Package available for 360 days</Text>
                 </Flex>
               </Box>
-              <PackageGrid packages={adPackages} />
+              <PackageGrid packages={adPackages} id={userData?.id} />
             </TabPanel>
             <TabPanel>
             <Box mb={4}>
@@ -146,7 +150,7 @@ export default function Packages() {
                   <Text className="text-12">Package available for 360 days</Text>
                 </Flex>
               </Box>
-              <Boostgrid packages={adPackages}  />
+              <Boostgrid packages={adPackages}  id={userData?.id} />
             </TabPanel>
           </TabPanels>
         </Tabs>

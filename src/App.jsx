@@ -24,6 +24,7 @@ import PaymentButton from './Services/RazorpayPayment';
 import CustomerProfile from './pages/SpecificPages/CustomerProfile';
 import LocationSelects from './components/modals/Authentications/LocationSelects';
 import HelpAndSupport from './components/ui/HelpAndSupport';
+import Settings from './components/ui/Settings';
 
 export const TownContext = createContext();
 export const UserdataContext = createContext();
@@ -119,6 +120,7 @@ function App() {
                       <Route path="/showroom/:id" element={<Layout><Showroomsingle /></Layout>} />
                       <Route path="/customer-profile/:customerId" element={<Layout><CustomerProfile /></Layout>} />
                       <Route path="/help-and-support" element={<Layout><HelpAndSupport /></Layout>} />
+                      <Route path="/settings" element={<Layout><Settings /></Layout>} />
                       <Route path="/my-ads" element={<Layout><MyAdsPage /></Layout>} />
                       <Route path="/chats" element={<Layout><ChatComponent /></Layout>}>
                         <Route index element={<Navigate to="/chats/all" replace />} />

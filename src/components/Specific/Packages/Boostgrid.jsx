@@ -33,7 +33,7 @@ const categoryColors = {
   "Hot Deal": "text-red-500",
 };
 
-const Boostgrid = () => {
+const Boostgrid = ({id}) => {
   // Fetch boost tags
   const { data: tagsData, isLoading: isTagsLoading, isError: isTagsError } = useQuery("boostTags", fetchBoostTags);
 
@@ -76,7 +76,7 @@ const Boostgrid = () => {
       {/* Boost Packages Section */}
       <div className="p-4 mt-6 bg-white rounded-lg shadow">
         <h2 className="text-lg font-semibold mb-4">Available Boost Packages</h2>
-        <BoostGridBox boostTags={packagesData}  /> {/* Pass fromBoost as true */}
+        <BoostGridBox boostTags={packagesData} id={id} /> {/* Pass fromBoost as true */}
       </div>
     </div>
   );

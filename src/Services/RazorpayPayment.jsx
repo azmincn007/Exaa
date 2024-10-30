@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const RazorpayPaymentModal = ({ orderId, amount, onSuccess }) => {
+const RazorpayPaymentModal = ({ orderId, amount, onSuccess, notes }) => {
   console.log("hii");
   
   console.log(amount);
@@ -25,6 +25,7 @@ const RazorpayPaymentModal = ({ orderId, amount, onSuccess }) => {
       name: 'Your Company Name',
       description: 'Package Subscription',
       order_id: orderId,
+      notes: notes || {},
       handler: function (response) {
         // Log the payment ID
         console.log('Razorpay Payment ID:', response.razorpay_payment_id);

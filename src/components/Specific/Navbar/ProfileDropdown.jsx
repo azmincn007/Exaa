@@ -66,7 +66,7 @@ const ProfileDropdown = ({ onLogout, onClose }) => {
     {
       label: 'Settings',
       icon: FiSettings,
-      onClick: () => handleItemClick(() => {/* Add settings action */})
+      onClick: () => handleItemClick(() => navigate('/settings'))
     },
     {
       label: 'Logout',

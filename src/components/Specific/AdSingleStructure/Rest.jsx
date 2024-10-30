@@ -91,10 +91,10 @@ const Rest = ({ adData }) => {
                     value !== undefined && value !== null ? (
                         <React.Fragment key={label}>
                             <div className="col-span-6 sm:col-span-3 flex justify-start">
-                                <span className="text-[8px] text-exagrey md:text-[14px] font-semibold">{label}:</span>
+                                <span className="text-[12px] text-exagrey md:text-[14px] font-semibold">{label}:</span>
                             </div>
                             <div className="col-span-6 sm:col-span-3 flex justify-start">
-                                <span className="text-[8px] md:text-[14px] break-words">{safeRender(value)}</span>
+                                <span className="text-[12px] md:text-[14px] break-words">{safeRender(value)}</span>
                             </div>
                         </React.Fragment>
                     ) : null

@@ -22,6 +22,8 @@ export const ProfileListings = ({
   handleRepostAd,
   handleSellClick,
 }) => {
+  console.log(expiredListings);
+  
   const [visibleAds, setVisibleAds] = useState(3);
   const [activeTab, setActiveTab] = useState("active");
   const isMobile = useBreakpointValue({ base: true, md: false });
