@@ -28,7 +28,7 @@ const fetchRelatedAds = async ({ adId, adCategoryId, locationTownId, locationDis
 
 const SimilarAds = ({ adId, adCategoryId, BASE_URL }) => {
   const [selectedTown] = useContext(TownContext);
-  const [selectedDistrict] = useContext(showroo);
+  const [selectedDistrict] = useContext(DistrictContext);
   const [visibleCards, setVisibleCards] = useState({
     md: 2,
     lg: 3,

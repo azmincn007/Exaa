@@ -57,6 +57,8 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
     setValue,
     reset,
     control,
+    setError,
+    clearErrors,
   } = useForm();
   const [userToken, setUserToken] = useState(localStorage.getItem("UserToken"));
   const queryClient = useQueryClient();
@@ -140,6 +142,7 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
+      clearErrors('images');
       const reader = new FileReader();
       reader.onloadend = () => {
         setUploadedImage({ file, preview: reader.result });
@@ -154,7 +157,15 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
 
   const onSubmit = useCallback(
     async (data) => {
-      if (isSubmitting) return; // Prevent multiple submissions
+      if (isSubmitting) return;
+
+      if (!uploadedImage) {
+        setError('images', {
+          type: 'required',
+          message: 'atleast upload a single image'
+        });
+        return;
+      }
 
       setIsSubmitting(true);
       const formData = new FormData();
@@ -177,7 +188,7 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
         setIsSubmitting(false);
       }
     },
-    [createShowroomMutation, uploadedImage, isSubmitting]
+    [createShowroomMutation, uploadedImage, isSubmitting, setError]
   );
 
   useEffect(() => {
@@ -352,34 +363,41 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
               <FormErrorMessage>{errors.locationTown && errors.locationTown.message}</FormErrorMessage>
             </FormControl>
 
-            <FormControl fontSize={fontSize}>
+            <FormControl isInvalid={errors.images} fontSize={fontSize}>
               <FormLabel>Upload Image</FormLabel>
-              <Flex justifyContent="center">
-                {uploadedImage ? (
-                  <Box position="relative">
-                    <ImageUploadBox>
-                      <Image src={uploadedImage.preview} alt="Uploaded" objectFit="cover" w="100%" h="100%" />
-                      <IoClose
-                        className="absolute top-1 right-1 bg-[#4F7598] rounded-full h-[20px] w-[20px]"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeImage();
-                        }}
-                      />
+              <Flex justifyContent="center" flexDirection="column" alignItems="center">
+                <Flex justifyContent="center">
+                  {uploadedImage ? (
+                    <Box position="relative">
+                      <ImageUploadBox>
+                        <Image src={uploadedImage.preview} alt="Uploaded" objectFit="cover" w="100%" h="100%" />
+                        <IoClose
+                          className="absolute top-1 right-1 bg-[#4F7598] rounded-full h-[20px] w-[20px]"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeImage();
+                          }}
+                        />
+                      </ImageUploadBox>
+                      <Text as="a" fontSize="xs" textAlign="center" mt={1}>
+                        Uploaded
+                      </Text>
+                    </Box>
+                  ) : (
+                    <ImageUploadBox onClick={() => document.getElementById("imageUpload").click()}>
+                      <Icon as={IoAddOutline} w={5} h={5} />
+                      <Text fontSize="xs" textAlign="center" mt={1}>
+                        Add image
+                      </Text>
                     </ImageUploadBox>
-                    <Text as="a" fontSize="xs" textAlign="center" mt={1}>
-                      Uploaded
-                    </Text>
-                  </Box>
-                ) : (
-                  <ImageUploadBox onClick={() => document.getElementById("imageUpload").click()}>
-                    <Icon as={IoAddOutline} w={5} h={5} />
-                    <Text fontSize="xs" textAlign="center" mt={1}>
-                      Add image
-                    </Text>
-                  </ImageUploadBox>
+                  )}
+                  <input id="imageUpload" type="file" accept="image/*" style={{ display: "none" }} onChange={handleImageUpload} />
+                </Flex>
+                {errors.images && (
+                  <FormErrorMessage>
+                    {errors.images.message}
+                  </FormErrorMessage>
                 )}
-                <input id="imageUpload" type="file" accept="image/*" style={{ display: "none" }} onChange={handleImageUpload} />
               </Flex>
             </FormControl>
 

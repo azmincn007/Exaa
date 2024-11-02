@@ -215,7 +215,7 @@ const MyShowroom = () => {
       // Optimistically update the UI first
       queryClient.setQueryData(['showroomAds', selectedShowroom.id], (oldData) => {
         if (!Array.isArray(oldData)) return [];
-        return oldData.filter(ad => ad.id !== adData.id);
+        return oldData.filter(ad => ad?.id !== adData?.id);
       });
 
       // Get the sub-category details
@@ -230,7 +230,7 @@ const MyShowroom = () => {
 
       // Delete the ad
       await axios.delete(
-        `${BASE_URL}/api/${apiUrl}/${adData.id}`,
+        `${BASE_URL}/api/${apiUrl}/${adData?.id}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }

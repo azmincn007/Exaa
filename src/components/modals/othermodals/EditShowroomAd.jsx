@@ -17,6 +17,7 @@ import { useVariants } from '../../common/config/Api/UseVarient.jsx';
 import { useTypes } from '../../common/config/Api/UseTypes.jsx';
 import { LogIn } from 'lucide-react';
 import TestModal from './TestModal';
+import { useQueryClient } from 'react-query';
 
 
 const EditShowroomad = ({ 
@@ -72,11 +73,18 @@ const EditShowroomad = ({
     subCategoryId,
     subCategoryId === 18 ? selectedTypeId : null
   );
-  const { data: variants } = useVariants(isOpen && requiredFields.variant, () => token, selectedModelId, subCategoryId);
+  const { data: variants } = useVariants(
+    isOpen, 
+    () => token, 
+    selectedModelId, 
+    subCategoryId
+  );
   const { data: types } = useTypes(isOpen && requiredFields.type, () => token, subCategoryId);
 
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showTestModal, setShowTestModal] = useState(false);
+
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -232,11 +240,10 @@ const EditShowroomad = ({
               fontSize={fontSize}
               onChange={(e) => {
                 const value = e.target.value;
-                setValue(fieldName, value);
+                setValue(fieldName, value || '');
                 
                 if (fieldName === 'type') {
                   setSelectedTypeId(value);
-                  // Reset dependent fields when type changes for subcategory 18
                   if (subCategoryId === 18) {
                     setValue('brand', '');
                     setValue('model', '');
@@ -253,10 +260,12 @@ const EditShowroomad = ({
                   setSelectedVariantId(null);
                 } else if (fieldName === 'model') {
                   setSelectedModelId(value);
+                  setValue('model', value || '');
                   setValue('variant', '');
                   setSelectedVariantId(null);
                 } else if (fieldName === 'variant') {
                   setSelectedVariantId(value);
+                  setValue('variant', value || '');
                 }
               }}
               value={getValues(fieldName) || ''}
@@ -268,7 +277,7 @@ const EditShowroomad = ({
               }
             >
               <option value="">Select {config.label}</option>
-              {config.options.map(option => {
+              {config.options?.map(option => {
                 const optionId = typeof option === 'object' ? option.id : option;
                 const optionName = typeof option === 'object' ? option.name : option;
                 return (
@@ -321,10 +330,15 @@ const EditShowroomad = ({
     formData.append('locationTown', townId);
     formData.append('adBoostTag', data.adBoostTag?.id || '');
 
-    // Handle other form data
+    // Handle other form data with special handling for model and variant
     Object.entries(data).forEach(([key, value]) => {
-      if (value !== undefined && value !== '' && key !== 'adShowroom' && key !== 'adBoostTag') {
-        formData.append(key, value);
+      if (key !== 'adShowroom' && key !== 'adBoostTag') {
+        // Always send model and variant keys, even if empty
+        if (key === 'model' || key === 'variant') {
+          formData.append(key, value || '');
+        } else if (value !== undefined && value !== '') {
+          formData.append(key, value);
+        }
       }
     });
 

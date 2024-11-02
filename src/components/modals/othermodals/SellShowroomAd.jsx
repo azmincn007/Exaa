@@ -46,7 +46,7 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
   const [selectedBrandId, setSelectedBrandId] = useState(null);
   const [selectedModelId, setSelectedModelId] = useState(null);
   const [selectedTypeId, setSelectedTypeId] = useState(null);
-  const { register, handleSubmit, control, formState: { errors }, setValue, reset, getValues, watch } = useForm();
+  const { register, handleSubmit, control, formState: { errors }, setValue, reset, getValues, watch, setError } = useForm();
   const getUserToken = useCallback(() => localStorage.getItem('UserToken'), []);
   const toast = useToast();
   const [submittedFormData, setSubmittedFormData] = useState(null);
@@ -132,6 +132,14 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
   };
 
   const onSubmit = async (data) => {
+    if (uploadedImages.length === 0) {
+      setError('images', {
+        type: 'manual',
+        message: 'At least one image is required'
+      });
+      return;
+    }
+
     if (isSubmitting) return;
     setIsSubmitting(true);
 
@@ -154,7 +162,11 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
 
       const relevantFields = subCategoryDetails?.requiredFields || [];
       const filteredData = relevantFields.reduce((obj, key) => {
-        obj[key] = data[key] !== undefined ? data[key] : "";
+        if (key === 'variant' && data[key] === undefined) {
+          obj[key] = "";
+        } else {
+          obj[key] = data[key] !== undefined ? data[key] : "";
+        }
         return obj;
       }, {});
     
@@ -350,7 +362,7 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
                 <RadioGroup {...field}>
                   <Stack direction="row">
                     {config.options.map(option => (
-                      <Radio key={option} value={option}>{option}</Radio>
+                      <Radio  className='border-black' key={option} value={option}>{option}</Radio>
                     ))}
                   </Stack>
                 </RadioGroup>
@@ -416,8 +428,8 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
               
               {subCategoryDetails && subCategoryDetails.requiredFields?.map(fieldName => renderField(fieldName))}
               
-              <FormControl fontSize={fontSize}>
-                <FormLabel>Upload Images (Max 4)</FormLabel>
+              <FormControl fontSize={fontSize} isInvalid={errors.images} isRequired>
+                <FormLabel>Upload Images (Max 4) </FormLabel>
                 <Flex gap={3} flexWrap="wrap" justifyContent="center">
                   {uploadedImages.map((image, index) => (
                     <Box key={index} position="relative">
@@ -452,6 +464,9 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
                     onChange={handleImageUpload}
                   />
                 </Flex>
+                {errors.images && (
+                  <FormErrorMessage>{errors.images.message}</FormErrorMessage>
+                )}
               </FormControl>
               
               <Button type="submit" colorScheme="blue" mt={3} fontSize={fontSize}>Submit</Button>

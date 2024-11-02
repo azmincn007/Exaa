@@ -99,13 +99,19 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
   }, [isOpen, reset]);
 
   const clearForm = useCallback(() => {
-    reset();
+    reset({
+      adCategory: '',
+      adSubCategory: '',
+      // Add any other form fields that need explicit resetting
+    });
     setSelectedCategoryId(null);
     setSelectedSubCategoryId(null);
     setSelectedDistrictId(null);
     setUploadedImages([]);
     setSubCategoryDetails(null);
-    // Reset other relevant state variables here
+    setSelectedBrandId(null);
+    setSelectedModelId(null);
+    setSelectedTypeId(null);
   }, [reset]);
 
   const handleCategoryChange = useCallback((e) => {
@@ -185,7 +191,12 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
     }
   };
   const onSubmit = async (data) => {
-    if (isSubmitting) return; // Prevent multiple submissions
+    if (isSubmitting) return;
+
+    // Add validation for images
+    if (uploadedImages.length === 0) {
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -426,7 +437,7 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
                 <RadioGroup {...field}>
                   <Stack direction="row">
                     {config.options.map(option => (
-                      <Radio key={option} value={option}>{option}</Radio>
+                      <Radio  className='border-black' key={option} value={option}>{option}</Radio>
                     ))}
                   </Stack>
                 </RadioGroup>
@@ -479,10 +490,15 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
 
   return (
     <>
-      <Modal isOpen={isOpen} onClose={() => {
-        clearForm(); // Call clearForm when closing the modal
-        onClose();
-      }} size={modalSize}>
+      <Modal 
+        isOpen={isOpen} 
+        onClose={() => {
+          clearForm();
+          onClose();
+        }} 
+        size={modalSize}
+        onCloseComplete={clearForm}
+      >
         <ModalOverlay />
         <ModalContent 
           bg="#F1F1F1" 
@@ -500,6 +516,7 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
                   isDisabled={isCategoriesLoading}
                   {...register('adCategory', { required: 'Category is required' })}
                   onChange={handleCategoryChange}
+                  value={selectedCategoryId || ''}
                 >
                   {categories?.map(({ id, name }) => <option key={id} value={id}>{name}</option>)}
                 </Select>
@@ -525,8 +542,8 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
               {subCategoryDetails && subCategoryDetails.requiredFields?.map(fieldName => renderField(fieldName))}
               
               {selectedSubCategoryId && (
-                <FormControl fontSize={fontSize}>
-                  <FormLabel>Upload Images (Max 4)</FormLabel>
+                <FormControl fontSize={fontSize} isInvalid={uploadedImages.length === 0}>
+                  <FormLabel>Upload Images (Max 4) *</FormLabel>
                   <Flex gap={3} flexWrap="wrap" justifyContent="center">
                     {uploadedImages.map((image, index) => (
                       <Box key={index} position="relative">
@@ -562,6 +579,9 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
                       onChange={handleImageUpload}
                     />
                   </Flex>
+                  {uploadedImages.length === 0 && (
+                    <FormErrorMessage>At least one image is required</FormErrorMessage>
+                  )}
                 </FormControl>
               )}
               

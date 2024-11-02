@@ -378,7 +378,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
                 <RadioGroup onChange={onChange} value={value}>
                   <Stack direction="row" spacing={4}>
                     {config.options.map(option => (
-                      <Radio key={option} value={option}>
+                      <Radio   className='border-black' key={option} value={option}>
                         {option}
                       </Radio>
                     ))}
