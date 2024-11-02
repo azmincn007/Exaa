@@ -32,7 +32,6 @@ const EditShowroomad = ({
   showroomId,
   onShowSuccess 
 }) => {
-  console.log(categoryId);
   
   const [isLoading, setIsLoading] = useState(false);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
@@ -360,11 +359,6 @@ const EditShowroomad = ({
       }
     });
 
-    // Log FormData contents
-    console.log('FormData contents:');
-    for (let pair of formData.entries()) {
-      console.log(pair[0], pair[1]);
-    }
 
     try {
       const response = await axios.put(
@@ -404,7 +398,6 @@ const EditShowroomad = ({
         // Filter out any null values and create the callback data
         const validImageFiles = imageFiles.filter(file => file !== null);
         
-        console.log('Prepared image files:', validImageFiles);
 
         const callbackData = {
           adData: {

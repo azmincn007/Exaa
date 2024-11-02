@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { Mail, MapPin, Phone, Share2, Copy } from "lucide-react";
+import { Mail, MapPin, Phone, Share2, Copy, User } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 import { Card, CardBody, CardHeader, Collapse, useToast } from '@chakra-ui/react';
 import { UserdataContext } from '../../../App';
 import { BASE_URL } from '../../../config/config';
 
-const CustomerProfileComponent = ({sellerName, sellerPhone, sellerProfile}) => {
+const CustomerProfileComponent = ({sellerName, sellerPhone, sellerProfile,sellerLocation}) => {
+  console.log(sellerLocation);
+  
   const [isShareExpanded, setIsShareExpanded] = useState(false);
   const toast = useToast();
 
@@ -40,12 +42,16 @@ const CustomerProfileComponent = ({sellerName, sellerPhone, sellerProfile}) => {
       <Card className="w-full max-w-md mx-auto shadow-lg">
         <CardHeader>
           <div className="flex flex-col items-center gap-4">
-            <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200">
-              <img
-                src={`${BASE_URL}${sellerProfile}`}
-                alt={sellerName}
-                className="w-full h-full object-cover"
-              />
+            <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+              {sellerProfile ? (
+                <img
+                  src={`${BASE_URL}${sellerProfile}`}
+                  alt={sellerName}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User size={48} className="text-gray-400" />
+              )}
             </div>
             <div className="text-center">
               <h2 className="text-20 font-bold">
@@ -66,7 +72,7 @@ const CustomerProfileComponent = ({sellerName, sellerPhone, sellerProfile}) => {
               <div className="text-gray-500">
                 <MapPin size={20} />
               </div>
-              {/* <span className="text-sm">{userData?.userlocation}</span> */}
+              <span className="text-sm">{sellerLocation?.locationTown?.name},{sellerLocation?.locationDistrict?.name}</span>
             </div>
             
             {/* Share button */}

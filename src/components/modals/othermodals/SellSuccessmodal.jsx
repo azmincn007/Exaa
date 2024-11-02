@@ -22,7 +22,8 @@ const CongratulationsModal = ({
   isTagCreationPossible, 
   images 
 }) => {
-  console.log(formData);
+  console.log(images);
+  
 
 
   
@@ -138,6 +139,7 @@ const CongratulationsModal = ({
     // Convert adCategory string to number
     const adCategoryId = parseInt(formData.adCategory) || 0;
     
+    onClose(); // Close the modal first
     navigate('/ad-preview', { 
       state: { 
         adCategoryId,

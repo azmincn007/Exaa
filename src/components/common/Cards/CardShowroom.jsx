@@ -8,6 +8,7 @@ import { useMutation, useQueryClient } from "react-query";
 import axios from "axios";
 import { BASE_URL } from "../../../config/config";
 import LoginModal from "../../modals/Authentications/LoginModal";
+import AdBoostBadge from '../buttons/AdBoostBadge';
 
 // CSS for custom media queries
 const styles = `
@@ -140,11 +141,7 @@ const CardShowroom = ({ ad }) => {
           <Box borderWidth="1px" borderRadius="lg" overflow="hidden" bg="#0071BC1A" boxShadow="md" className="mb-4">
             <Box position="relative" width="100%">
               <img src={imageUrl} alt={ad.title} className="h-48 w-full rounded-t-lg" style={{ objectFit: "cover" }} />
-              {ad.isAdActive && (
-                <Box position="absolute" top="2" left="2" bg="#06B706" color="white" fontSize="xs" fontWeight="bold" px="2" py="1" borderRadius="md">
-                  Active
-                </Box>
-              )}
+              {ad.adBoostTag && <AdBoostBadge tag={ad.adBoostTag} />}
             </Box>
 
             <Box p="3">
@@ -153,7 +150,9 @@ const CardShowroom = ({ ad }) => {
                   <Text className="text-lg font-bold truncate" maxW="80%">
                     {ad.title}
                   </Text>
-                  <Text className="text-base font-bold mt-1">₹{ad.price.toLocaleString()}</Text>
+                  <Text className="text-base font-bold mt-1">
+                    ₹{(ad.price || 0).toLocaleString()}
+                  </Text>
                 </Box>
                 <FavoriteIcon />
               </Flex>
@@ -189,11 +188,7 @@ const CardShowroom = ({ ad }) => {
           <Flex>
             <Box position="relative" width="40%" className="rounded-lg">
               <Image src={imageUrl} alt={ad.title} objectFit="cover" className="h-[200px] p-2 rounded-lg" h="100%" w="100%" />
-              {ad.isAdActive && (
-                <Box position="absolute" top="4" left="4" bg="#06B706" color="white" fontSize="xs" fontWeight="bold" px="2" py="1" borderRadius="md">
-                  Active
-                </Box>
-              )}
+              {ad.adBoostTag && <AdBoostBadge tag={ad.adBoostTag} />}
             </Box>
 
             <Box width="60%" p="4">
@@ -203,7 +198,7 @@ const CardShowroom = ({ ad }) => {
                     {ad.title}
                   </Text>
                   <Text className="text-16" fontWeight="bold" mt="2">
-                    ₹{ad.price.toLocaleString()}
+                    ₹{(ad.price || 0).toLocaleString()}
                   </Text>
                 </Box>
                 <FavoriteIcon />

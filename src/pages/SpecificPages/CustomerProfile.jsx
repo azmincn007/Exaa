@@ -4,7 +4,7 @@ import CustomerProfileComponent from '../../components/Specific/Profile/Customer
 import axios from 'axios';
 import { Box, Text, Spinner, Center, Button } from '@chakra-ui/react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { FaChevronRight } from "react-icons/fa";
+import { FaChevronRight, FaUser } from "react-icons/fa";
 import 'swiper/css';
 import 'swiper/css/pagination';
 import { BASE_URL } from '../../config/config';
@@ -12,12 +12,14 @@ import CardShowroom from '../../components/common/Cards/CardShowroom';
 
 function CustomerProfile() {
   const { state } = useLocation();
-  const { sellerId, sellerName, sellerPhone, sellerProfile } = state || {};
+  const { sellerId, sellerName, sellerPhone, sellerProfile,sellerLocation } = state || {};
   const [userAds, setUserAds] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [visibleCards, setVisibleCards] = useState(6);
   const [isMobile, setIsMobile] = useState(false);
+
+console.log(sellerLocation);
 
   useEffect(() => {
     const checkIfMobile = () => {
@@ -38,6 +40,7 @@ function CustomerProfile() {
     }
 
     const token = localStorage.getItem('UserToken');
+    console.log('Auth Token:', token);
     
     try {
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
@@ -47,12 +50,13 @@ function CustomerProfile() {
         { headers }
       );
       
+      console.log('User Ads Response:', response.data);
       setUserAds(response.data.data);
       setIsLoading(false);
     } catch (err) {
+      console.error('Error fetching user ads:', err.response || err);
       setError('Failed to fetch user ads');
       setIsLoading(false);
-      console.error('Error fetching user ads:', err);
     }
   };
 
@@ -73,6 +77,7 @@ function CustomerProfile() {
           sellerName={sellerName}
           sellerPhone={sellerPhone}
           sellerProfile={sellerProfile}
+          sellerLocation={sellerLocation}
         />
 
         <Box mt={8}>
@@ -113,7 +118,7 @@ function CustomerProfile() {
                   >
                     {userAds.slice(0, visibleCards).map((ad) => (
                       <SwiperSlide key={ad.id}>
-                        <CardShowroom ad={ad} />
+                        <CardShowroom ad={ad} defaultIcon={<FaUser />} />
                       </SwiperSlide>
                     ))}
                   </Swiper>
@@ -121,7 +126,7 @@ function CustomerProfile() {
               ) : (
                 <div className="grid grid-cols-2 gap-4 mt-4">
                   {userAds.slice(0, visibleCards).map((ad) => (
-                    <CardShowroom key={ad.id} ad={ad} />
+                    <CardShowroom key={ad.id} ad={ad} defaultIcon={<FaUser />} />
                   ))}
                 </div>
               )}

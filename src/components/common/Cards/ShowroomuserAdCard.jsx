@@ -22,6 +22,8 @@ const ActionButton = ({ icon: Icon, onClick, backgroundColor }) => (
 );
 
 const ShowroomuserAdCard = ({ data, onEdit, onDelete, showroomId, token }) => {
+  console.log(data);
+  
   const toast = useToast();  // Added Chakra UI toast
   const queryClient = useQueryClient();  
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);

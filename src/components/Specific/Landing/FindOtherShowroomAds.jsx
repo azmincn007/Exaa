@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { Swiper as SwiperComponent, SwiperSlide } from 'swiper/react';
 import { Navigation, FreeMode } from 'swiper/modules';
 import { useQuery } from 'react-query';
@@ -12,44 +12,35 @@ import 'swiper/css/navigation';
 import 'swiper/css/free-mode';
 import { Button } from '@chakra-ui/react';
 import { BASE_URL } from '../../../config/config';
-import { DistrictContext, TownContext } from '../../../App';
 
-const fetchRelatedAds = async ({ adId, adCategoryId, locationTownId, locationDistrictId }) => {
+const fetchOtherShowrooms = async ({ adShowroomId, adId, adCategoryId }) => {
   try {
     const { data } = await axios.get(
-      `${BASE_URL}/api/find-related-ads?adId=${adId}&adCategoryId=${adCategoryId}&locationDistrictId=${locationDistrictId}&locationTownId=${locationTownId}`
+      `${BASE_URL}/api/find-showroom-other-ads/${adShowroomId}?adId=${adId}&adCategoryId=${adCategoryId}`
     );
     return data.data;
   } catch (error) {
-    console.error('Error fetching related ads:', error);
+    console.error('Error fetching other showrooms:', error);
     throw error;
   }
 };
 
-const SimilarAds = ({ adId, adCategoryId }) => {
-  const [selectedTown] = useContext(TownContext);
-  const [selectedDistrict] = useContext(DistrictContext);
+const FindOtherShowrooms = ({ adId, adCategoryId, adShowroomId }) => {
   const [visibleCards, setVisibleCards] = useState({
     md: 2,
     lg: 3,
     xl: 4
   });
 
-  const { data: relatedAds, isLoading, error } = useQuery(
-    ['relatedAds', adId, adCategoryId, selectedTown, selectedDistrict],
-    () => fetchRelatedAds({ 
-      adId, 
-      adCategoryId,
-      locationTownId: selectedTown === "all" ? '"all"' : String(selectedTown),
-      locationDistrictId: selectedDistrict === "all" ? '"all"' : String(selectedDistrict)
-    }),
+  const { data: otherShowrooms, isLoading, error } = useQuery(
+    ['otherShowrooms', adShowroomId, adId, adCategoryId],
+    () => fetchOtherShowrooms({ adShowroomId, adId, adCategoryId }),
     {
-      enabled: !!adId && !!adCategoryId,
+      enabled: !!adShowroomId && !!adId && !!adCategoryId,
       retry: 2,
     }
   );
 
-  // Rest of the component code remains the same...
   const handleShowMore = (breakpoint) => {
     setVisibleCards(prev => ({
       ...prev,
@@ -60,7 +51,7 @@ const SimilarAds = ({ adId, adCategoryId }) => {
   if (isLoading) {
     return (
       <div className="container mx-auto p-6">
-        <h2 className="text-xl md:text-2xl font-semibold mb-6">Similar Ads</h2>
+        <h2 className="text-xl md:text-2xl font-semibold mb-6">Other Showrooms</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="animate-pulse">
@@ -78,11 +69,11 @@ const SimilarAds = ({ adId, adCategoryId }) => {
   }
 
   if (error) {
-    console.error('Error in SimilarAds:', error);
+    console.error('Error in FindOtherShowrooms:', error);
     return null;
   }
 
-  if (!relatedAds?.length) {
+  if (!otherShowrooms?.length) {
     return null;
   }
 
@@ -100,10 +91,10 @@ const SimilarAds = ({ adId, adCategoryId }) => {
   };
 
   const renderShowMoreButton = (breakpoint) => {
-    const totalAds = relatedAds.length;
+    const totalShowrooms = otherShowrooms.length;
     const currentVisible = visibleCards[breakpoint];
     
-    if (totalAds > currentVisible) {
+    if (totalShowrooms > currentVisible) {
       return (
         <div className={`hidden ${breakpoint === 'md' ? 'md:block lg:hidden' : breakpoint === 'lg' ? 'lg:block xl:hidden' : 'xl:block'} w-full text-center mt-6`}>
           <Button 
@@ -111,7 +102,7 @@ const SimilarAds = ({ adId, adCategoryId }) => {
             variant="outline"
             className="w-full max-w-md"
           >
-            Show More ({totalAds - currentVisible} remaining)
+            Show More ({totalShowrooms - currentVisible} remaining)
           </Button>
         </div>
       );
@@ -120,8 +111,8 @@ const SimilarAds = ({ adId, adCategoryId }) => {
   };
 
   return (
-    <div className="container mx-auto px-6">
-      <h2 className="text-xl md:text-2xl font-semibold mb-6">Similar Ads</h2>
+    <div className="container mx-auto p-6">
+      <h2 className="text-xl md:text-2xl font-semibold mb-6">Other Showrooms</h2>
 
       {/* Mobile View with Swiper (below 500px) */}
       <div className="sm:hidden">
@@ -133,18 +124,18 @@ const SimilarAds = ({ adId, adCategoryId }) => {
           modules={[Navigation, FreeMode]}
           className="mySwiper"
         >
-          {relatedAds.map(ad => (
-            <SwiperSlide key={ad.id}>
+          {otherShowrooms.map(showroom => (
+            <SwiperSlide key={showroom.id}>
               <CardUser
-                id={ad.id}
-                imageUrl={ad.images?.url}
-                price={ad.price}
-                title={ad.title}
-                location={`${ad.locationTown?.name}, ${ad.locationDistrict?.name}`}
-                postedDate={formatPostedDate(ad.createdAt)}
-                adBoostTag={ad.adBoostTag}
-                adCategoryId={ad.adCategory?.id}
-                isAdFavourite={ad.isAdFavourite}
+                id={showroom.id}
+                imageUrl={showroom.images?.url}
+                price={showroom.price}
+                title={showroom.title}
+                location={`${showroom.locationTown?.name}, ${showroom.locationDistrict?.name}`}
+                postedDate={formatPostedDate(showroom.createdAt)}
+                adBoostTag={showroom.adBoostTag}
+                adCategoryId={showroom.adCategory?.id}
+                isAdFavourite={showroom.isAdFavourite}
               />
             </SwiperSlide>
           ))}
@@ -154,18 +145,18 @@ const SimilarAds = ({ adId, adCategoryId }) => {
       {/* Desktop View - Grid */}
       <div className="hidden sm:block">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {relatedAds.slice(0, getCurrentVisibleCount()).map(ad => (
+          {otherShowrooms.slice(0, getCurrentVisibleCount()).map(showroom => (
             <CardUser
-              key={ad.id}
-              id={ad.id}
-              imageUrl={ad.images?.url}
-              price={ad.price}
-              title={ad.title}
-              location={`${ad.locationTown?.name}, ${ad.locationDistrict?.name}`}
-              postedDate={formatPostedDate(ad.createdAt)}
-              adBoostTag={ad.adBoostTag}
-              adCategoryId={ad.adCategory?.id}
-              isAdFavourite={ad.isAdFavourite}
+              key={showroom.id}
+              id={showroom.id}
+              imageUrl={showroom.images?.url}
+              price={showroom.price}
+              title={showroom.title}
+              location={`${showroom.locationTown?.name}, ${showroom.locationDistrict?.name}`}
+              postedDate={formatPostedDate(showroom.createdAt)}
+              adBoostTag={showroom.adBoostTag}
+              adCategoryId={showroom.adCategory?.id}
+              isAdFavourite={showroom.isAdFavourite}
             />
           ))}
         </div>
@@ -179,4 +170,4 @@ const SimilarAds = ({ adId, adCategoryId }) => {
   );
 };
 
-export default SimilarAds;
+export default FindOtherShowrooms;

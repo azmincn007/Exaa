@@ -1,55 +1,45 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { Swiper as SwiperComponent, SwiperSlide } from 'swiper/react';
 import { Navigation, FreeMode } from 'swiper/modules';
 import { useQuery } from 'react-query';
 import axios from 'axios';
-import { formatDistance } from 'date-fns';
-import CardUser from '../../common/Cards/CardUser';
+import { Button } from '@chakra-ui/react';
+import { BASE_URL } from '../../../config/config';
 
 // Import Swiper styles
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/free-mode';
-import { Button } from '@chakra-ui/react';
-import { BASE_URL } from '../../../config/config';
-import { DistrictContext, TownContext } from '../../../App';
+import NearbyCard from '../../common/Cards/nearbyCard';
 
-const fetchRelatedAds = async ({ adId, adCategoryId, locationTownId, locationDistrictId }) => {
+const fetchNearbyShowrooms = async (adShowroomId) => {
   try {
     const { data } = await axios.get(
-      `${BASE_URL}/api/find-related-ads?adId=${adId}&adCategoryId=${adCategoryId}&locationDistrictId=${locationDistrictId}&locationTownId=${locationTownId}`
+      `${BASE_URL}/api/find-nearby-ad-showrooms/${adShowroomId}`
     );
     return data.data;
   } catch (error) {
-    console.error('Error fetching related ads:', error);
+    console.error('Error fetching nearby showrooms:', error);
     throw error;
   }
 };
 
-const SimilarAds = ({ adId, adCategoryId }) => {
-  const [selectedTown] = useContext(TownContext);
-  const [selectedDistrict] = useContext(DistrictContext);
+const NearbyShowroomAds = ({ adShowroomId }) => {
   const [visibleCards, setVisibleCards] = useState({
     md: 2,
     lg: 3,
     xl: 4
   });
 
-  const { data: relatedAds, isLoading, error } = useQuery(
-    ['relatedAds', adId, adCategoryId, selectedTown, selectedDistrict],
-    () => fetchRelatedAds({ 
-      adId, 
-      adCategoryId,
-      locationTownId: selectedTown === "all" ? '"all"' : String(selectedTown),
-      locationDistrictId: selectedDistrict === "all" ? '"all"' : String(selectedDistrict)
-    }),
+  const { data: nearbyShowrooms, isLoading, error } = useQuery(
+    ['nearbyShowrooms', adShowroomId],
+    () => fetchNearbyShowrooms(adShowroomId),
     {
-      enabled: !!adId && !!adCategoryId,
+      enabled: !!adShowroomId,
       retry: 2,
     }
   );
 
-  // Rest of the component code remains the same...
   const handleShowMore = (breakpoint) => {
     setVisibleCards(prev => ({
       ...prev,
@@ -60,15 +50,14 @@ const SimilarAds = ({ adId, adCategoryId }) => {
   if (isLoading) {
     return (
       <div className="container mx-auto p-6">
-        <h2 className="text-xl md:text-2xl font-semibold mb-6">Similar Ads</h2>
+        <h2 className="text-xl md:text-2xl font-semibold mb-6">Nearby Showrooms</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="animate-pulse">
               <div className="bg-gray-200 h-48 rounded-t-lg"></div>
               <div className="bg-white p-4 rounded-b-lg">
                 <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div className="h-6 bg-gray-200 rounded w-1/2 mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-full"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
               </div>
             </div>
           ))}
@@ -78,17 +67,13 @@ const SimilarAds = ({ adId, adCategoryId }) => {
   }
 
   if (error) {
-    console.error('Error in SimilarAds:', error);
+    console.error('Error in NearbyShowroomAds:', error);
     return null;
   }
 
-  if (!relatedAds?.length) {
+  if (!nearbyShowrooms?.length) {
     return null;
   }
-
-  const formatPostedDate = (date) => {
-    return formatDistance(new Date(date), new Date(), { addSuffix: true });
-  };
 
   const getCurrentVisibleCount = () => {
     if (typeof window !== 'undefined') {
@@ -100,10 +85,10 @@ const SimilarAds = ({ adId, adCategoryId }) => {
   };
 
   const renderShowMoreButton = (breakpoint) => {
-    const totalAds = relatedAds.length;
+    const totalShowrooms = nearbyShowrooms.length;
     const currentVisible = visibleCards[breakpoint];
     
-    if (totalAds > currentVisible) {
+    if (totalShowrooms > currentVisible) {
       return (
         <div className={`hidden ${breakpoint === 'md' ? 'md:block lg:hidden' : breakpoint === 'lg' ? 'lg:block xl:hidden' : 'xl:block'} w-full text-center mt-6`}>
           <Button 
@@ -111,7 +96,7 @@ const SimilarAds = ({ adId, adCategoryId }) => {
             variant="outline"
             className="w-full max-w-md"
           >
-            Show More ({totalAds - currentVisible} remaining)
+            Show More ({totalShowrooms - currentVisible} remaining)
           </Button>
         </div>
       );
@@ -121,7 +106,7 @@ const SimilarAds = ({ adId, adCategoryId }) => {
 
   return (
     <div className="container mx-auto px-6">
-      <h2 className="text-xl md:text-2xl font-semibold mb-6">Similar Ads</h2>
+      <h2 className="text-xl md:text-2xl font-semibold mb-6">Nearby Showrooms</h2>
 
       {/* Mobile View with Swiper (below 500px) */}
       <div className="sm:hidden">
@@ -133,18 +118,13 @@ const SimilarAds = ({ adId, adCategoryId }) => {
           modules={[Navigation, FreeMode]}
           className="mySwiper"
         >
-          {relatedAds.map(ad => (
-            <SwiperSlide key={ad.id}>
-              <CardUser
-                id={ad.id}
-                imageUrl={ad.images?.url}
-                price={ad.price}
-                title={ad.title}
-                location={`${ad.locationTown?.name}, ${ad.locationDistrict?.name}`}
-                postedDate={formatPostedDate(ad.createdAt)}
-                adBoostTag={ad.adBoostTag}
-                adCategoryId={ad.adCategory?.id}
-                isAdFavourite={ad.isAdFavourite}
+          {nearbyShowrooms.map(showroom => (
+            <SwiperSlide key={showroom.id}>
+              <NearbyCard
+                name={showroom.name}
+                locationTown={showroom.locationTown?.name}
+                locationDistrict={showroom.locationDistrict?.name}
+                imageUrl={showroom.images?.url}
               />
             </SwiperSlide>
           ))}
@@ -154,18 +134,13 @@ const SimilarAds = ({ adId, adCategoryId }) => {
       {/* Desktop View - Grid */}
       <div className="hidden sm:block">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {relatedAds.slice(0, getCurrentVisibleCount()).map(ad => (
-            <CardUser
-              key={ad.id}
-              id={ad.id}
-              imageUrl={ad.images?.url}
-              price={ad.price}
-              title={ad.title}
-              location={`${ad.locationTown?.name}, ${ad.locationDistrict?.name}`}
-              postedDate={formatPostedDate(ad.createdAt)}
-              adBoostTag={ad.adBoostTag}
-              adCategoryId={ad.adCategory?.id}
-              isAdFavourite={ad.isAdFavourite}
+          {nearbyShowrooms.slice(0, getCurrentVisibleCount()).map(showroom => (
+            <NearbyCard
+              key={showroom.id}
+              name={showroom.name}
+              locationTown={showroom.locationTown?.name}
+              locationDistrict={showroom.locationDistrict?.name}
+              imageUrl={showroom.images?.url}
             />
           ))}
         </div>
@@ -179,4 +154,4 @@ const SimilarAds = ({ adId, adCategoryId }) => {
   );
 };
 
-export default SimilarAds;
+export default NearbyShowroomAds;

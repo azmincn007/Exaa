@@ -113,6 +113,7 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
           'Authorization': `Bearer ${token}`
         }
       });
+      
 
       return {
         isAdCreationPossible: response.data.data.isAdCreationPossible,
@@ -127,7 +128,7 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
         duration: 3000,
         isClosable: true,
       });
-      return { isAdCreationPossible: false, isTagCreationPossible: false };
+      return { isAdCreationPossible: false };
     }
   };
 

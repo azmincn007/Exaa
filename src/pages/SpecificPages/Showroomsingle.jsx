@@ -73,6 +73,8 @@ useEffect(() => {
         sort:''
       }
     });
+    console.log(response.data);
+    
     return response.data.data;
   };
 

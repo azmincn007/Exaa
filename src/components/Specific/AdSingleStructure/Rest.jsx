@@ -1,7 +1,6 @@
 import React from 'react';
 
 const Rest = ({ adData }) => {
-    console.log(adData);
     
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('en-US', {
@@ -25,8 +24,8 @@ const Rest = ({ adData }) => {
     
     // Create a key-value pair data structure for specific fields
     const keyValuePairs = [
-        { label: 'Category', value: adData?.adCategory.name },
-        { label: 'Sub Category', value: adData?.adSubCategory.name },
+        { label: 'Category', value: adData?.adCategory?.name },
+        { label: 'Sub Category', value: adData?.adSubCategory?.name },
         { label: 'Brand', value: adData?.brand },
         { label: 'Model', value: adData?.model },
         { label: 'Variant', value: adData?.variant },

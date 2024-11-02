@@ -40,6 +40,8 @@ const ChatComponent = () => {
     const response = await axios.get(endpoint, {
       headers: { Authorization: `Bearer ${userToken}` },
     });
+    console.log(response.data.data);
+    
     return response.data.data;
   };
 
@@ -211,6 +213,8 @@ const ChatDetails = ({ chat }) => {
           },
         }
       );
+      console.log(response.data);
+      
       setChatDetails(response.data);
     } catch (error) {
       console.error('Error fetching chat details:', error);

@@ -108,6 +108,12 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
       onSuccess: (data) => {
         setCompleteAdData(data);
         setIsDataLoaded(true);
+        queryClient.invalidateQueries("userAds");
+        queryClient.invalidateQueries("expiredAds");
+        queryClient.invalidateQueries("pendingAds"); // Add pending ads invalidation
+        refetchUserAds();
+        refetchExpiredAds();
+        refetchPendingAds(); // Refetch pending ads
       },
       onError: (error) => {
         console.error('Error fetching complete ad data:', error);
@@ -252,33 +258,31 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
 
     setIsSubmitting(true);
     try {
-      if (categoryChanged) {
-        const { isAdCreationPossible, isTagCreationPossible } = await checkAdCreationPossibility(data.adCategory);
-        
-        setIsTagCreationPossible(isTagCreationPossible);
+      // Always check ad creation possibility regardless of category change
+      const { isAdCreationPossible, isTagCreationPossible } = await checkAdCreationPossibility(data.adCategory);
+      
+      setIsTagCreationPossible(isTagCreationPossible);
 
-        if (!isAdCreationPossible) {
-          onClose();
-          navigate('/packages/post-more-ads');
-          toast({
-            title: "Package Required",
-            description: "You need to purchase a package to edit ads in this category. Redirecting you to available packages.",
-            status: "info",
-            duration: 5000,
-            isClosable: true,
-          });
-          setIsSubmitting(false);
-          return;
-        }
+      if (!isAdCreationPossible) {
+        onClose();
+        navigate('/packages/post-more-ads');
+        toast({
+          title: "Package Required",
+          description: "You need to purchase a package to edit ads in this category. Redirecting you to available packages.",
+          status: "info",
+          duration: 5000,
+          isClosable: true,
+        });
+        setIsSubmitting(false);
+        return;
       }
 
       const formData = new FormData();
       const alwaysIncludeFields = ['brand', 'model', 'variant', 'type'];
 
       Object.keys(data).forEach(key => {
-        // Include if it's in alwaysIncludeFields list, even if empty
         if (alwaysIncludeFields.includes(key)) {
-          formData.append(key, data[key] || ''); // Use empty string if value is null/undefined
+          formData.append(key, data[key] || '');
         } else if (data[key] !== "") {
           formData.append(key, data[key]);
         }
@@ -324,25 +328,20 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
         // Store all the necessary data for the congratulations modal
         setSubmittedAdId(response.data.data.id);
         setSubmittedAdType(subCategoryDetails.name);
-        setSubmittedFormData(data);
+        setSubmittedFormData({
+          ...data,
+          adShowroom: []
+        });
         setSubmittedApiUrl(subCategoryDetails.apiUrl);
         
-        const processedImages = uploadedImages.map(img => {
-          if (img.file) {
-            return img.file;
-          } else if (img.isExisting) {
-            return img.preview;
-          }
-          return null;
-        }).filter(Boolean);
+        setSubmittedImages(imageFiles);
         
-        setSubmittedImages(processedImages);
         setShowCongratulations(true);
         onClose();
 
+      
         queryClient.invalidateQueries("userAds");
         queryClient.invalidateQueries("pendingAds");
-        queryClient.invalidateQueries("expiredAds");
       } else {
         throw new Error('Failed to update ad');
       }
@@ -617,7 +616,6 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
           images={submittedImages}
           adId={submittedAdId}
           onClose={() => setShowCongratulations(false)}
-          mode="edit" // Optional: if you want to differentiate between create/edit
         />
       )}
     </>

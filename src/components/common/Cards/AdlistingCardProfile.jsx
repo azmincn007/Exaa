@@ -7,7 +7,6 @@ import SellModalEdit from '../../modals/othermodals/SellmodalEdit';
 import DeleteConfirmationDialog from '../../modals/othermodals/DeleteConfirmation';
 
 const AdListingCardProfile = ({ listing, onDelete, onRepost, isExpired, isPending ,isActive}) => {
-  console.log(isPending);
   
   const navigate = useNavigate();
   const {

@@ -13,6 +13,8 @@ import LoginModal from '../../modals/Authentications/LoginModal';
 import { useAuth } from '../../../Hooks/AuthContext';
 import PriceAdjuster from '../AdSingleStructure/PriceAdjuster';
 import SimilarAds from './SimilarAds';
+import NearbyShowroomAds from './NearbyShowroomads';
+import FindOtherShowrooms from './FindOtherShowroomAds';
 
 const fetchAdData = async ({ queryKey }) => {
   const [_, adCategoryId, adId, token] = queryKey;
@@ -21,6 +23,8 @@ const fetchAdData = async ({ queryKey }) => {
   };
   
   const { data } = await axios.get(`${BASE_URL}/api/find-one-ad/${adCategoryId}/${adId}`, config);
+  console.log(data.data);
+  
   return data.data;
 };
 
@@ -162,7 +166,8 @@ function SingleAd() {
           sellerId: adData.adSeller.id,
           sellerName: adData.adSeller.name,
           sellerPhone: adData.adSeller.phone,
-          sellerProfile: adData.adSeller.profileImage?.url
+          sellerProfile: adData.adSeller.profileImage?.url,
+          sellerLocation:adData.adSeller.userLocation
         }
       });
     }
@@ -307,7 +312,22 @@ function SingleAd() {
           adId={adId}
           adCategoryId={adCategoryId}
         />
+
+{adData.adShowroom && (
+          <>
+            <NearbyShowroomAds
+              adShowroomId={adData.adShowroom.id}
+            />
+
+<FindOtherShowrooms
+  adId={adId}
+  adCategoryId={adCategoryId}
+  adShowroomId={adData.adShowroom.id}
+/>
+          </>
+        )}
       </div>
+      
 
       <PriceAdjuster
         initialPrice={adData.price}
