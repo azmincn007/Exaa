@@ -405,6 +405,10 @@ const EditShowroomad = ({
 
         console.log('Data being passed to parent via onShowSuccess:', callbackData);
 
+        queryClient.invalidateQueries("userAds");
+        queryClient.invalidateQueries("pendingAds");
+        queryClient.invalidateQueries("expiredAds");
+
         onClose();
         onShowSuccess(callbackData);
       }

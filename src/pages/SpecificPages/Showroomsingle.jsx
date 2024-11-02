@@ -157,9 +157,9 @@ useEffect(() => {
         name={showroomData?.name}
         category={showroomData?.adCategory?.name}
         showroomCategory={showroomData?.adShowroomCategory?.name}
-        userRating={showroomData.userRating}
-        showroomId={showroomData.id}
-        showroomRating={showroomData.showroomRating}
+        userRating={showroomData?.userRating}
+        showroomId={showroomData?.id}
+        showroomRating={showroomData?.showroomRating}
       />
       <div className="py-2">
         <h1 className="font-semibold py-2">All Ads</h1>

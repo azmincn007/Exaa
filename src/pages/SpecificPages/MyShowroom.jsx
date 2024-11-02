@@ -212,7 +212,13 @@ const MyShowroom = () => {
     }
 
     try {
-      // Get the sub-category details first
+      // Optimistically update the UI first
+      queryClient.setQueryData(['showroomAds', selectedShowroom.id], (oldData) => {
+        if (!Array.isArray(oldData)) return [];
+        return oldData.filter(ad => ad.id !== adData.id);
+      });
+
+      // Get the sub-category details
       const { data: subCategoryData } = await axios.get(
         `${BASE_URL}/api/ad-find-one-sub-category/${adData.adSubCategory.id}`,
         {
@@ -222,13 +228,7 @@ const MyShowroom = () => {
 
       const apiUrl = subCategoryData.data.apiUrl;
 
-      // Optimistically update the UI
-      queryClient.setQueryData(['showroomAds', selectedShowroom.id], (oldData) => {
-        if (!Array.isArray(oldData)) return oldData;
-        return oldData.filter(ad => ad?.id !== adData.id);
-      });
-
-      // Delete the ad using axios
+      // Delete the ad
       await axios.delete(
         `${BASE_URL}/api/${apiUrl}/${adData.id}`,
         {
@@ -244,8 +244,8 @@ const MyShowroom = () => {
         isClosable: true,
       });
 
-      // Invalidate and refetch the showroom ads query
-      await queryClient.invalidateQueries(['showroomAds', selectedShowroom.id]);
+      // Refetch to ensure data consistency
+      await refetchShowroomAds();
 
     } catch (error) {
       console.error("Error deleting ad:", error);
@@ -259,10 +259,10 @@ const MyShowroom = () => {
         isClosable: true,
       });
       
-      // Revert the optimistic update
-      await queryClient.invalidateQueries(['showroomAds', selectedShowroom.id]);
+      // Revert the optimistic update by refetching
+      await refetchShowroomAds();
     }
-  }, [queryClient, selectedShowroom?.id, token, toast]);
+  }, [queryClient, selectedShowroom?.id, token, toast, refetchShowroomAds]);
 
   if (showroomsLoading || !isInitialized || adsLoading) {
     return <ShowroomSkeleton />;

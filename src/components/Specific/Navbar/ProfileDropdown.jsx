@@ -83,7 +83,7 @@ const ProfileDropdown = ({ onLogout, onClose }) => {
             {renderProfileImage()}
             <div>
               <p className="font-semibold text-gray-800">{userData?.name || 'User'}</p>
-              <p className="text-sm text-gray-600">Kochi, Kakkanad</p>
+              <p className="text-sm text-gray-600">{userData?.userLocation?.locationTown?.name},{userData?.userLocation?.locationDistrict?.name}</p>
             </div>
           </div>
         </div>

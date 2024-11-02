@@ -277,6 +277,7 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
         onClose();
         
         queryClient.invalidateQueries("userAds");
+        queryClient.invalidateQueries("pendingAds");
         
         if (onSuccessfulSubmit) {
           onSuccessfulSubmit();

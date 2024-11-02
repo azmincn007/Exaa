@@ -18,7 +18,9 @@ const badgeConfig = {
 };
 
 function AdBoostBadge({ tag }) {
-  const { color, icon: Icon } = badgeConfig[tag] || { color: '#9E9E9E', icon: FaStar };
+  // Handle case where tag is an object
+  const tagName = typeof tag === 'object' ? tag.name : tag;
+  const { color, icon: Icon } = badgeConfig[tagName] || { color: '#9E9E9E', icon: FaStar };
 
   return (
     <div 
@@ -26,7 +28,7 @@ function AdBoostBadge({ tag }) {
       style={{ backgroundColor: color }}
     >
       <Icon className="w-3 h-3 mr-1" />
-      {tag}
+      {tagName}
     </div>
   );
 }

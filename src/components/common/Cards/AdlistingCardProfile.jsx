@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Image, Text, Badge, IconButton, useDisclosure } from '@chakra-ui/react';
 import { Eye, Heart, MapPin, Edit, Trash2, RefreshCw } from 'lucide-react';
 import { BASE_URL } from '../../../config/config';
 import SellModalEdit from '../../modals/othermodals/SellmodalEdit';
 import DeleteConfirmationDialog from '../../modals/othermodals/DeleteConfirmation';
 
-const AdListingCardProfile = ({ listing, onDelete, onRepost, isExpired }) => {
+const AdListingCardProfile = ({ listing, onDelete, onRepost, isExpired, isPending ,isActive}) => {
+  console.log(isPending);
+  
+  const navigate = useNavigate();
   const {
     id,
-    isActive,
     images,
     title,
     price,
@@ -20,19 +23,29 @@ const AdListingCardProfile = ({ listing, onDelete, onRepost, isExpired }) => {
     adSubCategory,
     description
   } = listing;
+  
+ 
+  
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedListing, setSelectedListing] = useState(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleEditClick = (listing) => {
+  const handleEditClick = (e, listing) => {
+    e.stopPropagation(); // Prevent card click navigation
     setSelectedListing(listing);
     setIsEditModalOpen(true);
   };
 
-  const handleDeleteClick = () => {
+  const handleDeleteClick = (e) => {
+    e.stopPropagation(); // Prevent card click navigation
     setIsDeleteDialogOpen(true);
+  };
+
+  const handleRepostClick = (e, id) => {
+    e.stopPropagation(); // Prevent card click navigation
+    onRepost(id);
   };
 
   const handleDeleteConfirm = async () => {
@@ -45,6 +58,18 @@ const AdListingCardProfile = ({ listing, onDelete, onRepost, isExpired }) => {
       setIsDeleting(false);
       setIsDeleteDialogOpen(false);
     }
+  };
+
+  const handleCardClick = () => {
+    navigate('/ad-preview', { 
+      state: { 
+        adCategoryId: adCategory?.id,
+        adId: id,
+        isExpired,
+        isPending,
+        isActive
+      } 
+    });
   };
 
   const formatDate = (dateString) => {
@@ -65,7 +90,10 @@ const AdListingCardProfile = ({ listing, onDelete, onRepost, isExpired }) => {
   return (
     <>
       {/* Card Container */}
-      <div className="border border-gray-200 rounded-lg overflow-hidden shadow-md mb-4 font-Inter">
+      <div 
+        className="border border-gray-200 rounded-lg overflow-hidden shadow-md mb-4 font-Inter cursor-pointer hover:shadow-lg transition-shadow"
+        onClick={handleCardClick}
+      >
         {/* Flex container that switches to block on mobile */}
         <div className="flex flex-col md:flex-row">
           {/* Image container */}
@@ -75,20 +103,26 @@ const AdListingCardProfile = ({ listing, onDelete, onRepost, isExpired }) => {
               alt={title}
               className={`object-cover w-full h-full ${isExpired ? 'opacity-60' : ''}`}
             />
-            {isActive && !isExpired && (
+            {isPending ? (
               <Badge 
                 className="absolute top-2 left-2" 
-                colorScheme="green"
+                colorScheme="yellow"
               >
-                Active
+                Pending
               </Badge>
-            )}
-            {isExpired && (
+            ) : isExpired ? (
               <Badge 
                 className="absolute top-2 left-2" 
                 colorScheme="red"
               >
                 Expired
+              </Badge>
+            ) : isActive && (
+              <Badge 
+                className="absolute top-2 left-2" 
+                colorScheme="green"
+              >
+                Active
               </Badge>
             )}
           </div>
@@ -112,7 +146,7 @@ const AdListingCardProfile = ({ listing, onDelete, onRepost, isExpired }) => {
                       size="sm"
                       colorScheme="green"
                       variant="ghost"
-                      onClick={() => onRepost(id)}
+                      onClick={(e) => handleRepostClick(e, id)}
                     />
                   )}
                   <IconButton
@@ -121,7 +155,7 @@ const AdListingCardProfile = ({ listing, onDelete, onRepost, isExpired }) => {
                     size="sm"
                     colorScheme="blue"
                     variant="ghost"
-                    onClick={() => handleEditClick(listing)}
+                    onClick={(e) => handleEditClick(e, listing)}
                   />
                   <IconButton
                     icon={<Trash2 size={16} />}
@@ -162,7 +196,7 @@ const AdListingCardProfile = ({ listing, onDelete, onRepost, isExpired }) => {
               </div>
 
               {/* Location and date */}
-              <div className="flex flex-col md:flex-row md:justify-between gap-2  border-t border-gray-100">
+              <div className="flex flex-col md:flex-row md:justify-between gap-2 border-t border-gray-100">
                 <div className="flex items-center">
                   <MapPin className="text-gray-500" size={16} />
                   <Text className="ml-1 text-sm text-gray-500">

@@ -22,8 +22,6 @@ export const ProfileListings = ({
   handleRepostAd,
   handleSellClick,
 }) => {
-  console.log(expiredListings);
-  
   const [visibleAds, setVisibleAds] = useState(3);
   const [activeTab, setActiveTab] = useState("active");
   const isMobile = useBreakpointValue({ base: true, md: false });
@@ -68,6 +66,19 @@ export const ProfileListings = ({
       return renderEmptyState(type);
     }
 
+    const adListings = listings.slice(0, visibleAds).map((listing) => (
+      <AdListingCardProfile
+        key={listing.id}
+        listing={listing}
+        onEdit={() => handleEditListing(listing.id)}
+        onDelete={() => handleDeleteListing(listing.id, listing.adSubCategory.id)}
+        onRepost={() => handleRepostAd(listing.id)}
+        isActive={type === 'active'}
+        isExpired={type === 'expired'}
+        isPending={type === 'pending'}
+      />
+    ));
+
     if (isMobile) {
       return (
         <Box width="100%">
@@ -81,32 +92,14 @@ export const ProfileListings = ({
               slidesPerView={1.5}
               pagination={{ clickable: true }}
             >
-              {listings.slice(0, visibleAds).map((listing) => (
-                <SwiperSlide key={listing.id}>
-                  <AdListingCardProfile
-                    listing={listing}
-                    onEdit={() => handleEditListing(listing.id)}
-                    onDelete={() => handleDeleteListing(listing.id, listing.adSubCategory.id)}
-                    onRepost={() => handleRepostAd(listing.id)}
-                    isExpired={type === 'expired'}
-                    isPending={type === 'pending'}
-                  />
+              {adListings.map((adListing, index) => (
+                <SwiperSlide key={index}>
+                  {adListing}
                 </SwiperSlide>
               ))}
             </Swiper>
           </Box>
-          <Flex direction="column" gap={4} className="mt-4">
-            {visibleAds < listings.length && (
-              <Button onClick={handleShowMore} colorScheme="blue" variant="outline" width="100%">
-                Show More
-              </Button>
-            )}
-            {type === 'active' && (
-              <Button onClick={handleSellClick} colorScheme="blue" className="text-white font-medium py-2 px-16 rounded mx-auto block">
-                Start Selling
-              </Button>
-            )}
-          </Flex>
+          {renderButtons(listings)}
         </Box>
       );
     }
@@ -122,34 +115,28 @@ export const ProfileListings = ({
           }}
         >
           <Flex direction="column" gap={4}>
-            {listings.slice(0, visibleAds).map((listing) => (
-              <AdListingCardProfile
-                key={listing.id}
-                listing={listing}
-                onEdit={() => handleEditListing(listing.id)}
-                onDelete={() => handleDeleteListing(listing.id, listing.adSubCategory.id)}
-                onRepost={() => handleRepostAd(listing.id)}
-                isExpired={type === 'expired'}
-                isPending={type === 'pending'}
-              />
-            ))}
+            {adListings}
           </Flex>
         </Box>
-        <Flex direction="column" gap={4} className="mt-4">
-          {visibleAds < listings.length && (
-            <Button onClick={handleShowMore} colorScheme="blue" variant="outline" width="100%">
-              Show More
-            </Button>
-          )}
-          {type === 'active' && (
-            <Button onClick={handleSellClick} colorScheme="blue" className="text-white font-medium py-2 px-16 rounded mx-auto block">
-              Start Selling
-            </Button>
-          )}
-        </Flex>
+        {renderButtons(listings)}
       </Box>
     );
   };
+
+  const renderButtons = (listings) => (
+    <Flex direction="column" gap={4} className="mt-4">
+      {visibleAds < listings.length && (
+        <Button onClick={handleShowMore} colorScheme="blue" variant="outline" width="100%">
+          Show More
+        </Button>
+      )}
+      {activeTab === 'active' && (
+        <Button onClick={handleSellClick} colorScheme="blue" className="text-white font-medium py-2 px-16 rounded mx-auto block">
+          Start Selling
+        </Button>
+      )}
+    </Flex>
+  );
 
   return (
     <Tabs 

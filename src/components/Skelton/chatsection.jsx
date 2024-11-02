@@ -22,7 +22,7 @@ const SkeletonChatList = () => (
 );
 
 const SkeletonChatDetails = () => (
-  <div className="flex flex-col h-full bg-[#0071BC1A] p-2 gap-4 animate-pulse">
+  <div className="flex flex-col min-h-screen bg-[#0071BC1A] p-2 gap-4 animate-pulse">
     <div className="bg-gray-300 h-20 rounded-md"></div>
     <div className="bg-gray-300 h-10 rounded-md"></div>
     <div className="flex-1 bg-white rounded-md">

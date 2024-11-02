@@ -81,7 +81,7 @@ export default function Packages() {
   }
 
   return (
-    <Box mx="auto" p={6} bg="#1a2332" color="white" borderRadius="lg" boxShadow="lg" position="relative" className="mt-4 rounded-lg font-Inter w-[80%]">
+    <Box mx="auto" p={6} bg="#1a2332" color="white" borderRadius="lg" boxShadow="lg" position="relative" className=" mi-h-screen mt-4 rounded-lg font-Inter w-[80%]">
       <VStack spacing={6} align="center" mb={6}>
         <Heading className="text-18 font-Inter tracking-widest font-[400]">
           Packages

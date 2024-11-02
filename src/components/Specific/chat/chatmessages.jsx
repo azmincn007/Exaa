@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const ChatMessages = ({ chats, userId }) => {
-  const messagesEndRef = useRef(null);
   const [displayedMessages, setDisplayedMessages] = useState([]);
   const receiverName = chats?.data?.adChatReceiver?.name;
   const isBuyerReceiver = chats?.data?.adChatReceiver?.type === 'buyer';
@@ -20,7 +19,6 @@ const ChatMessages = ({ chats, userId }) => {
       message => message.status !== 'sending'
     );
     setDisplayedMessages(confirmedMessages);
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chats.data.messages]);
 
   const MessageBubble = ({ message, isMessageFromReceiver }) => {
@@ -71,7 +69,6 @@ const ChatMessages = ({ chats, userId }) => {
               />
             );
           })}
-          <div ref={messagesEndRef} />
         </div>
       </div>
     </div>

@@ -341,6 +341,8 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
         onClose();
 
         queryClient.invalidateQueries("userAds");
+        queryClient.invalidateQueries("pendingAds");
+        queryClient.invalidateQueries("expiredAds");
       } else {
         throw new Error('Failed to update ad');
       }

@@ -319,7 +319,7 @@ useEffect(() => {
   };
 
   return (
-    <Box maxWidth="container.xl" margin="auto" padding={8} minHeight="400px">
+    <Box maxWidth="container.xl" margin="auto" padding={8} className='min-h-screen'>
       <Grid templateColumns="1fr 3fr" gap={6}>
         <GridItem>
           <VStack align="stretch" spacing={4} p={6}>

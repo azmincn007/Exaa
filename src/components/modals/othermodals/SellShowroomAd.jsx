@@ -209,6 +209,7 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
         setUploadedImages([]);
         onClose();
         queryClient.invalidateQueries("userAds");
+        queryClient.invalidateQueries("pendingAds");
         if (onAdCreated) {
           onAdCreated();
         }

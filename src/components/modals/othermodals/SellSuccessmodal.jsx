@@ -23,7 +23,6 @@ const CongratulationsModal = ({
   images 
 }) => {
   console.log(formData);
-  console.log(images);
 
 
   
@@ -135,6 +134,18 @@ const CongratulationsModal = ({
     }
   };
 
+  const handlePreviewClick = () => {
+    // Convert adCategory string to number
+    const adCategoryId = parseInt(formData.adCategory) || 0;
+    
+    navigate('/ad-preview', { 
+      state: { 
+        adCategoryId,
+        adId
+      } 
+    });
+  };
+
   // Loading and error states
   if (isLoading) {
     return (
@@ -240,8 +251,9 @@ const CongratulationsModal = ({
                 </div>
               )}
 
-              {/* Preview button */}
+              {/* Preview button - Updated with onClick handler */}
               <button 
+                onClick={handlePreviewClick}
                 className="bg-slate-700 text-white w-full py-2 rounded-md font-semibold 
                          hover:bg-slate-600 transition-colors h-[40px]"
               >

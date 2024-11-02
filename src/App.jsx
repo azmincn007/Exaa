@@ -25,6 +25,7 @@ import CustomerProfile from './pages/SpecificPages/CustomerProfile';
 import LocationSelects from './components/modals/Authentications/LocationSelects';
 import HelpAndSupport from './components/ui/HelpAndSupport';
 import Settings from './components/ui/Settings';
+import AdPreviewPage from './components/Specific/Landing/AdPreviewPage';
 
 export const TownContext = createContext();
 export const UserdataContext = createContext();
@@ -130,6 +131,7 @@ function App() {
                       </Route>
                       <Route path="payment" element={<PaymentButton />} />
                       <Route path="test" element={<LocationSelects />} />
+                      <Route path="/ad-preview" element={<Layout><AdPreviewPage /></Layout>} />
                     </Routes>
                   </Router>
                 </TownContext.Provider>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Swiper as SwiperComponent, SwiperSlide } from 'swiper/react';
 import { Navigation, FreeMode } from 'swiper/modules';
 import { useQuery } from 'react-query';
@@ -12,11 +12,12 @@ import 'swiper/css/navigation';
 import 'swiper/css/free-mode';
 import { Button } from '@chakra-ui/react';
 import { BASE_URL } from '../../../config/config';
+import { DistrictContext, TownContext } from '../../../App';
 
-const fetchRelatedAds = async ({ adId, adCategoryId }) => {
+const fetchRelatedAds = async ({ adId, adCategoryId, locationTownId, locationDistrictId }) => {
   try {
     const { data } = await axios.get(
-      `${BASE_URL}/api/find-related-ads?adId=${adId}&adCategoryId=${adCategoryId}&locationDistrictId="all"&locationTownId="all"`
+      `${BASE_URL}/api/find-related-ads?adId=${adId}&adCategoryId=${adCategoryId}&locationDistrictId=${locationDistrictId}&locationTownId=${locationTownId}`
     );
     return data.data;
   } catch (error) {
@@ -26,6 +27,8 @@ const fetchRelatedAds = async ({ adId, adCategoryId }) => {
 };
 
 const SimilarAds = ({ adId, adCategoryId, BASE_URL }) => {
+  const [selectedTown] = useContext(TownContext);
+  const [selectedDistrict] = useContext(showroo);
   const [visibleCards, setVisibleCards] = useState({
     md: 2,
     lg: 3,
@@ -33,15 +36,20 @@ const SimilarAds = ({ adId, adCategoryId, BASE_URL }) => {
   });
 
   const { data: relatedAds, isLoading, error } = useQuery(
-    ['relatedAds', adId, adCategoryId],
-    () => fetchRelatedAds({ adId, adCategoryId, BASE_URL }),
+    ['relatedAds', adId, adCategoryId, selectedTown, selectedDistrict],
+    () => fetchRelatedAds({ 
+      adId, 
+      adCategoryId,
+      locationTownId: selectedTown === "all" ? '"all"' : String(selectedTown),
+      locationDistrictId: selectedDistrict === "all" ? '"all"' : String(selectedDistrict)
+    }),
     {
       enabled: !!adId && !!adCategoryId,
       retry: 2,
-     
     }
   );
 
+  // Rest of the component code remains the same...
   const handleShowMore = (breakpoint) => {
     setVisibleCards(prev => ({
       ...prev,
@@ -82,17 +90,15 @@ const SimilarAds = ({ adId, adCategoryId, BASE_URL }) => {
     return formatDistance(new Date(date), new Date(), { addSuffix: true });
   };
 
-  // Function to get current breakpoint visible count
   const getCurrentVisibleCount = () => {
     if (typeof window !== 'undefined') {
       if (window.innerWidth >= 1280) return visibleCards.xl;
       if (window.innerWidth >= 1024) return visibleCards.lg;
       return visibleCards.md;
     }
-    return visibleCards.md; // Default for SSR
+    return visibleCards.md;
   };
 
-  // Function to render the show more button for specific breakpoint
   const renderShowMoreButton = (breakpoint) => {
     const totalAds = relatedAds.length;
     const currentVisible = visibleCards[breakpoint];

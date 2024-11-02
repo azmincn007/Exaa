@@ -88,8 +88,8 @@ const ChatComponent = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100">
-      <div className="w-full md:w-[90%] mx-auto flex flex-col flex-grow h-full">
+    <div className="flex flex-col min-h-screen bg-gray-100">
+      <div className="w-full md:w-[90%] mx-auto flex flex-col flex-grow">
         {/* Tab Navigation */}
         <div className="flex-none bg-white">
           <TabNavigation activeTab={activeTab} onTabChange={handleTabChange} />
@@ -104,7 +104,7 @@ const ChatComponent = () => {
         </div>
 
         {/* Main Content Area */}
-        <div className="flex flex-grow overflow-hidden h-[calc(100vh-theme(spacing.16))] bg-white">
+        <div className="flex flex-grow overflow-hidden h-[calc(100vh-4rem)] bg-white">
           {/* Chat List - Desktop */}
           <div className="hidden md:flex w-1/3 flex-col bg-[#0071BC1A] border-r border-gray-300">
             <div className="flex-grow overflow-y-auto">
