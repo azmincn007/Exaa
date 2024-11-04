@@ -270,7 +270,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
       let isAdCreationPossible = true;
       let isTagCreationPossible = true;
 
-      if (data.adCategory !== initialCategoryId) {
+      if (parseInt(data.adCategory) !== parseInt(initialCategoryId)) {
         const result = await checkAdCreationPossibility(data.adCategory);
         isAdCreationPossible = result.isAdCreationPossible;
         isTagCreationPossible = result.isTagCreationPossible;
@@ -278,7 +278,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
       
       setIsTagCreationPossible(isTagCreationPossible);
 
-      if (!isAdCreationPossible) {
+      if (!isAdCreationPossible && parseInt(data.adCategory) !== parseInt(initialCategoryId)) {
         onClose();
         navigate('/packages/post-more-ads');
         toast({
