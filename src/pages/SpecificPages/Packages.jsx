@@ -105,12 +105,13 @@ export default function Packages() {
 
       <Box bg="white" color="black" borderRadius="md" p={4}>
         <Tabs isFitted variant="unstyled" index={isPostMoreAdsTab ? 0 : 1} onChange={handleTabChange}>
-          <TabList mb="1em" className="w-[40%] min-w-[300px] mx-auto border-b border-gray-200">
+          <TabList mb="1em" className="w-[45%] min-w-[95%] md:min-w-[300px] mx-auto border-b border-gray-200">
             <Tab 
               _selected={{ color: "blue.500", borderBottom: "2px solid currentColor" }}
               className="w-1/2 py-2 text-12 md:text-16 font-[600] text-center text-[#16273C] hover:text-gray-700"
             >
-              Post more Ads
+              <span className="md:inline hidden">Post more Ads</span>
+              <span className="md:hidden block">Post<br/>more Ads</span>
             </Tab>
             <Tab 
               _selected={{ color: "blue.500", borderBottom: "2px solid currentColor" }}

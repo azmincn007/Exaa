@@ -6,7 +6,7 @@ import { UserdataContext } from '../../../App';
 import { BASE_URL } from '../../../config/config';
 
 const CustomerProfileComponent = ({sellerName, sellerPhone, sellerProfile,sellerLocation}) => {
-  console.log(sellerLocation);
+  console.log(sellerProfile);
   
   const [isShareExpanded, setIsShareExpanded] = useState(false);
   const toast = useToast();

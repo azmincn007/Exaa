@@ -79,9 +79,11 @@ useEffect(() => {
   };
 
   const { data: showroomData, isLoading: isLoadingShowroom, error: showroomError } = useQuery(
-    ['showroom', id],
+    ['showroomDetail', id],
     fetchShowroomData,
     {
+      refetchInterval: 3000,
+      refetchIntervalInBackground: false, // Don't fetch when tab is not active
       onError: (error) => {
         console.error("Error fetching showroom data:", error);
       }

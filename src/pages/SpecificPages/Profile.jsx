@@ -18,6 +18,8 @@ const Profile = () => {
   const toast = useToast();
   
   const { userData, isLoading: isUserDataLoading } = useContext(UserdataContext);
+  console.log(userData);
+  
   const { isLoggedIn, isInitialized, getToken } = useAuth();
   const { isOpen: isSellModalOpen, onOpen: onSellModalOpen, onClose: onSellModalClose } = useDisclosure();
 
@@ -200,6 +202,27 @@ const Profile = () => {
       );
     }
 
+    const handleShareProfile = () => {
+      const profileUrl = `${window.location.origin}#/customer-profile/${userData?.id}`;
+      navigator.clipboard.writeText(profileUrl)
+        .then(() => {
+          toast({
+            title: "Profile link copied!",
+            status: "success",
+            duration: 2000,
+            isClosable: true,
+          });
+        })
+        .catch((error) => {
+          toast({
+            title: "Failed to copy link",
+            status: "error",
+            duration: 2000,
+            isClosable: true,
+          });
+        });
+    };
+
     return (
       <Box width="100%" px={4}>
         {renderProfileImage()}
@@ -224,7 +247,16 @@ const Profile = () => {
         >
           Edit Profile
         </Button>
-      
+        <Box textAlign="center">
+          <Button
+            variant="link"
+            color="blue.500"
+            textDecoration="underline"
+            onClick={handleShareProfile}
+          >
+            Share Profile
+          </Button>
+        </Box>
       </Box>
     );
   };

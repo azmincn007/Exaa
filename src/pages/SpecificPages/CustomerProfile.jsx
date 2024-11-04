@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import CustomerProfileComponent from '../../components/Specific/Profile/Customerprofile';
 import axios from 'axios';
 import { Box, Text, Spinner, Center, Button } from '@chakra-ui/react';
@@ -9,17 +9,39 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import { BASE_URL } from '../../config/config';
 import CardShowroom from '../../components/common/Cards/CardShowroom';
+import { useQuery } from 'react-query';
 
 function CustomerProfile() {
-  const { state } = useLocation();
-  const { sellerId, sellerName, sellerPhone, sellerProfile,sellerLocation } = state || {};
+  const { customerId } = useParams();
+  console.log(customerId);
+  
   const [userAds, setUserAds] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [visibleCards, setVisibleCards] = useState(6);
   const [isMobile, setIsMobile] = useState(false);
 
-console.log(sellerLocation);
+  const { data: sellerData, isLoading: profileLoading } = useQuery(
+    ['userProfile', customerId],
+    async () => {
+      if (!customerId) throw new Error('User ID not found');
+      
+      const response = await axios.get(
+        `${BASE_URL}/api/user/userProfile/${customerId}`
+      );
+      console.log(response.data);
+      
+      return response.data;
+    },
+    {
+      enabled: !!customerId
+    }
+  );
+
+  const sellerName = sellerData?.data?.name;
+  const sellerPhone = sellerData?.data?.phone;
+  const sellerProfile = sellerData?.data?.profileImage?.url;
+  const sellerLocation = sellerData?.data?.userLocation;
 
   useEffect(() => {
     const checkIfMobile = () => {
@@ -33,21 +55,15 @@ console.log(sellerLocation);
   }, []);
 
   const fetchUserAds = async () => {
-    if (!sellerId) {
+    if (!customerId) {
       setError('User ID not found');
       setIsLoading(false);
       return;
     }
 
-    const token = localStorage.getItem('UserToken');
-    console.log('Auth Token:', token);
-    
     try {
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      
       const response = await axios.get(
-        `${BASE_URL}/api/find-other-user-ads/${sellerId}`, 
-        { headers }
+        `${BASE_URL}/api/find-other-user-ads/${customerId}`
       );
       
       console.log('User Ads Response:', response.data);
@@ -62,7 +78,7 @@ console.log(sellerLocation);
 
   useEffect(() => {
     fetchUserAds();
-  }, [sellerId]);
+  }, [customerId]);
 
   const loadMore = () => {
     setVisibleCards(prevVisibleCards => prevVisibleCards + 6);
@@ -71,9 +87,9 @@ console.log(sellerLocation);
   return (
     <div>
       <div className="w-[80%] mx-auto font-Inter">
-        <h1 className="py-2 font-semibold flex justify-center">User Profile</h1>
+        <h1 className="py-2 font-semibold flex justify-center">User Profile-{sellerName}</h1>
         <CustomerProfileComponent
-          sellerId={sellerId}
+          sellerId={customerId}
           sellerName={sellerName}
           sellerPhone={sellerPhone}
           sellerProfile={sellerProfile}

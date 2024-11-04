@@ -12,39 +12,39 @@ const CarCar = ({ adData }) => {
 
   return (
     <div className="col-span-12 md:col-span-8 bg-white rounded-lg p-4">
-      <div>
+      <div className="mb-6">
         <div className='font-semibold text-lg md:text-2xl'>{adData.title || 'N/A'}</div>
         <div className='text-gray-500 text-sm md:text-base'>{adData.variant?.name || 'N/A'}</div>
         <div className='font-semibold my-2 text-xl md:text-2xl'>
           ₹ {new Intl.NumberFormat('en-IN').format(adData.price || 0)}
         </div>
       </div>
-      <div className="flex items-center gap-4 my-4">
-        <div className="flex items-center gap-2 text-gray-500">
+      <div className="flex items-center gap-8 my-6">
+        <div className="flex items-center gap-2 text-gray-500 text-sm">
           <BsFuelPumpFill /> {adData.fuel || 'N/A'}
         </div>
         <div className="border-l-2 border-gray-400 h-6"></div>
-        <div className="flex items-center gap-2 text-gray-500">
+        <div className="flex items-center gap-2 text-gray-500 text-sm">
           <LiaTachometerAltSolid /> {adData.kmDriven || 'N/A'}
         </div>
         <div className="border-l-2 border-gray-400 h-6"></div>
-        <div className="flex items-center gap-2 text-gray-500">
+        <div className="flex items-center gap-2 text-gray-500 text-sm">
           <GiGearStick /> {adData.transmission || 'N/A'}
         </div>
       </div>
-      <div className='flex gap-4 items-center'>
-        <div className="text-gray-500">
-          <div className='flex gap-4'><RiUserFollowFill /> Owner</div>
+      <div className='flex gap-8 items-center'>
+        <div className="text-gray-500 text-sm">
+          <div className='flex gap-2 mb-2'><RiUserFollowFill /> Owner</div>
           <div className='font-semibold'>{adData.noOfOwners || 'N/A'}</div>
         </div>
         <div className="border-l-2 border-gray-400 h-6"></div>
-        <div className="text-gray-500">
-          <div className='flex gap-4'><IoLocationSharp /> {adData.locationTown?.name || 'N/A'}</div>
+        <div className="text-gray-500 text-sm">
+          <div className='flex gap-2 mb-2'><IoLocationSharp /> {adData.locationTown?.name || 'N/A'}</div>
           <div className='font-semibold'>{adData.locationDistrict?.name || 'N/A'}</div>
         </div>
         <div className="border-l-2 border-gray-400 h-6"></div>
-        <div className="text-gray-500">
-          <div className='flex gap-4'><IoCalendarOutline /> Posting date</div>
+        <div className="text-gray-500 text-sm">
+          <div className='flex gap-2 mb-2'><IoCalendarOutline /> Posting date</div>
           <div className='font-semibold'>{new Date(adData.createdAt).toLocaleDateString() || 'N/A'}</div>
         </div>
       </div>

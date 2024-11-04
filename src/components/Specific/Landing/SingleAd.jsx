@@ -162,13 +162,7 @@ function SingleAd() {
   const handleSellerProfileClick = () => {
     if (adData?.adSeller) {
       navigate(`/customer-profile/${adData.adSeller.id}`, {
-        state: {
-          sellerId: adData.adSeller.id,
-          sellerName: adData.adSeller.name,
-          sellerPhone: adData.adSeller.phone,
-          sellerProfile: adData.adSeller.profileImage?.url,
-          sellerLocation:adData.adSeller.userLocation
-        }
+       
       });
     }
   };
