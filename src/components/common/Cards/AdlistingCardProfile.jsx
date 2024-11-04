@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Image, Text, Badge, IconButton, useDisclosure } from '@chakra-ui/react';
 import { Eye, Heart, MapPin, Edit, Trash2, RefreshCw } from 'lucide-react';
 import { BASE_URL } from '../../../config/config';
-import SellModalEdit from '../../modals/othermodals/SellmodalEdit';
 import DeleteConfirmationDialog from '../../modals/othermodals/DeleteConfirmation';
+import SellModalEdit from '../../modals/othermodals/SellModalEdit';
 
 const AdListingCardProfile = ({ listing, onDelete, onRepost, isExpired, isPending ,isActive}) => {
   
@@ -182,9 +182,11 @@ const AdListingCardProfile = ({ listing, onDelete, onRepost, isExpired, isPendin
               {truncateDescription(description, 5)}
             </Text>
 
-            {/* Price */}
-            <Text className="text-xl font-bold text-blue-500">
-              ₹{price?.toLocaleString()}
+            {/* Price or Service indicator */}
+            <Text 
+              className={`text-18 font-bold ${price ? 'text-blue-500' : 'text-green-500 text-base'}`}
+            >
+              {price ? `₹${price.toLocaleString()}` : 'Service'}
             </Text>
 
             {/* Stats and metadata container */}
