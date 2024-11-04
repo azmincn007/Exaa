@@ -93,10 +93,19 @@ const AdListingCardProfile = ({ listing, onDelete, onRepost, isExpired, isPendin
         className="border border-gray-200 rounded-lg overflow-hidden shadow-md mb-4 font-Inter cursor-pointer hover:shadow-lg transition-shadow"
         onClick={handleCardClick}
       >
-        {/* Flex container that switches to block on mobile */}
+        {/* Notification banner - Improved mobile styling */}
+        {isPending && (
+          <div className="bg-yellow-50 px-3 py-2 md:px-4 border-b border-yellow-100">
+            <Text className="text-xs md:text-sm text-yellow-700 text-center md:text-left leading-tight">
+              <span className="font-medium">💡 Tip:</span> Edit this listing to add boost tags for increased visibility after approval!
+            </Text>
+          </div>
+        )}
+
+        {/* Flex container with improved mobile spacing */}
         <div className="flex flex-col md:flex-row">
-          {/* Image container */}
-          <div className="relative w-full md:w-48 h-48">
+          {/* Image container - Adjusted height for mobile */}
+          <div className="relative w-full md:w-48 h-40 md:h-48">
             <Image
               src={`${BASE_URL}${images?.url}`}
               alt={title}
@@ -126,8 +135,8 @@ const AdListingCardProfile = ({ listing, onDelete, onRepost, isExpired, isPendin
             )}
           </div>
 
-          {/* Content container */}
-          <div className="flex-1 p-4 flex flex-col gap-2">
+          {/* Content container - Better mobile spacing */}
+          <div className="flex-1 p-3 md:p-4 flex flex-col gap-1.5 md:gap-2">
             {/* Title and actions row */}
             <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2">
               <Text className="text-lg font-bold font-Inter order-2 md:order-1">

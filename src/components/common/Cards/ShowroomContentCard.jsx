@@ -236,7 +236,15 @@ const ShowroomContentCard = ({ showroom, isSelected, onClick, onEdit, onDeleteSu
           <Text fontSize="xl" fontWeight="bold" mb={2}>
             {showroom.name}
           </Text>
-          <Text fontSize="sm">Category: {showroom.adCategory?.name}</Text>
+          <Flex gap={2} fontSize="sm">
+            <Text>Category: {showroom.adCategory?.name}</Text>
+            {showroom.adSubCategory && (
+              <>
+                <Text>•</Text>
+                <Text>Subcategory: {showroom.adSubCategory.name}</Text>
+              </>
+            )}
+          </Flex>
 
           {showroom.adShowroomOperators && showroom.adShowroomOperators.length > 0 ? (
             renderOperators()

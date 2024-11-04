@@ -3,6 +3,8 @@ import axios from "axios";
 import { BASE_URL } from "../../../../config/config";
 
 export const useBrands = (isOpen, getUserToken, subcategoryId, selectedTypeId) => {
+  console.log(subcategoryId);
+  
   return useQuery(
     ["brands", subcategoryId, selectedTypeId], // Include selectedTypeId in query key
     async () => {
@@ -32,7 +34,14 @@ export const useBrands = (isOpen, getUserToken, subcategoryId, selectedTypeId) =
       let subcategory;
       if (subcategoryIdString === "11") {
         subcategory = "ad-car-brands";
-      } else if (subcategoryIdString === "12") {
+      } 
+      if (subcategoryIdString === "93") {
+        subcategory = "ad-car-brands";
+      }
+      else if (subcategoryIdString === "12") {
+        subcategory = "ad-moto-bike-brans";
+      } 
+      else if (subcategoryIdString === "94") {
         subcategory = "ad-moto-bike-brans";
       } else if (subcategoryIdString === "13") {
         subcategory = "ad-moto-bull-modes";

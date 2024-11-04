@@ -21,7 +21,11 @@ export const useVariants = (isOpen, getUserToken, modelId, subcategoryId) => {
       let endpoint;
       if (subcategoryIdString === "11") {
         endpoint = "ad-car-model-variants";
-      } else if (subcategoryIdString === "12") {
+      } 
+      if (subcategoryIdString === "93") {
+        endpoint = "ad-car-model-variants";
+      }
+      else if (subcategoryIdString === "12") {
         endpoint = "ad-motorcycle-bike-variant";
       } else if (subcategoryIdString === "14") {
         endpoint = "ad-motorcycle-scooter-variant";

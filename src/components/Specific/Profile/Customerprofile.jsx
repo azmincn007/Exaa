@@ -62,21 +62,14 @@ const CustomerProfileComponent = ({sellerName, sellerPhone, sellerProfile,seller
         </CardHeader>
         <CardBody>
           <div className="flex flex-col space-y-4">
-            <div className="flex items-center space-x-3">
-              <div className="text-gray-500">
-                <Phone size={20} />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="text-gray-500">
+                  <Phone size={20} />
+                </div>
+                <span className="text-sm">{sellerPhone}</span>
               </div>
-              <span className="text-sm">{sellerPhone}</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="text-gray-500">
-                <MapPin size={20} />
-              </div>
-              <span className="text-sm">{sellerLocation?.locationTown?.name},{sellerLocation?.locationDistrict?.name}</span>
-            </div>
-            
-            {/* Share button */}
-            <div className="flex justify-end">
+              
               <button
                 onClick={() => setIsShareExpanded(!isShareExpanded)}
                 className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
@@ -85,7 +78,13 @@ const CustomerProfileComponent = ({sellerName, sellerPhone, sellerProfile,seller
               </button>
             </div>
 
-            {/* Share Options Collapse */}
+            <div className="flex items-center space-x-3">
+              <div className="text-gray-500">
+                <MapPin size={20} />
+              </div>
+              <span className="text-sm">{sellerLocation?.locationTown?.name},{sellerLocation?.locationDistrict?.name}</span>
+            </div>
+
             <Collapse in={isShareExpanded}>
               <div className="mt-3 p-3 bg-white rounded-lg shadow-sm border border-gray-100 space-y-2">
                 <div className="flex flex-col space-y-2">

@@ -227,6 +227,11 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
   };
 
   const checkAdCreationPossibility = async (categoryId) => {
+    // If category hasn't changed from initial category, return true for both flags
+    if (categoryId === initialCategoryId) {
+      return { isAdCreationPossible: true, isTagCreationPossible: true };
+    }
+
     try {
       const token = getUserToken();
       if (!token) {
@@ -239,7 +244,10 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
         }
       });
 
-      return { isAdCreationPossible: response.data.data.isAdCreationPossible, isTagCreationPossible: response.data.data.isTagCreationPossible };
+      return { 
+        isAdCreationPossible: response.data.data.isAdCreationPossible, 
+        isTagCreationPossible: response.data.data.isTagCreationPossible 
+      };
     } catch (error) {
       console.error('Error checking ad creation possibility:', error);
       toast({
@@ -258,8 +266,15 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
 
     setIsSubmitting(true);
     try {
-      // Always check ad creation possibility regardless of category change
-      const { isAdCreationPossible, isTagCreationPossible } = await checkAdCreationPossibility(data.adCategory);
+      // Only check ad creation possibility if category has changed
+      let isAdCreationPossible = true;
+      let isTagCreationPossible = true;
+
+      if (data.adCategory !== initialCategoryId) {
+        const result = await checkAdCreationPossibility(data.adCategory);
+        isAdCreationPossible = result.isAdCreationPossible;
+        isTagCreationPossible = result.isTagCreationPossible;
+      }
       
       setIsTagCreationPossible(isTagCreationPossible);
 

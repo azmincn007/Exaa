@@ -37,9 +37,15 @@ export const useModels = (isOpen, getUserToken, brandId, subcategoryId, selected
         case "11":
           endpoint = "ad-car-brand-models";
           break;
+          case "93":
+            endpoint = "ad-car-brand-models";
+            break;
         case "12":
           endpoint = "ad-motorcycle-bike-model";
           break;
+          case "94":
+            endpoint = "ad-motorcycle-bike-model";
+            break;
         case "13":
           endpoint = "ad-moto-bull-modes";
           break;
