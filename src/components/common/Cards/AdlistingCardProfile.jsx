@@ -4,7 +4,7 @@ import { Image, Text, Badge, IconButton, useDisclosure } from '@chakra-ui/react'
 import { Eye, Heart, MapPin, Edit, Trash2, RefreshCw } from 'lucide-react';
 import { BASE_URL } from '../../../config/config';
 import DeleteConfirmationDialog from '../../modals/othermodals/DeleteConfirmation';
-import SellModalEdit from '../../modals/othermodals/SellModalEdit';
+import SellModalEdit from '../../modals/othermodals/SellmodalEdit';
 
 const AdListingCardProfile = ({ listing, onDelete, onRepost, isExpired, isPending ,isActive}) => {
   
