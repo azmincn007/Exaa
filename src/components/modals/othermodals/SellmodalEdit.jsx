@@ -130,23 +130,31 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
 
   useEffect(() => {
     if (isDataLoaded && completeAdData) {
+      const districtId = completeAdData.locationDistrict?.id;
+      setSelectedDistrictId(districtId);
+      setValue('locationDistrict', districtId);
+
+      setTimeout(() => {
+        const townId = completeAdData.locationTown?.id;
+        if (townId) {
+          setValue('locationTown', townId);
+        }
+      }, 100);
+
       setInitialCategoryId(completeAdData.adCategory?.id);
       setSelectedCategoryId(completeAdData.adCategory?.id);
       setSelectedSubCategoryId(completeAdData.adSubCategory?.id);
-      setSelectedDistrictId(completeAdData.locationDistrict?.id);
       setSelectedBrandId(completeAdData.brand?.id);
       setSelectedModelId(completeAdData.model?.id);
       setSelectedVariantId(completeAdData.variant?.id);
       setSelectedTypeId(completeAdData.type?.id);
 
-      // Set form values for all fields
       Object.entries(completeAdData).forEach(([key, value]) => {
         if (typeof value !== 'object') {
           setValue(key, value);
         }
       });
 
-      // Set form values for objects
       setValue('adCategory', completeAdData.adCategory?.id);
       setValue('adSubCategory', completeAdData.adSubCategory?.id);
       setValue('locationDistrict', completeAdData.locationDistrict?.id);
@@ -156,7 +164,6 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
       setValue('variant', completeAdData.variant?.id);
       setValue('type', completeAdData.type?.id);
 
-      // Handle images
       const images = Array.isArray(completeAdData.images) 
         ? completeAdData.images 
         : completeAdData.images 
@@ -170,6 +177,16 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
       })));
     }
   }, [isDataLoaded, completeAdData, setValue]);
+
+  useEffect(() => {
+    if (towns?.length > 0 && completeAdData?.locationTown?.id) {
+      const townId = completeAdData.locationTown.id.toString();
+      const isTownValid = towns.some(town => town.id.toString() === townId);
+      if (isTownValid) {
+        setValue('locationTown', townId);
+      }
+    }
+  }, [towns, completeAdData, setValue]);
 
   useEffect(() => {
     if (selectedSubCategoryId) {
@@ -187,7 +204,6 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
     setSubCategoryDetails(null);
     setValue('adCategory', newCategoryId);
     setValue('adSubCategory', '');
-    // Clear dependent fields
     setValue('brand', '');
     setValue('model', '');
     setValue('variant', '');
@@ -200,7 +216,6 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
     const newSubCategoryId = e.target.value;
     setSelectedSubCategoryId(newSubCategoryId);
     setValue('adSubCategory', newSubCategoryId);
-    // Clear dependent fields
     setValue('type', '');
     setValue('brand', '');
     setValue('model', '');
@@ -227,7 +242,6 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
   };
 
   const checkAdCreationPossibility = async (categoryId) => {
-    // If category hasn't changed from initial category, return true for both flags
     if (categoryId === initialCategoryId) {
       return { isAdCreationPossible: true, isTagCreationPossible: true };
     }
@@ -266,7 +280,6 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
 
     setIsSubmitting(true);
     try {
-      // Only check ad creation possibility if category has changed
       let isAdCreationPossible = true;
       let isTagCreationPossible = true;
 
@@ -340,7 +353,6 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
       });
 
       if (response.status === 200) {
-        // Store all the necessary data for the congratulations modal
         setSubmittedAdId(response.data.data.id);
         setSubmittedAdType(subCategoryDetails.name);
         setSubmittedFormData({
@@ -348,13 +360,13 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
           adShowroom: []
         });
         setSubmittedApiUrl(subCategoryDetails.apiUrl);
-        
         setSubmittedImages(imageFiles);
         
+      
+
         setShowCongratulations(true);
         onClose();
 
-      
         queryClient.invalidateQueries("userAds");
         queryClient.invalidateQueries("pendingAds");
       } else {
@@ -374,7 +386,13 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
     }
   };
 
- 
+  const handleDistrictChange = (e) => {
+    const newDistrictId = e.target.value;
+    setSelectedDistrictId(newDistrictId);
+    setValue('locationDistrict', newDistrictId);
+    setValue('locationTown', '');
+  };
+
   const renderField = (fieldName) => {
     const config = getFieldConfig(fieldName, districts, towns, brands, models, variants, types, selectedSubCategoryId);
     if (!config) return null;
@@ -419,38 +437,46 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
               }
               onChange={(e) => {
                 const newValue = e.target.value;
-                setValue(fieldName, newValue);
-
+                
                 if (fieldName === 'locationDistrict') {
-                  setSelectedDistrictId(newValue);
-                  setValue('locationTown', '');
-                } else if (fieldName === 'type') {
-                  setSelectedTypeId(newValue);
-                  // Reset dependent fields when type changes
-                  if (selectedSubCategoryId === 18) {
-                    setValue('brand', '');
+                  handleDistrictChange(e);
+                } else if (fieldName === 'locationTown') {
+                  const isValidTown = towns?.some(town => town.id.toString() === newValue);
+                  if (isValidTown || newValue === '') {
+                    setValue(fieldName, newValue, { shouldValidate: true });
+                  }
+                } else {
+                  setValue(fieldName, newValue);
+                  if (fieldName === 'type') {
+                    setSelectedTypeId(newValue);
+                    if (selectedSubCategoryId === 18) {
+                      setValue('brand', '');
+                      setValue('model', '');
+                      setValue('variant', '');
+                      setSelectedBrandId(null);
+                      setSelectedModelId(null);
+                      setSelectedVariantId(null);
+                    }
+                  } else if (fieldName === 'brand') {
+                    setSelectedBrandId(newValue);
                     setValue('model', '');
                     setValue('variant', '');
-                    setSelectedBrandId(null);
                     setSelectedModelId(null);
                     setSelectedVariantId(null);
+                  } else if (fieldName === 'model') {
+                    setSelectedModelId(newValue);
+                    setValue('variant', '');
+                    setSelectedVariantId(null);
+                  } else if (fieldName === 'variant') {
+                    setSelectedVariantId(newValue);
                   }
-                } else if (fieldName === 'brand') {
-                  setSelectedBrandId(newValue);
-                  setValue('model', '');
-                  setValue('variant', '');
-                  setSelectedModelId(null);
-                  setSelectedVariantId(null);
-                } else if (fieldName === 'model') {
-                  setSelectedModelId(newValue);
-                  setValue('variant', '');
-                  setSelectedVariantId(null);
-                } else if (fieldName === 'variant') {
-                  setSelectedVariantId(newValue);
                 }
               }}
               value={
                 fieldName === 'locationDistrict' ? selectedDistrictId || '' :
+                fieldName === 'locationTown' ? (
+                  isTownsLoading ? '' : getValues('locationTown') || ''
+                ) :
                 fieldName === 'type' ? selectedTypeId || '' :
                 fieldName === 'brand' ? selectedBrandId || '' :
                 fieldName === 'model' ? selectedModelId || '' :
@@ -458,9 +484,20 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
                 getValues(fieldName) || ''
               }
             >
-              <option value="">Select {config.label}</option>
+              <option value="">
+                {fieldName === 'locationTown' && isTownsLoading 
+                  ? "Loading towns..." 
+                  : `Select ${config.label}`}
+              </option>
               {config.options?.map(option => (
-                <option key={option.id || option} value={option.id || option}>
+                <option 
+                  key={option.id || option} 
+                  value={option.id || option}
+                  selected={
+                    fieldName === 'locationTown' && 
+                    completeAdData?.locationTown?.id === option.id
+                  }
+                >
                   {option.name || option}
                 </option>
               ))}
@@ -489,6 +526,16 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
         );
     }
   };
+
+  useEffect(() => {
+    if (selectedDistrictId && towns?.length > 0) {
+      const currentTown = getValues('locationTown');
+      const isTownValid = towns.some(town => town.id.toString() === currentTown);
+      if (!isTownValid) {
+        setValue('locationTown', '');
+      }
+    }
+  }, [selectedDistrictId, towns, setValue, getValues]);
 
   return (
     <>
