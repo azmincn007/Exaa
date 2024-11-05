@@ -16,6 +16,7 @@ function SignupModal({ isOpen, onClose }) {
     register,
     handleSubmit,
     formState: { errors },
+    reset
   } = useForm();
   const toast = useToast();
   const [selectedImage, setSelectedImage] = useState(null);
@@ -140,6 +141,13 @@ function SignupModal({ isOpen, onClose }) {
         );
 
         console.log("Location Response:", locationResponse);
+
+        // Clear form data and states after successful registration
+        reset(); // Reset form fields
+        setSelectedImage(null);
+        setPreviewUrl(null);
+        setSelectedDistrict("");
+        setSelectedTown("");
 
         toast({
           title: "Registration successful",
