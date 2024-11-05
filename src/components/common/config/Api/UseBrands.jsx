@@ -35,7 +35,7 @@ export const useBrands = (isOpen, getUserToken, subcategoryId, selectedTypeId) =
       if (subcategoryIdString === "11") {
         subcategory = "ad-car-brands";
       } 
-      if (subcategoryIdString === "93") {
+      else if (subcategoryIdString === "93") {
         subcategory = "ad-car-brands";
       }
       else if (subcategoryIdString === "12") {

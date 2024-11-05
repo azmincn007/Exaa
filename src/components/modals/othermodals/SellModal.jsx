@@ -71,16 +71,7 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
   const { data: subCategories, isLoading: isSubCategoriesLoading, isError: isSubCategoriesError, error: subCategoriesError } = useSubCategories(isOpen, getUserToken, selectedCategoryId);
   const { data: districts, isLoading: isDistrictsLoading, isError: isDistrictsError } = useDistricts(isOpen, getUserToken);
   const { data: towns, isLoading: isTownsLoading, isError: isTownsError } = useTowns(isOpen, getUserToken, selectedDistrictId);
-  const {
-    data: brands,
-    isLoading: isBrandsLoading,
-    isError: isBrandsError,
-  } = useBrands(
-    isOpen,
-    getUserToken,
-    selectedSubCategoryId,
-    selectedSubCategoryId === '18' ? selectedTypeId : null
-  );
+  const { data: brands, isLoading: isBrandsLoading, isError: isBrandsError } = useBrands(isOpen, getUserToken, selectedSubCategoryId, selectedSubCategoryId === "18" ? selectedTypeId : null);
   const { data: models, isLoading: isModelsLoading, error } = useModels(isOpen, getUserToken, selectedBrandId, selectedSubCategoryId, selectedSubCategoryId === '18' ? selectedTypeId : null);
   const { data: variants, isLoading: isVariantsLoading, isError: isVariantsError } = useVariants(isOpen, getUserToken, selectedModelId, selectedSubCategoryId);
   const { data: types, isLoading: isTypesLoading, isError: isTypesError } = useTypes(isOpen, getUserToken, selectedSubCategoryId);
