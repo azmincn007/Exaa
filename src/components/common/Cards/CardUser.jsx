@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardBody, Image, useDisclosure } from '@chakra-ui/react';
+import { Box, Card, CardBody, Image, useDisclosure } from '@chakra-ui/react';
 import { BiHeart, BiSolidHeart } from 'react-icons/bi';
 import { Link } from 'react-router-dom';
 import { useMutation, useQueryClient } from 'react-query';
@@ -13,7 +13,7 @@ function CardUser({ id, imageUrl, price, title, location, postedDate, adBoostTag
 
   const [isAnimating, setIsAnimating] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const isFeatured = adBoostTag === "Featured";
+
   const queryClient = useQueryClient();
 
   
@@ -128,7 +128,9 @@ function CardUser({ id, imageUrl, price, title, location, postedDate, adBoostTag
                 width='100%'
                 objectFit='cover'
               />
-              {adBoostTag && <AdBoostBadge tag={adBoostTag} />}
+              <Box className="absolute top-2 left-2">
+                <AdBoostBadge tag={adBoostTag} />
+              </Box>
               <div
                 className={`absolute top-2 right-2 bg-white p-1.5 rounded-full cursor-pointer transition-transform duration-300 ${isAnimating ? 'scale-125' : 'scale-100'}`}
                 onClick={handleFavoriteClick}
