@@ -38,6 +38,7 @@ import CongratulationsModal from './SellSuccessmodal.jsx'; // Update import path
 import { useTypes } from '../../common/config/Api/UseTypes.jsx';
 
 const SellModalEdit = ({ isOpen, onClose, listingData }) => {
+  
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [selectedSubCategoryId, setSelectedSubCategoryId] = useState(null);
   const [selectedDistrictId, setSelectedDistrictId] = useState(null);
@@ -97,6 +98,8 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
     const { data } = await axios.get(`${BASE_URL}/api/find-one-ad/${adCategoryId}/${adId}`, {
       headers: { 'Authorization': `Bearer ${userToken}` },
     });
+    console.log(data.da);
+    
     return data.data;
   };
 
@@ -316,9 +319,8 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
         }
       });
 
-      formData.append('adShowroom', JSON.stringify([]));
-      formData.append('adBoostTag', '');
-
+      formData.append('adShowroom', '');
+      formData.append('adBoostTag', completeAdData?.adBoostTag?.id || '');
       if (uploadedImages.length === 0) {
         throw new Error('At least one image is required');
       }

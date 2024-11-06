@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Box, Image, Text, Flex, Badge, Icon, Grid, GridItem, useToast } from '@chakra-ui/react';
+import { Box, Image, Text, Flex, Icon, Grid, GridItem, useToast } from '@chakra-ui/react';
 import { Eye, Heart, Calendar } from 'lucide-react';
 import { FaMapMarkerAlt, FaPencilAlt, FaTrash } from 'react-icons/fa';
 import { BASE_URL } from '../../../config/config';
 import DeleteConfirmationDialog from '../../modals/othermodals/DeleteConfirmation';
 import { useQueryClient } from 'react-query';
+import AdBoostBadge from '../buttons/AdBoostBadge';
 
 const formatDate = (dateString) => {
   const options = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -24,7 +25,7 @@ const ActionButton = ({ icon: Icon, onClick, backgroundColor }) => (
 const ShowroomuserAdCard = ({ data, onEdit, onDelete, showroomId, token }) => {
   console.log(data);
   
-  const toast = useToast();  // Added Chakra UI toast
+  const toast = useToast();
   const queryClient = useQueryClient();  
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
@@ -47,9 +48,11 @@ const ShowroomuserAdCard = ({ data, onEdit, onDelete, showroomId, token }) => {
               alt={data?.title || 'Ad image'} 
               className="object-cover w-full h-[200px]" 
             />
-            <Badge className="absolute top-2 left-2 bg-green-500 text-white p-1 rounded">
-              Active
-            </Badge>
+            {data?.adBoostTag && (
+              <Box className="absolute top-2 left-2">
+                <AdBoostBadge tag={data.adBoostTag} />
+              </Box>
+            )}
           </GridItem>
 
           <GridItem className="col-span-9 relative">

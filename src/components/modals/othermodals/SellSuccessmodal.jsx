@@ -22,11 +22,6 @@ const CongratulationsModal = ({
   isTagCreationPossible, 
   images 
 }) => {
-  console.log(images);
-  
-
-
-  
   const navigate = useNavigate();
   const [showTagSelect, setShowTagSelect] = useState(false);
   const [selectedTag, setSelectedTag] = useState('');
@@ -38,9 +33,6 @@ const CongratulationsModal = ({
     async () => {
       const response = await api.get(`${BASE_URL}/api/ad-boost-tags`);
       return response.data.data;
-    },
-    {
-     
     }
   );
 
@@ -65,8 +57,21 @@ const CongratulationsModal = ({
     },
     {
       onSuccess: () => {
-        queryClient.invalidateQueries('userAds');
-        onClose();
+        // Invalidate multiple queries
+        const queriesToInvalidate = [
+          'userAds',
+          'pendingAds',
+          'expiredAds',
+          'activeAds',  
+          `ad-${adId}`  
+        ];
+
+        // Invalidate all queries in parallel
+        Promise.all(
+          queriesToInvalidate.map(query => queryClient.invalidateQueries(query))
+        ).then(() => {
+          onClose();
+        });
       },
       onError: (error) => {
         console.error('Error during boost:', error);
@@ -253,7 +258,7 @@ const CongratulationsModal = ({
                 </div>
               )}
 
-              {/* Preview button - Updated with onClick handler */}
+              {/* Preview button */}
               <button 
                 onClick={handlePreviewClick}
                 className="bg-slate-700 text-white w-full py-2 rounded-md font-semibold 

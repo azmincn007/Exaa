@@ -24,7 +24,7 @@ function AdBoostBadge({ tag }) {
 
   return (
     <div 
-      className='font-Roboto absolute top-2 left-2 text-white text-xs font-bold px-2 py-1 rounded flex items-center'
+      className='font-Roboto  text-white text-xs font-bold px-2 py-1 rounded flex items-center'
       style={{ backgroundColor: color }}
     >
       <Icon className="w-3 h-3 mr-1" />

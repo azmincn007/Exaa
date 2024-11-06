@@ -145,9 +145,9 @@ export const ProfileListings = ({
       onChange={(index) => setActiveTab(index === 0 ? "active" : index === 1 ? "pending" : "expired")}
     >
       <TabList mb={4}>
-        <Tab className="mr-2">Active Ads ({userListings?.length || 0})</Tab>
-        <Tab className="mr-2">Pending Ads ({pendingListings?.length || 0})</Tab>
-        <Tab>Expired Ads ({expiredListings?.length || 0})</Tab>
+        <Tab className="mr-2" fontSize={{ base: "sm", md: "md" }}>Active Ads ({userListings?.length || 0})</Tab>
+        <Tab className="mr-2" fontSize={{ base: "sm", md: "md" }}>Pending Ads ({pendingListings?.length || 0})</Tab>
+        <Tab fontSize={{ base: "sm", md: "md" }}>Expired Ads ({expiredListings?.length || 0})</Tab>
       </TabList>
 
       <TabPanels>

@@ -101,37 +101,6 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
     }
   }, [subCategoryId, reset]);
 
-  const checkAdCreationPossibility = async (categoryId) => {
-    try {
-      const token = getUserToken();
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-
-      const response = await axios.get(`${BASE_URL}/api/ad-categories/${categoryId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-
-      return {
-        isAdCreationPossible: response.data.data.isAdCreationPossible,
-        isTagCreationPossible: response.data.data.isTagCreationPossible
-      };
-    } catch (error) {
-      console.error('Error checking ad creation possibility:', error);
-      toast({
-        title: "Error checking category permission",
-        description: error.response?.data?.message || "Something went wrong",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-      return { isAdCreationPossible: false };
-    }
-  };
-
   const onSubmit = async (data) => {
     if (uploadedImages.length === 0) {
       setError('images', {
@@ -145,9 +114,11 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
     setIsSubmitting(true);
 
     try {
-      // First check if ad creation is possible
-      const { isAdCreationPossible, isTagCreationPossible } = await checkAdCreationPossibility(categoryId);
-      
+      // Remove the checkAdCreationPossibility function call and set both values to true
+      const isAdCreationPossible = true;
+      const isTagCreationPossible = true;
+console.log(isAdCreationPossible);
+
       if (!isAdCreationPossible) {
         onClose();
         navigate('/packages/post-more-ads');
@@ -171,7 +142,7 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
         return obj;
       }, {});
     
-      filteredData.adShowroom = showroomid ? [showroomid] : [];
+      filteredData.adShowroom = showroomid ? showroomid : '';
       filteredData.adCategory = categoryId;
       filteredData.adSubCategory = subCategoryId;
       filteredData.locationDistrict = districtId;

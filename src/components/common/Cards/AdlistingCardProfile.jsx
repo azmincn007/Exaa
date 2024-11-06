@@ -5,6 +5,7 @@ import { Eye, Heart, MapPin, Edit, Trash2, RefreshCw } from 'lucide-react';
 import { BASE_URL } from '../../../config/config';
 import DeleteConfirmationDialog from '../../modals/othermodals/DeleteConfirmation';
 import SellModalEdit from '../../modals/othermodals/SellmodalEdit';
+import AdBoostBadge from '../buttons/AdBoostBadge';
 
 const AdListingCardProfile = ({ listing, onDelete, onRepost, isExpired, isPending ,isActive}) => {
   
@@ -20,7 +21,7 @@ const AdListingCardProfile = ({ listing, onDelete, onRepost, isExpired, isPendin
     createdAt,
     adCategory,
     adSubCategory,
-    description
+    description,adBoostTag
   } = listing;
   
  
@@ -178,9 +179,21 @@ const AdListingCardProfile = ({ listing, onDelete, onRepost, isExpired, isPendin
             </div>
 
             {/* Description - Hidden on mobile, truncated on desktop */}
-            <Text className="text-sm hidden md:block">
+            <div className='flex w-full justify-between'>
+              <div>
+              <Text className="text-sm hidden md:block">
               {truncateDescription(description, 5)}
             </Text>
+              </div>
+              <div>
+              {adBoostTag && (
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <AdBoostBadge tag={adBoostTag} />
+                  </div>
+                )}              </div>
+         
+            </div>
+          
 
             {/* Price or Service indicator */}
             <Text 

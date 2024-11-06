@@ -232,14 +232,14 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
       }, {});
 
       // Add required empty arrays/fields
-      filteredData.adShowroom = [];
+      filteredData.adShowroom = '';
       filteredData.adBoostTag = '';
   
       // Create FormData and append all fields
       const formData = new FormData();
       Object.keys(filteredData).forEach(key => {
         if (key === 'adShowroom') {
-          formData.append(key, JSON.stringify(filteredData[key]));
+          formData.append(key, filteredData[key] || ''); // Append as string directly
         } else {
           formData.append(key, filteredData[key]);
         }
