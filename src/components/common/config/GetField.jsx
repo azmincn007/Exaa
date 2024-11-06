@@ -110,6 +110,7 @@ const specialFields = {
   qualification: { type: 'select', label: "Qualification", options: vehicleData.qualifications, rules: null },
   experience: { type: 'select', label: "Experience Required", options: vehicleData.experienceLevels, rules: null },
   salary: { type: 'number', label: "Approximate Salary", rules: null },
+  plotArea: { type: 'number', label: "Plot Area (in cents) *", rules: { required: "Plot Area is required", min: { value: 1, message: "Plot Area must be at least 1 cent" } } },
 };
 
 export const getFieldConfig = (fieldName, districts, towns, brands, models, variants, types, selectedSubCategoryId) => {

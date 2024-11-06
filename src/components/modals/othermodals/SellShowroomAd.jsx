@@ -117,7 +117,6 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
       // Remove the checkAdCreationPossibility function call and set both values to true
       const isAdCreationPossible = true;
       const isTagCreationPossible = true;
-console.log(isAdCreationPossible);
 
       if (!isAdCreationPossible) {
         onClose();
@@ -163,10 +162,7 @@ console.log(isAdCreationPossible);
         formData.append('images', file);
       });
     
-      console.log("FormData being sent to API:");
-      for (let [key, value] of formData.entries()) {
-        console.log(key, value);
-      }
+  
     
       const apiUrl = `${BASE_URL}/api/${subCategoryDetails.apiUrl}`;
       const token = getUserToken();
@@ -194,6 +190,7 @@ console.log(isAdCreationPossible);
         onClose();
         queryClient.invalidateQueries("userAds");
         queryClient.invalidateQueries("pendingAds");
+        queryClient.invalidateQueries("showroomAds");
         if (onAdCreated) {
           onAdCreated();
         }

@@ -49,6 +49,10 @@ const CongratulationsModal = ({
             },
           }
         );
+        console.log("hi");
+        
+        console.log(response.data.data);
+        
         return response.data;
       } catch (error) {
         console.error('Boost mutation error:', error);
@@ -56,13 +60,17 @@ const CongratulationsModal = ({
       }
     },
     {
-      onSuccess: () => {
+      onSuccess: (data) => {
+        console.log('Boost mutation response:', data);
         // Invalidate multiple queries
         const queriesToInvalidate = [
           'userAds',
           'pendingAds',
           'expiredAds',
           'activeAds',  
+          'showroomAds',
+          'showrooms',
+
           `ad-${adId}`  
         ];
 
@@ -86,7 +94,6 @@ const CongratulationsModal = ({
 
   const handleTagSubmit = () => {
     if (!selectedTag) {
-      console.log('Please select a tag first');
       return;
     }
 
