@@ -176,7 +176,11 @@ console.log(selectedBoostTag);
           setValue('type', typeId);
           setValue('variant', variantId);
 
-    
+          Object.keys(filteredData).forEach(key => {
+            if (key !== 'brand' && key !== 'model' && key !== 'type' && key !== 'variant') {
+              setValue(key, filteredData[key]);
+            }
+          });
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -256,38 +260,44 @@ console.log(selectedBoostTag);
         );
       case 'select':
         return (
-          <CommonWrapper>
+          <FormControl key={fieldName} isInvalid={errors[fieldName]} fontSize={fontSize}>
+            <FormLabel>{config.label}</FormLabel>
             <Select 
-              {...register(fieldName, config.rules)} 
-              fontSize={fontSize}
+              {...register(fieldName, config.rules)}
               onChange={(e) => {
-                const value = e.target.value;
-                setValue(fieldName, value || '');
+                const newValue = e.target.value;
+                setValue(fieldName, newValue, { shouldValidate: true });
                 
-                if (fieldName === 'type') {
-                  setSelectedTypeId(value);
-                  if (subCategoryId === 18) {
-                    setValue('brand', '');
+                // Handle special cases for dependent fields
+                switch(fieldName) {
+                  case 'type':
+                    setSelectedTypeId(newValue);
+                    if (subCategoryId === 18) {
+                      setValue('brand', '');
+                      setValue('model', '');
+                      setValue('variant', '');
+                      setSelectedBrandId(null);
+                      setSelectedModelId(null);
+                      setSelectedVariantId(null);
+                    }
+                    break;
+                  case 'brand':
+                    setSelectedBrandId(newValue);
                     setValue('model', '');
                     setValue('variant', '');
-                    setSelectedBrandId(null);
                     setSelectedModelId(null);
                     setSelectedVariantId(null);
-                  }
-                } else if (fieldName === 'brand') {
-                  setSelectedBrandId(value);
-                  setValue('model', '');
-                  setValue('variant', '');
-                  setSelectedModelId(null);
-                  setSelectedVariantId(null);
-                } else if (fieldName === 'model') {
-                  setSelectedModelId(value);
-                  setValue('model', value || '');
-                  setValue('variant', '');
-                  setSelectedVariantId(null);
-                } else if (fieldName === 'variant') {
-                  setSelectedVariantId(value);
-                  setValue('variant', value || '');
+                    break;
+                  case 'model':
+                    setSelectedModelId(newValue);
+                    setValue('variant', '');
+                    setSelectedVariantId(null);
+                    break;
+                  case 'variant':
+                    setSelectedVariantId(newValue);
+                    break;
+                  default:
+                    break;
                 }
               }}
               value={getValues(fieldName) || ''}
@@ -299,17 +309,17 @@ console.log(selectedBoostTag);
               }
             >
               <option value="">Select {config.label}</option>
-              {config.options?.map(option => {
-                const optionId = typeof option === 'object' ? option.id : option;
-                const optionName = typeof option === 'object' ? option.name : option;
-                return (
-                  <option key={optionId} value={optionId}>
-                    {optionName}
-                  </option>
-                );
-              })}
+              {config.options?.map(option => (
+                <option 
+                  key={option.id || option} 
+                  value={option.id || option}
+                >
+                  {option.name || option}
+                </option>
+              ))}
             </Select>
-          </CommonWrapper>
+            <FormErrorMessage>{errors[fieldName]?.message}</FormErrorMessage>
+          </FormControl>
         );
       case 'radio':
         return (
@@ -370,6 +380,7 @@ console.log(selectedBoostTag);
     setIsLoading(true);
     const formData = new FormData();
     
+    // Add required fixed fields
     formData.append('adShowroom', showroomId);
     formData.append('adCategory', categoryId);
     formData.append('adSubCategory', subCategoryId);
@@ -377,15 +388,26 @@ console.log(selectedBoostTag);
     formData.append('locationTown', townId);
     formData.append('adBoostTag', selectedBoostTag || '');
 
-    // Handle other form data with special handling for model and variant
-    Object.entries(data).forEach(([key, value]) => {
-      if (key !== 'adShowroom' && key !== 'adBoostTag') {
-        // Always send model and variant keys, even if empty
-        if (key === 'model' || key === 'variant') {
-          formData.append(key, value || '');
-        } else if (value !== undefined && value !== '') {
-          formData.append(key, value);
-        }
+    // Get all possible fields from config
+    const allConfigFields = Object.keys(adData || {}).reduce((acc, fieldName) => {
+      const config = getFieldConfig(fieldName, [], [], brands, models, variants, types);
+      if (config) {
+        acc[fieldName] = true;
+      }
+      return acc;
+    }, {});
+
+    // Add all config fields to formData, with empty string if no value
+    Object.keys(allConfigFields).forEach(fieldName => {
+      const value = data[fieldName];
+      formData.append(fieldName, value || '');
+    });
+
+    // Handle special fields that always need to be sent
+    const specialFields = ['model', 'variant', 'brand', 'type'];
+    specialFields.forEach(field => {
+      if (!allConfigFields[field]) {
+        formData.append(field, data[field] || '');
       }
     });
 
@@ -407,7 +429,7 @@ console.log(selectedBoostTag);
       }
     });
 
-    // Log the form data
+    // Log the form data for debugging
     console.log('Form Data being sent to API:');
     for (let pair of formData.entries()) {
       if (pair[0] === 'images') {
@@ -416,12 +438,6 @@ console.log(selectedBoostTag);
         console.log(pair[0], pair[1]);
       }
     }
-
-    // Log the raw data object
-    console.log('Raw form data:', data);
-
-    // Log the API endpoint
-    console.log('API Endpoint:', `${BASE_URL}/api/${subCategoryDetails.apiUrl}/${ad.id}`);
 
     try {
       const response = await axios.put(
