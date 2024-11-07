@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Box, Button, Grid, GridItem, useBreakpointValue, Text, Image, VStack, Center, useToast } from "@chakra-ui/react";
 import { MdAddCircleOutline } from "react-icons/md";
-import { useQuery, useQueryClient } from 'react-query';
+import { useQuery, useQueryClient } from "react-query";
 import axios from "axios";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
@@ -54,7 +54,6 @@ const MyShowroom = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [updatedAd, setUpdatedAd] = useState(null);
   const [subCategoryDetails, setSubCategoryDetails] = useState(null);
-  
 
   const { isLoggedIn, isInitialized, token } = useAuth();
   const queryClient = useQueryClient();
@@ -83,16 +82,11 @@ const MyShowroom = () => {
     isLoading: adsLoading,
     error: adsError,
     refetch: refetchShowroomAds,
-  } = useQuery(
-    ["showroomAds", selectedShowroom?.id, token],
-    () => fetchShowroomAds(selectedShowroom?.id, token),
-    {
-      enabled: !!selectedShowroom?.id && !!token,
-      retry: 3,
-    
-      refetchOnWindowFocus: false,
-    }
-  );
+  } = useQuery(["showroomAds", selectedShowroom?.id, token], () => fetchShowroomAds(selectedShowroom?.id, token), {
+    enabled: !!selectedShowroom?.id && !!token,
+    retry: 3,
+    retryDelay: 2000,
+  });
 
   useEffect(() => {
     if (showrooms && showrooms.length > 0 && !selectedShowroom) {
@@ -106,45 +100,49 @@ const MyShowroom = () => {
   const handleSellModalOpen = () => setIsSellModalOpen(true);
   const handleSellModalClose = () => setIsSellModalOpen(false);
 
-  const handleShowroomCreated = useCallback(async (newShowroom) => {
-    console.log("New showroom created:", newShowroom);
-    await refetchShowrooms();
-    setSelectedShowroom(newShowroom);
-    handleClose();
-    toast({
-      title: "Showroom created successfully",
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-    });
-  }, [refetchShowrooms, handleClose, toast]);
+  const handleShowroomCreated = useCallback(
+    async (newShowroom) => {
+      console.log("New showroom created:", newShowroom);
+      await refetchShowrooms();
+      setSelectedShowroom(newShowroom);
+      handleClose();
+      toast({
+        title: "Showroom created successfully",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    },
+    [refetchShowrooms, handleClose, toast]
+  );
 
   const handleShowroomSelect = useCallback((showroom) => {
     setSelectedShowroom(showroom);
   }, []);
 
-  const handleShowroomDelete = useCallback(async (deletedShowroomId) => {
-    await refetchShowrooms();
-    if (selectedShowroom?.id === deletedShowroomId) {
-      const updatedShowrooms = showrooms.filter(s => s.id !== deletedShowroomId);
-      setSelectedShowroom(updatedShowrooms[0] || null);
-    }
-   
-  }, [refetchShowrooms, selectedShowroom, showrooms, toast]);
+  const handleShowroomDelete = useCallback(
+    async (deletedShowroomId) => {
+      await refetchShowrooms();
+      if (selectedShowroom?.id === deletedShowroomId) {
+        const updatedShowrooms = showrooms.filter((s) => s.id !== deletedShowroomId);
+        setSelectedShowroom(updatedShowrooms[0] || null);
+      }
+    },
+    [refetchShowrooms, selectedShowroom, showrooms, toast]
+  );
 
-  const handleAdCreated = useCallback(async (newAd) => {
-    // Update the local cache with the new ad
-    queryClient.setQueryData(
-      ["showroomAds", selectedShowroom.id],
-      (oldData) => oldData ? [newAd, ...oldData] : [newAd]
-    );
+  const handleAdCreated = useCallback(
+    async (newAd) => {
+      // Update the local cache with the new ad
+      queryClient.setQueryData(["showroomAds", selectedShowroom.id], (oldData) => (oldData ? [newAd, ...oldData] : [newAd]));
 
-    // Optionally, you can still refetch to ensure consistency with the server
-    await refetchShowroomAds();
-    
-    handleSellModalClose();
-  
-  }, [queryClient, selectedShowroom, refetchShowroomAds, handleSellModalClose, toast]);
+      // Optionally, you can still refetch to ensure consistency with the server
+      await refetchShowroomAds();
+
+      handleSellModalClose();
+    },
+    [queryClient, selectedShowroom, refetchShowroomAds, handleSellModalClose, toast]
+  );
 
   const handleShowroomEdit = useCallback((showroom) => {
     setShowroomToEdit(showroom);
@@ -156,17 +154,20 @@ const MyShowroom = () => {
     setShowroomToEdit(null);
   }, []);
 
-  const handleEditSuccess = useCallback(async (updatedShowroom) => {
-    await refetchShowrooms();
-    setSelectedShowroom(updatedShowroom);
-    handleEditModalClose();
-    toast({
-      title: "Showroom updated successfully",
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-    });
-  }, [refetchShowrooms, handleEditModalClose, toast]);
+  const handleEditSuccess = useCallback(
+    async (updatedShowroom) => {
+      await refetchShowrooms();
+      setSelectedShowroom(updatedShowroom);
+      handleEditModalClose();
+      toast({
+        title: "Showroom updated successfully",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    },
+    [refetchShowrooms, handleEditModalClose, toast]
+  );
 
   const handleAdEdit = useCallback((ad) => {
     setAdToEdit(ad);
@@ -180,87 +181,80 @@ const MyShowroom = () => {
 
   const handleEditAdSuccess = useCallback(async () => {
     await refetchShowroomAds();
-    setShowSuccessModal(false);
   }, [refetchShowroomAds]);
 
   // Add new handler for success modal
   const handleShowSuccessModal = useCallback((data) => {
- 
-    console.log('adData:', data.adData);
-  
+    console.log("adData:", data.adData);
 
     setUpdatedAd({
       ...data.adData,
       adCategory: data.adData.adCategory?.id, // Extract just the ID from adCategory
       adSubCategory: data.adData.adSubCategory?.id, // Extract just the ID from adSubCategory
-      images: data.images ,
-      brand:data.adData.brand?.id,
-      model:data.adData.model?.id,
-      variant:data.adData.variant?.id,
-      type: data.adData.type?.id,// Use the received image files directly
+      images: data.images,
+      brand: data.adData.brand?.id,
+      model: data.adData.model?.id,
+      variant: data.adData.variant?.id,
+      type: data.adData.type?.id, // Use the received image files directly
     });
     setSubCategoryDetails(data.subCategoryDetails);
     setShowSuccessModal(true);
   }, []);
 
-  const handleAdDeleted = useCallback(async (adData) => {
-    if (!adData?.id || !adData?.adSubCategory?.id) {
-      console.error("Invalid ad data:", adData);
-      return;
-    }
+  const handleAdDeleted = useCallback(
+    async (adData) => {
+      if (!adData?.id || !adData?.adSubCategory?.id) {
+        console.error("Invalid ad data:", adData);
+        return;
+      }
 
-    try {
-      // Optimistically update the UI first
-      queryClient.setQueryData(['showroomAds', selectedShowroom.id], (oldData) => {
-        if (!Array.isArray(oldData)) return [];
-        return oldData.filter(ad => ad?.id !== adData?.id);
-      });
+      try {
+        // Optimistically update the UI first
+        queryClient.setQueryData(["showroomAds", selectedShowroom.id], (oldData) => {
+          if (!Array.isArray(oldData)) return [];
+          return oldData.filter((ad) => ad?.id !== adData?.id);
+        });
 
-      // Get the sub-category details
-      const { data: subCategoryData } = await axios.get(
-        `${BASE_URL}/api/ad-find-one-sub-category/${adData.adSubCategory.id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
+        // Get the sub-category details
+        const { data: subCategoryData } = await axios.get(`${BASE_URL}/api/ad-find-one-sub-category/${adData.adSubCategory.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-      const apiUrl = subCategoryData.data.apiUrl;
+        const apiUrl = subCategoryData.data.apiUrl;
 
-      // Delete the ad
-      await axios.delete(
-        `${BASE_URL}/api/${apiUrl}/${adData?.id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
+        // Delete the ad
+        await axios.delete(`${BASE_URL}/api/${apiUrl}/${adData?.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-      // Show success toast
-      toast({
-        title: "Ad deleted successfully",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+        // Show success toast
+        toast({
+          title: "Ad deleted successfully",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
 
-      // Refetch to ensure data consistency
-      await refetchShowroomAds();
+        // Refetch to ensure data consistency
+        await refetchShowroomAds();
+      } catch (error) {
+        console.error("Error deleting ad:", error);
 
-    } catch (error) {
-      console.error("Error deleting ad:", error);
-      
-      // Show error toast
-      toast({
-        title: "Error deleting ad",
-        description: error.response?.data?.message || "Please try again later",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-      
-      // Revert the optimistic update by refetching
-      await refetchShowroomAds();
-    }
-  }, [queryClient, selectedShowroom?.id, token, toast, refetchShowroomAds]);
+        // Show error toast
+        toast({
+          title: "Error deleting ad",
+          description: error.response?.data?.message || "Please try again later",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+
+        // Revert the optimistic update by refetching
+        await refetchShowroomAds();
+      }
+    },
+    [queryClient, selectedShowroom?.id, token, toast, refetchShowroomAds]
+  );
 
   if (showroomsLoading || !isInitialized || adsLoading) {
     return <ShowroomSkeleton />;
@@ -311,28 +305,12 @@ const MyShowroom = () => {
                 <Swiper className="w-full" spaceBetween={30} slidesPerView={1} onSlideChange={(swiper) => handleShowroomSelect(showrooms[swiper.activeIndex])}>
                   {showrooms.map((showroom) => (
                     <SwiperSlide key={showroom.id}>
-                      <ShowroomContentCard
-                        showroom={showroom}
-                        isSelected={selectedShowroom?.id === showroom.id}
-                        onClick={handleShowroomSelect}
-                        onEdit={handleShowroomEdit}
-                        onDeleteSuccess={handleShowroomDelete}
-                        
-                      />
+                      <ShowroomContentCard showroom={showroom} isSelected={selectedShowroom?.id === showroom.id} onClick={handleShowroomSelect} onEdit={handleShowroomEdit} onDeleteSuccess={handleShowroomDelete} />
                     </SwiperSlide>
                   ))}
                 </Swiper>
               ) : (
-                showrooms.map((showroom) => (
-                  <ShowroomContentCard
-                    key={showroom.id}
-                    showroom={showroom}
-                    isSelected={selectedShowroom?.id === showroom.id}
-                    onClick={handleShowroomSelect}
-                    onEdit={handleShowroomEdit}
-                    onDeleteSuccess={handleShowroomDelete}
-                  />
-                ))
+                showrooms.map((showroom) => <ShowroomContentCard key={showroom.id} showroom={showroom} isSelected={selectedShowroom?.id === showroom.id} onClick={handleShowroomSelect} onEdit={handleShowroomEdit} onDeleteSuccess={handleShowroomDelete} />)
               )
             ) : (
               <Box textAlign="center">
@@ -343,15 +321,7 @@ const MyShowroom = () => {
               </Box>
             )}
 
-            <Button
-              leftIcon={<MdAddCircleOutline />}
-              colorScheme="blue"
-              size="lg"
-              borderRadius="xl"
-              bg="#4F7598"
-              _hover={{ bg: "#3182CE" }}
-              onClick={handleOpen}
-            >
+            <Button leftIcon={<MdAddCircleOutline />} colorScheme="blue" size="lg" borderRadius="xl" bg="#4F7598" _hover={{ bg: "#3182CE" }} onClick={handleOpen}>
               Create New Showroom
             </Button>
           </VStack>
@@ -370,14 +340,7 @@ const MyShowroom = () => {
               {showroomAds && showroomAds.length > 0 ? (
                 <VStack spacing={4} align="stretch">
                   {showroomAds.map((ad) => (
-               <ShowroomuserAdCard 
-               key={ad.id} 
-               data={ad} 
-               onEdit={handleAdEdit}
-               onDelete={handleAdDeleted}
-               showroomId={selectedShowroom?.id}
-               token={token}
-             />
+                    <ShowroomuserAdCard key={ad.id} data={ad} onEdit={handleAdEdit} onDelete={handleAdDeleted} showroomId={selectedShowroom?.id} token={token} />
                   ))}
                   <Button
                     leftIcon={<MdAddCircleOutline />}
@@ -399,11 +362,11 @@ const MyShowroom = () => {
                   <Text fontSize="lg" fontWeight="medium" mb={4}>
                     No posts yet in this showroom
                   </Text>
-                  <Button 
-                    leftIcon={<MdAddCircleOutline />} 
-                    colorScheme="blue" 
-                    size="lg" 
-                    borderRadius="xl" 
+                  <Button
+                    leftIcon={<MdAddCircleOutline />}
+                    colorScheme="blue"
+                    size="lg"
+                    borderRadius="xl"
                     onClick={handleSellModalOpen}
                     isDisabled={!selectedShowroom || !selectedShowroom.locationTown?.name}
                     title={!selectedShowroom.locationTown?.name ? "Please set a location for this showroom first" : ""}
@@ -423,11 +386,7 @@ const MyShowroom = () => {
         </GridItem>
       </Grid>
 
-      <ShowroomCreateModal
-        isOpen={isOpen}
-        onClose={handleClose}
-        onSuccess={handleShowroomCreated}
-      />
+      <ShowroomCreateModal isOpen={isOpen} onClose={handleClose} onSuccess={handleShowroomCreated} />
 
       {selectedShowroom && (
         <SellShowroomAd
@@ -456,26 +415,14 @@ const MyShowroom = () => {
           townId={selectedShowroom.locationTown?.id}
           showroomId={selectedShowroom.id}
           onShowSuccess={(data) => {
-            console.log('onShowSuccess callback triggered with data:', data);
+            console.log("onShowSuccess callback triggered with data:", data);
             handleShowSuccessModal(data);
+            handleEditAdSuccess();
           }}
         />
       )}
 
-      {showSuccessModal && updatedAd && subCategoryDetails && (
-        <CongratulationsModal
-          adType="Showroom Ad"
-          onClose={() => {
-            setShowSuccessModal(false);
-            handleEditAdSuccess();
-          }}
-          adId={updatedAd.id}
-          formData={updatedAd}
-          apiUrl={subCategoryDetails.apiUrl}
-          isTagCreationPossible={true}
-          images={updatedAd.images}
-        />
-      )}
+   
     </Box>
   );
 };

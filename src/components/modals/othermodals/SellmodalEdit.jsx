@@ -274,7 +274,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
         duration: 3000,
         isClosable: true,
       });
-      return { isAdCreationPossible: false, isTagCreationPossible: false };
+      return { isAdCreationPossible: true, isTagCreationPossible: true };
     }
   };
 
@@ -290,11 +290,14 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
         const result = await checkAdCreationPossibility(data.adCategory);
         isAdCreationPossible = result.isAdCreationPossible;
         isTagCreationPossible = result.isTagCreationPossible;
+      } else {
+        isAdCreationPossible = true;
+        isTagCreationPossible = true;
       }
       
       setIsTagCreationPossible(isTagCreationPossible);
 
-      if (!isAdCreationPossible && parseInt(data.adCategory) !== parseInt(initialCategoryId)) {
+      if (!isAdCreationPossible) {
         onClose();
         navigate('/packages/post-more-ads');
         toast({
@@ -429,27 +432,13 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
             <FormLabel>{config.label}</FormLabel>
             <Select 
               {...register(fieldName, config.rules)}
-              isDisabled={
-                fieldName === 'locationDistrict' ? isDistrictsLoading : 
-                fieldName === 'locationTown' ? isTownsLoading || !selectedDistrictId :
-                fieldName === 'brand' ? isBrandsLoading :
-                fieldName === 'model' ? isModelsLoading || (!selectedBrandId && selectedSubCategoryId !== 13) :
-                fieldName === 'variant' ? isVariantsLoading || !selectedModelId :
-                false
-              }
               onChange={(e) => {
                 const newValue = e.target.value;
+                setValue(fieldName, newValue, { shouldValidate: true });
                 
-                if (fieldName === 'locationDistrict') {
-                  handleDistrictChange(e);
-                } else if (fieldName === 'locationTown') {
-                  const isValidTown = towns?.some(town => town.id.toString() === newValue);
-                  if (isValidTown || newValue === '') {
-                    setValue(fieldName, newValue, { shouldValidate: true });
-                  }
-                } else {
-                  setValue(fieldName, newValue);
-                  if (fieldName === 'type') {
+                // Handle special cases for dependent fields
+                switch(fieldName) {
+                  case 'type':
                     setSelectedTypeId(newValue);
                     if (selectedSubCategoryId === 18) {
                       setValue('brand', '');
@@ -459,46 +448,33 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
                       setSelectedModelId(null);
                       setSelectedVariantId(null);
                     }
-                  } else if (fieldName === 'brand') {
+                    break;
+                  case 'brand':
                     setSelectedBrandId(newValue);
                     setValue('model', '');
                     setValue('variant', '');
                     setSelectedModelId(null);
                     setSelectedVariantId(null);
-                  } else if (fieldName === 'model') {
+                    break;
+                  case 'model':
                     setSelectedModelId(newValue);
                     setValue('variant', '');
                     setSelectedVariantId(null);
-                  } else if (fieldName === 'variant') {
+                    break;
+                  case 'variant':
                     setSelectedVariantId(newValue);
-                  }
+                    break;
+                  default:
+                    break;
                 }
               }}
-              value={
-                fieldName === 'locationDistrict' ? selectedDistrictId || '' :
-                fieldName === 'locationTown' ? (
-                  isTownsLoading ? '' : getValues('locationTown') || ''
-                ) :
-                fieldName === 'type' ? selectedTypeId || '' :
-                fieldName === 'brand' ? selectedBrandId || '' :
-                fieldName === 'model' ? selectedModelId || '' :
-                fieldName === 'variant' ? selectedVariantId || '' :
-                getValues(fieldName) || ''
-              }
+              value={getValues(fieldName) || ''}
             >
-              <option value="">
-                {fieldName === 'locationTown' && isTownsLoading 
-                  ? "Loading towns..." 
-                  : `Select ${config.label}`}
-              </option>
+              <option value="">Select {config.label}</option>
               {config.options?.map(option => (
                 <option 
                   key={option.id || option} 
                   value={option.id || option}
-                  selected={
-                    fieldName === 'locationTown' && 
-                    completeAdData?.locationTown?.id === option.id
-                  }
                 >
                   {option.name || option}
                 </option>

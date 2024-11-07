@@ -141,7 +141,9 @@ const CardShowroom = ({ ad }) => {
           <Box borderWidth="1px" borderRadius="lg" overflow="hidden" bg="#0071BC1A" boxShadow="md" className="mb-4">
             <Box position="relative" width="100%">
               <img src={imageUrl} alt={ad.title} className="h-48 w-full rounded-t-lg" style={{ objectFit: "cover" }} />
-              {ad.adBoostTag && <AdBoostBadge tag={ad.adBoostTag} />}
+              <Box className="absolute top-2 left-2">
+                <AdBoostBadge tag={ad.adBoostTag} />
+              </Box>
             </Box>
 
             <Box p="3">
@@ -188,7 +190,9 @@ const CardShowroom = ({ ad }) => {
           <Flex>
             <Box position="relative" width="40%" className="rounded-lg">
               <Image src={imageUrl} alt={ad.title} objectFit="cover" className="h-[200px] p-2 rounded-lg" h="100%" w="100%" />
-              {ad.adBoostTag && <AdBoostBadge tag={ad.adBoostTag} />}
+              <Box position="absolute" top="2" left="2">
+                {ad.adBoostTag && <AdBoostBadge tag={ad.adBoostTag} />}
+              </Box>
             </Box>
 
             <Box width="60%" p="4">

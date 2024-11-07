@@ -35,7 +35,7 @@ export const useModels = (isOpen, getUserToken, brandId, subcategoryId, selected
       let endpoint;
       const validSubcategories = ["11", "93", "12", "94", "13", "14", "15", "19", "21", "22", "23"];
       if (!validSubcategories.includes(subcategoryIdString)) {
-        throw new Error("Invalid subcategory ID");
+        return []; // Return empty array if the subcategory ID is invalid
       }
 
       switch (subcategoryIdString) {

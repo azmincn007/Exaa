@@ -81,6 +81,38 @@ const EditShowroomad = ({
 
   const queryClient = useQueryClient();
 
+  const [boostTags, setBoostTags] = useState([]);
+  const [selectedBoostTag, setSelectedBoostTag] = useState('');
+console.log(selectedBoostTag);
+
+  useEffect(() => {
+    const fetchBoostTags = async () => {
+      try {
+        const response = await axios.get(`${BASE_URL}/api/ad-boost-tags`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (response.data.success) {
+          setBoostTags(response.data.data);
+          
+          // If there's an existing boost tag in the ad data, set it
+          if (adData?.adBoostTag) {
+            const boostTagId = typeof adData.adBoostTag === 'object' 
+              ? adData.adBoostTag.id 
+              : adData.adBoostTag;
+            setSelectedBoostTag(boostTagId);
+            setValue('adBoostTag', boostTagId);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching boost tags:', error);
+      }
+    };
+
+    if (isOpen) {
+      fetchBoostTags();
+    }
+  }, [isOpen, token, adData, setValue]);
+
   useEffect(() => {
     const fetchData = async () => {
       if (!ad?.id || !token || !subCategoryId) return;
@@ -144,12 +176,7 @@ const EditShowroomad = ({
           setValue('type', typeId);
           setValue('variant', variantId);
 
-          console.log('Set values:', {
-            brand: brandId,
-            model: modelId,
-            type: typeId,
-            variant: variantId
-          });
+    
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -204,7 +231,7 @@ const EditShowroomad = ({
   };
 
   const renderField = (fieldName) => {
-    if (fieldName === 'locationDistrict' || fieldName === 'locationTown') {
+    if (fieldName === 'locationDistrict' || fieldName === 'locationTown' || fieldName === 'adBoostTag') {
       return null;
     }
 
@@ -309,6 +336,31 @@ const EditShowroomad = ({
             <Checkbox {...register(fieldName)}>{config.label}</Checkbox>
           </FormControl>
         );
+      case 'boostTag':
+        return (
+          <FormControl key={fieldName} isInvalid={errors[fieldName]}>
+            <FormLabel fontSize={fontSize}>Boost Tag</FormLabel>
+            <Select
+              {...register(fieldName)}
+              fontSize={fontSize}
+              placeholder="Select boost tag"
+              value={selectedBoostTag}
+              onChange={(e) => {
+                const value = e.target.value;
+                setSelectedBoostTag(value);
+                setValue('adBoostTag', value);
+              }}
+            >
+           
+              {boostTags.map(tag => (
+                <option key={tag.id} value={tag.id}>
+                  {tag.name}
+                </option>
+              ))}
+            </Select>
+            <FormErrorMessage>{errors[fieldName]?.message}</FormErrorMessage>
+          </FormControl>
+        );
       default:
         return null;
     }
@@ -323,7 +375,7 @@ const EditShowroomad = ({
     formData.append('adSubCategory', subCategoryId);
     formData.append('locationDistrict', districtId);
     formData.append('locationTown', townId);
-    formData.append('adBoostTag', data.adBoostTag?.id || '');
+    formData.append('adBoostTag', selectedBoostTag || '');
 
     // Handle other form data with special handling for model and variant
     Object.entries(data).forEach(([key, value]) => {
@@ -355,6 +407,21 @@ const EditShowroomad = ({
       }
     });
 
+    // Log the form data
+    console.log('Form Data being sent to API:');
+    for (let pair of formData.entries()) {
+      if (pair[0] === 'images') {
+        console.log(pair[0], 'File:', pair[1].name);
+      } else {
+        console.log(pair[0], pair[1]);
+      }
+    }
+
+    // Log the raw data object
+    console.log('Raw form data:', data);
+
+    // Log the API endpoint
+    console.log('API Endpoint:', `${BASE_URL}/api/${subCategoryDetails.apiUrl}/${ad.id}`);
 
     try {
       const response = await axios.put(
@@ -377,6 +444,12 @@ const EditShowroomad = ({
           duration: 3000,
           isClosable: true,
           position: 'top',
+        });
+
+        // Update the local cache with the updated ad data
+        queryClient.setQueryData(["showroomAds", showroomId], (oldData) => {
+          if (!oldData) return [];
+          return oldData.map(ad => ad?.id === response.data.data.id ? response.data.data : ad);
         });
 
         // Convert uploaded images to File objects
@@ -423,6 +496,7 @@ const EditShowroomad = ({
         };
 
         console.log('Data being passed to parent via onShowSuccess:', callbackData);
+        queryClient.invalidateQueries("showroomAds");
 
         queryClient.invalidateQueries("userAds");
         queryClient.invalidateQueries("pendingAds");
@@ -509,8 +583,34 @@ const EditShowroomad = ({
             {isDataLoaded ? (
               <form onSubmit={handleSubmit(onSubmit)}>
                 <VStack spacing={4} align="stretch">
-                  {adData && Object.keys(adData).map(fieldName => renderField(fieldName))}
-                  
+                  {adData && Object.keys(adData).map((fieldName, index) => (
+                    <React.Fragment key={fieldName + index}>
+                      {renderField(fieldName)}
+                    </React.Fragment>
+                  ))}
+
+                  <FormControl isInvalid={errors.adBoostTag}>
+                    <FormLabel fontSize={fontSize}>Boost Tag</FormLabel>
+                    <Select
+                      {...register('adBoostTag')}
+                      fontSize={fontSize}
+                      placeholder="Select boost tag"
+                      value={selectedBoostTag}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setSelectedBoostTag(value);
+                        setValue('adBoostTag', value);
+                      }}
+                    >
+                      {boostTags.map(tag => (
+                        <option key={tag.id} value={tag.id}>
+                          {tag.name}
+                        </option>
+                      ))}
+                    </Select>
+                    <FormErrorMessage>{errors.adBoostTag?.message}</FormErrorMessage>
+                  </FormControl>
+
                   <FormControl>
                     <FormLabel fontSize={fontSize}>Images (Max 4)</FormLabel>
                     <Flex gap={3} flexWrap="wrap" justifyContent="center">

@@ -32,7 +32,8 @@ export const useBrands = (isOpen, getUserToken, subcategoryId, selectedTypeId) =
       let subcategory;
       const validSubcategories = ["11", "93", "12", "94", "13", "14", "15", "16", "19", "21", "22", "23"];
       if (!validSubcategories.includes(subcategoryIdString)) {
-        throw new Error("Invalid subcategory ID");
+        // Return early if the subcategory ID is invalid
+        return []; // or return null; depending on your needs
       }
       
       if (subcategoryIdString === "11") {

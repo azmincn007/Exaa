@@ -37,7 +37,7 @@ import { useVariants } from '../../common/config/Api/UseVarient.jsx';
 import { useTypes } from '../../common/config/Api/UseTypes.jsx';
 import { useNavigate } from 'react-router-dom';
 
-const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId, townId, showroomid, onAdCreated }) => {
+const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId, townId, showroomid, onAdCreated, onEditSuccess }) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [uploadedImages, setUploadedImages] = useState([]);
@@ -55,6 +55,8 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
   const [submittedImages, setSubmittedImages] = useState([]);
   const [submittedAdId, setSubmittedAdId] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [boostTags, setBoostTags] = useState([]);
+  const [selectedBoostTag, setSelectedBoostTag] = useState(null);
 
   const modalSize = useBreakpointValue({ base: "full", md: "xl" });
   const fontSize = useBreakpointValue({ base: "sm", md: "md" });
@@ -101,6 +103,34 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
     }
   }, [subCategoryId, reset]);
 
+  useEffect(() => {
+    const fetchBoostTags = async () => {
+      const token = getUserToken();
+      if (!token) return;
+
+      try {
+        const response = await axios.get(`${BASE_URL}/api/ad-boost-tags`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        setBoostTags(response.data.data);
+      } catch (error) {
+        console.error('Error fetching boost tags:', error);
+        toast({
+          title: "Error fetching boost tags",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    };
+
+    if (isOpen) {
+      fetchBoostTags();
+    }
+  }, [isOpen, getUserToken, toast]);
+
   const onSubmit = async (data) => {
     if (uploadedImages.length === 0) {
       setError('images', {
@@ -132,6 +162,7 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
       }
 
       const relevantFields = subCategoryDetails?.requiredFields || [];
+      
       const filteredData = relevantFields.reduce((obj, key) => {
         if (key === 'variant' && data[key] === undefined) {
           obj[key] = "";
@@ -146,7 +177,13 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
       filteredData.adSubCategory = subCategoryId;
       filteredData.locationDistrict = districtId;
       filteredData.locationTown = townId;
-      filteredData.adSubscription = ""; 
+      filteredData.adBoostTag = selectedBoostTag;
+
+      // Log the data being sent to the API
+      console.log('Data being sent to API:', {
+        ...filteredData,
+        images: uploadedImages.map(image => image.file.name), // Log image names for clarity
+      });
 
       const formData = new FormData();
       Object.keys(filteredData).forEach(key => {
@@ -195,15 +232,13 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
           onAdCreated();
         }
 
+        // Call onEditSuccess if it exists
+        if (onEditSuccess) {
+          onEditSuccess(response.data.data); // Pass the created ad data
+        }
+
         // Add success toast
-        toast({
-          title: "Ad Created Successfully",
-          description: "Your showroom ad has been created and is pending approval.",
-          status: "success",
-          duration: 5000,
-          isClosable: true,
-          position: "top"
-        });
+      
       } else {
         throw new Error('Failed to add ad');
       }
@@ -406,7 +441,32 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
               <h3 className={`text-${headingSize} font-bold mb-3`}>Add your showroom ad details</h3>
               
               {subCategoryDetails && subCategoryDetails.requiredFields?.map(fieldName => renderField(fieldName))}
-              
+              <FormControl isInvalid={errors?.boostTags}>
+                <FormLabel fontSize={fontSize}>
+                  Boost Tags
+                </FormLabel>
+                <Controller
+                  name="boostTags"
+                  control={control}
+                  render={({ field }) => (
+                    <Select 
+                      {...field} 
+                      placeholder="Select a boost tag" 
+                      onChange={(e) => {
+                        field.onChange(e);
+                        setSelectedBoostTag(e.target.value);
+                      }}
+                    >
+                      {boostTags.map((tag) => (
+                        <option key={tag.id} value={tag.id}>
+                          {tag.name}
+                        </option>
+                      ))}
+                    </Select>
+                  )}
+                />
+                <FormErrorMessage>{errors?.boostTags && errors.boostTags.message}</FormErrorMessage>
+              </FormControl>
               <FormControl fontSize={fontSize} isInvalid={errors.images} isRequired>
                 <FormLabel>Upload Images (Max 4) </FormLabel>
                 <Flex gap={3} flexWrap="wrap" justifyContent="center">
@@ -456,18 +516,6 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
           </ModalFooter>
         </ModalContent>
       </Modal>
-
-      {showCongratulations && (
-        <CongratulationsModal
-          adType="Showroom Ad"
-          formData={submittedFormData}
-          apiUrl={submittedApiUrl}
-          isTagCreationPossible={isTagCreationPossible}
-          images={submittedImages}
-          adId={submittedAdId}
-          onClose={() => setShowCongratulations(false)}
-        />
-      )}
     </>
   );
 };

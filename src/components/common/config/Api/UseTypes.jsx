@@ -13,6 +13,12 @@ export const useTypes = (isOpen, getUserToken, subcategoryId) => {
 
       const subcategoryIdString = String(subcategoryId);
 
+      // Check for valid subcategory IDs
+      const validSubcategories = ["1", "2", "3", "4", "5", "8", "18"];
+      if (!validSubcategories.includes(subcategoryIdString)) {
+        return []; // Return empty array if the subcategory ID is invalid
+      }
+
       let endpoint;
       if (subcategoryIdString === "1") {
         endpoint = "ad-p-f-s-h-a-v-ts";
