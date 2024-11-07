@@ -194,6 +194,16 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
         if (onAdCreated) {
           onAdCreated();
         }
+
+        // Add success toast
+        toast({
+          title: "Ad Created Successfully",
+          description: "Your showroom ad has been created and is pending approval.",
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+          position: "top"
+        });
       } else {
         throw new Error('Failed to add ad');
       }

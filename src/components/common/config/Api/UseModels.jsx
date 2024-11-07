@@ -1,4 +1,4 @@
-import { useQuery } from "react-query";
+import { useQuery } from 'react-query';
 import axios from "axios";
 import { BASE_URL } from "../../../../config/config";
 
@@ -33,19 +33,24 @@ export const useModels = (isOpen, getUserToken, brandId, subcategoryId, selected
 
       // Handle other subcategories
       let endpoint;
+      const validSubcategories = ["11", "93", "12", "94", "13", "14", "15", "19", "21", "22", "23"];
+      if (!validSubcategories.includes(subcategoryIdString)) {
+        throw new Error("Invalid subcategory ID");
+      }
+
       switch (subcategoryIdString) {
         case "11":
           endpoint = "ad-car-brand-models";
           break;
-          case "93":
-            endpoint = "ad-car-brand-models";
-            break;
+        case "93":
+          endpoint = "ad-car-brand-models";
+          break;
         case "12":
           endpoint = "ad-motorcycle-bike-model";
           break;
-          case "94":
-            endpoint = "ad-motorcycle-bike-model";
-            break;
+        case "94":
+          endpoint = "ad-motorcycle-bike-model";
+          break;
         case "13":
           endpoint = "ad-moto-bull-modes";
           break;

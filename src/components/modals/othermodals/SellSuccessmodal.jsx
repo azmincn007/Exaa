@@ -22,6 +22,8 @@ const CongratulationsModal = ({
   isTagCreationPossible, 
   images 
 }) => {
+  console.log(formData);
+  console.log(apiUrl);
   const navigate = useNavigate();
   const [showTagSelect, setShowTagSelect] = useState(false);
   const [selectedTag, setSelectedTag] = useState('');
@@ -51,7 +53,7 @@ const CongratulationsModal = ({
         );
         console.log("hi");
         
-        console.log(response.data.data);
+        console.log(response);
         
         return response.data;
       } catch (error) {
@@ -62,21 +64,30 @@ const CongratulationsModal = ({
     {
       onSuccess: (data) => {
         console.log('Boost mutation response:', data);
-        // Invalidate multiple queries
+        // Modify the invalidation strategy
         const queriesToInvalidate = [
-          'userAds',
-          'pendingAds',
-          'expiredAds',
-          'activeAds',  
-          'showroomAds',
-          'showrooms',
-
-          `ad-${adId}`  
+          ['userAds'],
+          ['pendingAds'],
+          ['expiredAds'],
+          ['activeAds'],
+          ['showroomAds'],
+          ['showrooms'],
+          [`ad-${adId}`]
         ];
 
-        // Invalidate all queries in parallel
+        // Force a refetch when invalidating
+        queriesToInvalidate.forEach(queryKey => {
+          queryClient.invalidateQueries(queryKey, {
+            refetchActive: true,
+            refetchInactive: false
+          });
+        });
+
+        // Wait for invalidation to complete
         Promise.all(
-          queriesToInvalidate.map(query => queryClient.invalidateQueries(query))
+          queriesToInvalidate.map(query => 
+            queryClient.refetchQueries(query, { active: true })
+          )
         ).then(() => {
           onClose();
         });

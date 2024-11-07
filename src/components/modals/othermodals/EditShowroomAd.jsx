@@ -48,6 +48,7 @@ const EditShowroomad = ({
   const fontSize = useBreakpointValue({ base: "sm", md: "md" });
   const imageBoxSize = useBreakpointValue({ base: "100px", md: "150px" });
   const token = localStorage.getItem('UserToken');
+  const getUserToken = useCallback(() => localStorage.getItem('UserToken'), []);
 
   // Add new state to track if these fields are needed
   const [requiredFields, setRequiredFields] = useState({
@@ -60,25 +61,20 @@ const EditShowroomad = ({
   // Modify the API hooks to include the required field check
   const { data: brands } = useBrands(
     isOpen, 
-    () => token, 
+    getUserToken, 
     subCategoryId,
     subCategoryId === 18 ? selectedTypeId : null
   );
-  
   const { data: models } = useModels(
     isOpen, 
-    () => token, 
+    getUserToken, 
     selectedBrandId, 
     subCategoryId,
     subCategoryId === 18 ? selectedTypeId : null
   );
-  const { data: variants } = useVariants(
-    isOpen, 
-    () => token, 
-    selectedModelId, 
-    subCategoryId
-  );
-  const { data: types } = useTypes(isOpen && requiredFields.type, () => token, subCategoryId);
+  const { data: variants } = useVariants(isOpen, getUserToken, selectedModelId, subCategoryId);
+  const { data: types } = useTypes(isOpen, getUserToken, subCategoryId);
+
 
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showTestModal, setShowTestModal] = useState(false);
@@ -372,15 +368,22 @@ const EditShowroomad = ({
         }
       );
 
-      // Log the API response
-      console.log('API Response:', response.data);
-
       if (response.data.success) {
+        // Show success toast
+        toast({
+          title: 'Success',
+          description: 'Ad updated successfully',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+          position: 'top',
+        });
+
         // Convert uploaded images to File objects
         const imageFiles = await Promise.all(
           uploadedImages.map(async (image, index) => {
             if (image.file) {
-              return image.file; // New uploaded file
+              return image.file;
             } else if (image.isExisting) {
               try {
                 const response = await fetch(image.preview);
@@ -398,10 +401,19 @@ const EditShowroomad = ({
         // Filter out any null values and create the callback data
         const validImageFiles = imageFiles.filter(file => file !== null);
         
+        // Add getFieldConfig fields to adData
+        const fieldsConfig = Object.keys(adData).reduce((acc, fieldName) => {
+          const config = getFieldConfig(fieldName, [], [], brands, models, variants, types);
+          if (config) {
+            acc[fieldName] = adData[fieldName]; // Include the field data
+          }
+          return acc;
+        }, {});
 
         const callbackData = {
           adData: {
             ...response.data.data,
+            ...fieldsConfig, // Include the fields from getFieldConfig
             adShowroom: showroomId,
             locationDistrict: districtId,
             locationTown: townId
@@ -420,18 +432,20 @@ const EditShowroomad = ({
         onShowSuccess(callbackData);
       }
     } catch (error) {
+      // Show error toast with specific message if available
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to update ad. Please try again.',
+        status: 'error',
+        duration: 4000,
+        isClosable: true,
+        position: 'top',
+      });
+
       console.error('Error updating ad:', error);
-      // Log the error response if available
       if (error.response) {
         console.error('Error response:', error.response.data);
       }
-      toast({
-        title: 'Error',
-        description: 'Failed to update ad',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
     } finally {
       setIsLoading(false);
     }

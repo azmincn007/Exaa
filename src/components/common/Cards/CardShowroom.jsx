@@ -4,7 +4,7 @@ import { BiHeart, BiSolidHeart } from "react-icons/bi";
 import { IoLocationOutline } from "react-icons/io5";
 import { Link } from "react-router-dom";
 import { useBreakpointValue } from "@chakra-ui/react";
-import { useMutation, useQueryClient } from "react-query";
+import { useMutation, useQueryClient } from 'react-query';
 import axios from "axios";
 import { BASE_URL } from "../../../config/config";
 import LoginModal from "../../modals/Authentications/LoginModal";

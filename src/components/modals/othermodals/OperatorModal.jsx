@@ -18,7 +18,7 @@ import axios from "axios";
 import { useAuth } from "../../../Hooks/AuthContext";
 import { useCustomToast } from "../../../Hooks/ToastHook";
 import { BASE_URL } from "../../../config/config";
-import { useQueryClient } from "react-query";
+import { useQueryClient } from 'react-query';
 
 const AddOperatorModal = ({ 
   isOpen, 

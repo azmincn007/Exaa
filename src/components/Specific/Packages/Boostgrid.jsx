@@ -1,6 +1,6 @@
 import React from "react";
 import axios from "axios";
-import { useQuery } from "react-query";
+import { useQuery } from 'react-query';
 import { BASE_URL } from "../../../config/config";
 import PackageGrid from "./PackagesadsBoxes";
 import BoostGridBox from "./BoostGridBox";

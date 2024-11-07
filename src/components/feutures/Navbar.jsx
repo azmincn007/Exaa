@@ -16,7 +16,7 @@ import SimpleCountryDropdown from "../forms/dropdown/SimpleLocationDropdown";
 import StyledLanguageDropdown from "../forms/dropdown/StyledLanguageDropdown";
 import SellModal from "../modals/othermodals/SellModal";
 import SkeletonNavbar from "../Skelton/SkwltonNavbar";
-import { useQueryClient } from "react-query";
+import { useQueryClient } from 'react-query';
 import { useSearch } from "../../Hooks/SearchContext";
 import LogoutConfirmationModal from "../modals/othermodals/Logoutconfirmation";
 

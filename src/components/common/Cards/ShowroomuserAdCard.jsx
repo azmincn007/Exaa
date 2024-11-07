@@ -23,7 +23,6 @@ const ActionButton = ({ icon: Icon, onClick, backgroundColor }) => (
 );
 
 const ShowroomuserAdCard = ({ data, onEdit, onDelete, showroomId, token }) => {
-  console.log(data);
   
   const toast = useToast();
   const queryClient = useQueryClient();  

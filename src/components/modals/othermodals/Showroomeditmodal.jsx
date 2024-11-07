@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { useQuery, useQueryClient } from "react-query";
+import { useQuery, useQueryClient } from 'react-query';
 import axios from "axios";
 import { useForm, Controller } from "react-hook-form";
 import {
@@ -417,9 +417,8 @@ const ShowroomEditModal = ({ isOpen, onClose, showroom, onSuccess }) => {
               <FormLabel>Showroom Category</FormLabel>
               <Select
                 placeholder="Select Showroom Category"
-                isDisabled={!selectedCategoryId || subCategoriesQuery.isLoading}
+                isDisabled={true} // This disables the showroom category selection
                 {...register("adShowroomCategory", { required: "Showroom Category is required" })}
-                onChange={handleSubCategoryChange}
                 value={selectedSubCategoryId || ""}
               >
                 {subCategoriesQuery.data?.map(({ id, name }) => (
@@ -435,10 +434,9 @@ const ShowroomEditModal = ({ isOpen, onClose, showroom, onSuccess }) => {
               <FormLabel>Sub Category</FormLabel>
               <Select
                 placeholder="Select Sub Category"
-                isDisabled={!selectedSubCategoryId || showroomCategoriesQuery.isLoading}
+                isDisabled={true} // This disables the subcategory selection
                 {...register("adSubCategory", { required: "Sub Category is required" })}
                 value={selectedShowroomSubCategoryId || ""}
-                onChange={handleShowroomSubCategoryChange}
               >
                 {showroomCategoriesQuery.data?.map(({ id, name }) => (
                   <option key={id} value={id}>

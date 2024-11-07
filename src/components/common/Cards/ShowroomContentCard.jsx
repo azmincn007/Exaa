@@ -4,7 +4,7 @@ import { FaPencilAlt, FaTrash, FaUserPlus, FaEllipsisH } from "react-icons/fa";
 import { BASE_URL } from "../../../config/config";
 import axios from "axios";
 import { useAuth } from "../../../Hooks/AuthContext";
-import { useQueryClient } from "react-query";
+import { useQueryClient } from 'react-query';
 import DeleteConfirmationDialog from "../../modals/othermodals/DeleteConfirmation";
 import AddOperatorModal from "../../modals/othermodals/OperatorModal";
 import { useCustomToast } from "../../../Hooks/ToastHook";

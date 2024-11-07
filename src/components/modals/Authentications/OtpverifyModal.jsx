@@ -3,7 +3,7 @@ import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, Button, Divi
 import { IMAGES } from "../../../constants/logoimg";
 import { IoArrowBack } from "react-icons/io5";
 import { BiSolidEdit } from "react-icons/bi";
-import { useMutation } from "react-query";
+import { useMutation } from 'react-query';
 import axios from "axios";
 import { BASE_URL } from "../../../config/config";
 import { useAuth } from "../../../Hooks/AuthContext";

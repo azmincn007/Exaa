@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import { Box, Button, Flex, useBreakpointValue, Skeleton, SkeletonCircle, useDisclosure, useToast } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
-import { useQuery, useQueryClient, useMutation } from "react-query";
+import { useQuery, useQueryClient, useMutation } from 'react-query';
 import axios from "axios";
 import { FaGoogle, FaUser } from "react-icons/fa";
 import { IoLogoWhatsapp } from "react-icons/io5";

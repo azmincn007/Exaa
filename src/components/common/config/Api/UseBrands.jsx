@@ -1,9 +1,8 @@
-import { useQuery } from "react-query";
+import { useQuery } from 'react-query';
 import axios from "axios";
 import { BASE_URL } from "../../../../config/config";
 
 export const useBrands = (isOpen, getUserToken, subcategoryId, selectedTypeId) => {
-  
   return useQuery(
     ["brands", subcategoryId, selectedTypeId], // Include selectedTypeId in query key
     async () => {
@@ -31,12 +30,17 @@ export const useBrands = (isOpen, getUserToken, subcategoryId, selectedTypeId) =
 
       // Handle other subcategories
       let subcategory;
+      const validSubcategories = ["11", "93", "12", "94", "13", "14", "15", "16", "19", "21", "22", "23"];
+      if (!validSubcategories.includes(subcategoryIdString)) {
+        throw new Error("Invalid subcategory ID");
+      }
+      
       if (subcategoryIdString === "11") {
         subcategory = "ad-car-brands";
       } 
       else if (subcategoryIdString === "93") {
         subcategory = "ad-car-brands";
-      }
+      } 
       else if (subcategoryIdString === "12") {
         subcategory = "ad-moto-bike-brans";
       } 
@@ -48,10 +52,9 @@ export const useBrands = (isOpen, getUserToken, subcategoryId, selectedTypeId) =
         subcategory = "ad-moto-scoo-brans";
       } else if (subcategoryIdString === "15") {
         subcategory = "ad-moto-scoo-brans";
-      }else if (subcategoryIdString === "16") {
+      } else if (subcategoryIdString === "16") {
         subcategory = "ad-moto-bicy-brans";
-      }
-       else if (subcategoryIdString === "19") {
+      } else if (subcategoryIdString === "19") {
         subcategory = "ad-c-v-a-a-a-bs";
       } else if (subcategoryIdString === "21") {
         subcategory = "ad-mobi-mobi-brans";
@@ -59,8 +62,6 @@ export const useBrands = (isOpen, getUserToken, subcategoryId, selectedTypeId) =
         subcategory = "ad-mobi-mobi-brans";
       } else if (subcategoryIdString === "23") {
         subcategory = "ad-mobi-came-brans";
-      } else {
-        throw new Error("Invalid subcategory ID");
       }
 
       const response = await axios.get(`${BASE_URL}/api/${subcategory}`, {

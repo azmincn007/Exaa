@@ -284,7 +284,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
     setIsSubmitting(true);
     try {
       let isAdCreationPossible = true;
-      let isTagCreationPossible = true;
+      let isTagCreationPossible = false;
 
       if (parseInt(data.adCategory) !== parseInt(initialCategoryId)) {
         const result = await checkAdCreationPossibility(data.adCategory);

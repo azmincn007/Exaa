@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Box, Button, Grid, GridItem, useBreakpointValue, Text, Image, VStack, Center, useToast } from "@chakra-ui/react";
 import { MdAddCircleOutline } from "react-icons/md";
-import { useQuery, useQueryClient } from "react-query";
+import { useQuery, useQueryClient } from 'react-query';
 import axios from "axios";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
@@ -143,12 +143,7 @@ const MyShowroom = () => {
     await refetchShowroomAds();
     
     handleSellModalClose();
-    toast({
-      title: "Ad created successfully",
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-    });
+  
   }, [queryClient, selectedShowroom, refetchShowroomAds, handleSellModalClose, toast]);
 
   const handleShowroomEdit = useCallback((showroom) => {
@@ -192,14 +187,17 @@ const MyShowroom = () => {
   const handleShowSuccessModal = useCallback((data) => {
  
     console.log('adData:', data.adData);
-    console.log('subCategoryDetails:', data.subCategoryDetails);
-    console.log('Received image files:', data.images);
+  
 
     setUpdatedAd({
       ...data.adData,
       adCategory: data.adData.adCategory?.id, // Extract just the ID from adCategory
       adSubCategory: data.adData.adSubCategory?.id, // Extract just the ID from adSubCategory
-      images: data.images // Use the received image files directly
+      images: data.images ,
+      brand:data.adData.brand?.id,
+      model:data.adData.model?.id,
+      variant:data.adData.variant?.id,
+      type: data.adData.type?.id,// Use the received image files directly
     });
     setSubCategoryDetails(data.subCategoryDetails);
     setShowSuccessModal(true);
