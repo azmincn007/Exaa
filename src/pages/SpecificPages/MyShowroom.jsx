@@ -89,7 +89,7 @@ const MyShowroom = () => {
     {
       enabled: !!selectedShowroom?.id && !!token,
       retry: 3,
-      retryDelay: 1000,
+    
       refetchOnWindowFocus: false,
     }
   );

@@ -65,7 +65,9 @@ const CongratulationsModal = ({
       onSuccess: (data) => {
         console.log('Boost mutation response:', data);
         // Modify the invalidation strategy
+        
         const queriesToInvalidate = [
+          
           ['userAds'],
           ['pendingAds'],
           ['expiredAds'],
@@ -77,6 +79,7 @@ const CongratulationsModal = ({
 
         // Force a refetch when invalidating
         queriesToInvalidate.forEach(queryKey => {
+          console.log(`Invalidating query: ${JSON.stringify(queryKey)}`);
           queryClient.invalidateQueries(queryKey, {
             refetchActive: true,
             refetchInactive: false
@@ -87,8 +90,12 @@ const CongratulationsModal = ({
         Promise.all(
           queriesToInvalidate.map(query => 
             queryClient.refetchQueries(query, { active: true })
+              .then(() => console.log(`Refetched query: ${JSON.stringify(query)}`))
           )
         ).then(() => {
+          // Refetch showroomAds specifically
+          queryClient.refetchQueries('showroomAds', { active: true })
+            .then(() => console.log('Refetched showroomAds'));
           onClose();
         });
       },
