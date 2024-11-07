@@ -51,6 +51,7 @@ function Navbar({ onShowPackagesAndOrders,setSearchResults  }) {
   const { isOpen: isLoginModalOpen, onOpen: onLoginModalOpen, onClose: onLoginModalClose } = useDisclosure();
 
   const handleSellClick = () => {
+    navigate('/'); // Navigate to the home route
     if (!isLoggedIn) {
       onLoginModalOpen();
     } else if (!userData.isProfileCompleted) {

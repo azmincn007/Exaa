@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { Box, Button, Flex, useBreakpointValue, Skeleton, SkeletonCircle, useDisclosure, useToast } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient, useMutation } from 'react-query';
@@ -261,6 +261,15 @@ const Profile = () => {
     );
   };
 
+  // Ensure data fetching on component mount
+  useEffect(() => {
+    if (isLoggedIn) {
+      refetchUserAds();
+      refetchExpiredAds();
+      refetchPendingAds();
+    }
+  }, [isLoggedIn, refetchUserAds, refetchExpiredAds, refetchPendingAds]);
+
   return (
     <Box maxWidth="" margin="auto" padding={{ base: 4, md: 8 }} className="font-Inter">
       <Flex direction={{ base: "column", lg: "row" }} gap={6}>
@@ -292,7 +301,7 @@ const Profile = () => {
         onSuccessfulSubmit={() => {
           refetchUserAds();
           refetchExpiredAds();
-          refetchPendingAds(); // Add refetch for pending ads
+          refetchPendingAds();
         }}
       />
     </Box>
