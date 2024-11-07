@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Box, Button, Flex, Skeleton, Tabs, TabList, TabPanels, Tab, TabPanel } from "@chakra-ui/react";
 import { useBreakpointValue } from "@chakra-ui/react";
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -6,6 +6,7 @@ import { Pagination } from "swiper/modules";
 import emptyillus from "../../../assets/empty.png";
 import emptyExpiredIllus from "../../../assets/empty.png";
 import AdListingCardProfile from "../../common/Cards/AdlistingCardProfile";
+import { useNavigate } from "react-router-dom";
 
 export const ProfileListings = ({
   userListings,
@@ -25,6 +26,28 @@ export const ProfileListings = ({
   const [visibleAds, setVisibleAds] = useState(3);
   const [activeTab, setActiveTab] = useState("active");
   const isMobile = useBreakpointValue({ base: true, md: false });
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      sessionStorage.setItem('isRefreshing', 'true');
+    };
+
+    const checkRefresh = () => {
+      const isRefreshing = sessionStorage.getItem('isRefreshing');
+      if (isRefreshing) {
+        sessionStorage.removeItem('isRefreshing');
+        navigate('/');
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    checkRefresh();
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [navigate]);
 
   const handleShowMore = () => {
     setVisibleAds(prevVisible => prevVisible + 3);

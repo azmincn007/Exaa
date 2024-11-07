@@ -132,11 +132,7 @@ const Profile = () => {
     }
   );
 
-  React.useEffect(() => {
-    if (isInitialized && !isLoggedIn) {
-      navigate('/');
-    }
-  }, [isInitialized, isLoggedIn, navigate]);
+
 
   const handleSellClick = () => {
     if (isLoggedIn) {
