@@ -18,7 +18,6 @@ const Profile = () => {
   const toast = useToast();
   
   const { userData, isLoading: isUserDataLoading } = useContext(UserdataContext);
-  console.log(userData);
   
   const { isLoggedIn, isInitialized, getToken } = useAuth();
   const { isOpen: isSellModalOpen, onOpen: onSellModalOpen, onClose: onSellModalClose } = useDisclosure();

@@ -35,7 +35,7 @@ const ShowroomCard = ({ showroomData, otherAds, visibleCards, loadMore }) => {
                 />
                 <CardContent className="p-4">
                   <h3 className="font-semibold mb-2 truncate">{ad.title}</h3>
-                  <p className="text-sm text-gray-600 mb-2">${ad.price}</p>
+                  {ad.price ? <p className="text-sm text-gray-600 mb-2">${ad.price}</p> : <p className="text-sm text-green-500 mb-2">Service</p>}
                   <div className="flex items-center text-xs text-gray-500 space-x-2">
                     <span className="flex items-center"><MapPin size={12} className="mr-1" />{ad.locationTown.name}</span>
                     <span className="flex items-center"><Calendar size={12} className="mr-1" />{new Date(ad.createdAt).toLocaleDateString()}</span>
