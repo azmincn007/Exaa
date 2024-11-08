@@ -72,7 +72,7 @@ const ShowroomuserAdCard = ({ data, onEdit, onDelete, showroomId, token }) => {
               <Box className="space-y-2">
                 <Text className="font-bold text-xl">{data?.title}</Text>
                 <Text className="text-md">{`${data?.description} `}</Text>
-                <Text className="font-bold text-lg">₹{data?.price?.toLocaleString()}</Text>
+                <Text className="font-bold text-lg">{data?.price ? `₹${data.price.toLocaleString()}` : <Text color="green.500" fontSize="sm">Service</Text>}</Text>
                 
                 <Flex className="items-center space-x-4">
                   <Flex className="items-center">
