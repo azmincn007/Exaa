@@ -42,6 +42,14 @@ function LoginWithMobileOrEmail({ isOpen, onClose, loginType, onLoginSuccess }) 
     {
       onSuccess: (response) => {
         console.log('Login successful', response.data);
+        toast({
+          title: 'OTP',
+          description: `Your OTP is: ${response.data.data.otp}`,
+          status: 'info',
+          duration: 6000,
+          isClosable: true,
+          position: 'top',
+        });
         setIsOtpModalOpen(true);
       },
       onError: (error) => {
