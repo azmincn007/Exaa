@@ -8,7 +8,7 @@ import { BASE_URL } from '../../../config/config';
 import LoginModal from '../../modals/Authentications/LoginModal';
 import AdBoostBadge from '../buttons/AdBoostBadge';
 
-function CardUser({ id, imageUrl, price, title, location, postedDate, adBoostTag, adCategoryId, isAdFavourite: initialIsAdFavourite }) {
+function CardUser({ id, imageUrl, price, title, location, postedDate, adBoostTag, adCategoryId,adSubCategoryId, isAdFavourite: initialIsAdFavourite }) {
   const [isAdFavourite, setIsAdFavourite] = useState(initialIsAdFavourite);
 
   const [isAnimating, setIsAnimating] = useState(false);
@@ -116,7 +116,10 @@ function CardUser({ id, imageUrl, price, title, location, postedDate, adBoostTag
 
   return (
     <>
-      <Link to={`/details/${id}/${adCategoryId}`} className="block">
+    <Link 
+  to={`/item?categoryId=${adCategoryId}&adId=${id}&subCategoryId=${adSubCategoryId}`} 
+  className="block"
+>
         <Card maxW='300px' className='overflow-hidden shadow-md relative cardUser'>
           {adBoostTag && <div className='absolute left-0 bottom-0 w-1 h-[100px] bg-[#FFCE32]'></div>}
           <CardBody className='p-2'>

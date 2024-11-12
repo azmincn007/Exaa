@@ -1,5 +1,5 @@
 import './App.css';
-import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Home from './pages/Home';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { createContext, useCallback, useEffect, useState } from 'react';
@@ -113,8 +113,7 @@ function App() {
                       <Route path="/buy-packages/myorders" element={<BuyPackagesAndMyorders />} />
                       <Route path="/category/:categoryId/:categoryName" element={<Layout><CategoryBasedGrid /></Layout>} />
                       <Route path="/category/:categoryId/:categoryName/:subCategoryId" element={<Layout><CategoryBasedGrid /></Layout>} />
-                      <Route path="/details/:id/:adCategoryId" element={<Layout><SingleAd /></Layout>} />
-                      <Route path="/profile" element={<Layout><Profile /></Layout>} />
+                      <Route path="/item" element={<Layout><SingleAd /></Layout>} />                      <Route path="/profile" element={<Layout><Profile /></Layout>} />
                       <Route path="/profile/edit-profile" element={<Layout><EditProfile /></Layout>} />
                       <Route path="/showroom" element={<Layout><Showroom /></Layout>} />
                       <Route path="/my-showroom" element={<Layout><MyShowroom /></Layout>} />

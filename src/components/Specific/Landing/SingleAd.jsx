@@ -82,7 +82,12 @@ const findOrCreateChat = async ({ adId, adCategoryId, adBuyerId, adSellerId, tok
 };
 
 function SingleAd() {
-  const { id: adId, adCategoryId } = useParams();
+  const params = new URLSearchParams(location.search);
+
+  const adCategoryId = params.get('categoryId'); // "3"
+  const adId = params.get('adId');             // "130"
+  const subCategoryId = params.get('subCategoryId'); // "94"
+console.log(adCategoryId, adId);
   const navigate = useNavigate();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
