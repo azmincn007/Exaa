@@ -186,7 +186,7 @@ const ChatList = ({ chats, isLoading, activeTab, onSelectChat, selectedChatId })
 };
 
 const ChatDetailsContainer = ({ selectedChat, isLoading }) => (
-  <div className="flex flex-col h-full">
+  <div className="flex flex-col h-full min-h-screen md:min-h-0">
     {isLoading ? (
       <SkeletonChatDetails />
     ) : selectedChat ? (
@@ -264,7 +264,7 @@ const ChatDetails = ({ chat }) => {
   }
 
   return (
-    <div className="flex flex-col h-full bg-[#0071BC1A]">
+    <div className="flex flex-col p-4 h-full bg-[#0071BC1A] mb-12">
       <div className="flex-none">
         <ChatHeader chat={chat} />
       </div>
@@ -273,7 +273,7 @@ const ChatDetails = ({ chat }) => {
         <ChatInfo chat={chat} />
       </div>
       
-      <div className="flex-grow overflow-y-auto min-h-0 p-4">
+      <div className="flex-grow overflow-y-auto min-h-0 py-4">
         <ChatMessages chats={chatDetails} />
       </div>
       

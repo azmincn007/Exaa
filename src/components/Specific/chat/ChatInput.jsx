@@ -70,7 +70,7 @@ const ChatInput = ({ adId, adCategoryId, adBuyerId, onMessageSent }) => {
   };
 
   return (
-    <div className="p-4 bg-white flex gap-2 m-2 items-center">
+    <div className="p-4 bg-white flex gap-2  items-center">
       <input
         type="text"
         value={message}

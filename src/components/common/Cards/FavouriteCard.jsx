@@ -13,6 +13,7 @@ function FavoriteCard({
   postedDate, 
   adBoostTag, 
   adCategoryId, 
+  adSubCategoryId,
   onUnfavorite 
 }) {
   const completeImageUrl = `${BASE_URL}${imageUrl}`;
@@ -25,13 +26,16 @@ function FavoriteCard({
   };
 
   return (
-    <Link to={`/details/${id}/${adCategoryId}`} className="block">
+    <Link 
+      to={`/item?categoryId=${adCategoryId}&adId=${id}&subCategoryId=${adSubCategoryId}`} 
+      className="block"
+    >
       <Card maxW='300px' className='overflow-hidden shadow-md relative favoriteCard'>
         {isFeatured && <div className='absolute left-0 bottom-0 w-1 h-[100px] bg-[#FFCE32]'></div>}
         <CardBody className='p-2'>
           <div className='relative'>
             <Image
-              src={completeImageUrl}
+              src={`${BASE_URL}${imageUrl}`}
               alt={title}
               height='170px'
               width='100%'

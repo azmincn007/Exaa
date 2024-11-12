@@ -26,7 +26,7 @@ const ChatMessages = ({ chats, userId }) => {
 
     return (
       <div className={`flex ${isMessageFromReceiver ? 'justify-start' : 'justify-end'}`}>
-        <div className={`relative group max-w-[70%] rounded-lg p-3 
+        <div className={`relative group max-w-[70%] rounded-lg  
           ${isMessageFromReceiver ? 'bg-gray-200 text-black' : 'bg-blue-500 text-white'}
           ${message.status === 'sending' ? 'opacity-70' : 'opacity-100'}`}>
           {message.message}

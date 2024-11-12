@@ -158,12 +158,13 @@ function MyAdsPage() {
     }
 
     return (
-      <div className="grid grid-cols-6 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {favoriteAds.map((ad) => (
           <FavoriteCard
             key={ad.id}
             id={ad.id}
             adCategoryId={ad.adCategory.id}
+            adSubCategoryId={ad.adSubCategory.id}
             isFeatured={ad.isFeatured}
             imageUrl={ad.images?.url}
             price={ad.price}
@@ -180,7 +181,7 @@ function MyAdsPage() {
 
   return (
     <div>
-      <Tabs className="py-4 w-[92%] md:w-[88%] lg:w-[85%] mx-auto">
+      <Tabs className="py-0 md:py-4 w-[92%] md:w-[88%] lg:w-[85%] mx-auto">
         <TabList className="bg-white">
           <Tab _selected={{ color: "white", bg: "blue.500", rounded: '8px' }} bg="white" color="black" className="flex-1">
             Ads
@@ -191,10 +192,10 @@ function MyAdsPage() {
         </TabList>
 
         <TabPanels>
-          <TabPanel>
+          <TabPanel className='px-0 md:px-4 mt-4'>
             {renderUserAds()}
           </TabPanel>
-          <TabPanel>
+          <TabPanel className='px-0 md:px-4 mt-4'>
             {renderFavorites()}
           </TabPanel>
         </TabPanels>
