@@ -39,12 +39,16 @@ function SearchComponent({ isShowroom }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [userToken, setUserToken] = useState(null);
-  const { handleSearch } = useSearch();
+  const { handleSearch, searchText } = useSearch();
 
   useEffect(() => {
     const token = localStorage.getItem('UserToken');
     setUserToken(token);
   }, []);
+
+  useEffect(() => {
+    setSearchTerm(searchText);
+  }, [searchText]);
 
   const { data: suggestions, error, isLoading } = useQuery(
     ['suggestions', searchTerm, isShowroom, userToken],
