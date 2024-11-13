@@ -15,7 +15,8 @@ import {
   Icon,
   Spinner,
   Alert,
-  AlertIcon
+  AlertIcon,
+  useBreakpointValue
 } from '@chakra-ui/react';
 import { FiSearch } from 'react-icons/fi';
 import SubscriptionCard from '../../components/common/Cards/SubscriptionCard';
@@ -51,16 +52,16 @@ const PackagesAndOrders = () => {
   const [activeBoostError, setActiveBoostError] = useState(null);
   const [expiredBoostError, setExpiredBoostError] = useState(null);
   const [selectedTab, setSelectedTab] = useState(0);
+  const isMobile = useBreakpointValue({ base: true, md: false });
 
+  const { isLoggedIn, isInitialized } = useAuth();
 
-const { isLoggedIn, isInitialized } = useAuth();
-
-// 3. The useEffect hook that handles the navigation
-useEffect(() => {
-  if (isInitialized && !isLoggedIn) {
-    navigate("/");
-  }
-}, [isInitialized, isLoggedIn, navigate]);
+  // 3. The useEffect hook that handles the navigation
+  useEffect(() => {
+    if (isInitialized && !isLoggedIn) {
+      navigate("/");
+    }
+  }, [isInitialized, isLoggedIn, navigate]);
 
   useEffect(() => {
     const path = location.pathname.split('/').pop();
@@ -177,10 +178,32 @@ useEffect(() => {
 
   const renderAdPackagesContent = () => {
     return (
-      <Tabs isFitted index={selectedTab} onChange={(index) => setSelectedTab(index)}>
+      <Tabs 
+        isFitted 
+        index={selectedTab} 
+        onChange={(index) => setSelectedTab(index)}
+        variant="line"
+        colorScheme="blue"
+      >
         <TabList mb="1em">
-          <Tab fontWeight="semibold">ACTIVE</Tab>
-          <Tab fontWeight="semibold">EXPIRED</Tab>
+          <Tab 
+            fontWeight="semibold"
+            _selected={{ 
+              color: 'blue.500',
+              borderBottomWidth: '3px'
+            }}
+          >
+            ACTIVE
+          </Tab>
+          <Tab 
+            fontWeight="semibold"
+            _selected={{ 
+              color: 'blue.500',
+              borderBottomWidth: '3px'
+            }}
+          >
+            EXPIRED
+          </Tab>
         </TabList>
         <TabPanels>
           <TabPanel>
@@ -244,10 +267,30 @@ useEffect(() => {
 
   const renderBoostPackagesContent = () => {
     return (
-      <Tabs isFitted>
+      <Tabs 
+        isFitted
+        variant="line"
+        colorScheme="blue"
+      >
         <TabList mb="1em">
-          <Tab fontWeight="semibold">ACTIVE</Tab>
-          <Tab fontWeight="semibold">EXPIRED</Tab>
+          <Tab 
+            fontWeight="semibold"
+            _selected={{ 
+              color: 'blue.500',
+              borderBottomWidth: '3px'
+            }}
+          >
+            ACTIVE
+          </Tab>
+          <Tab 
+            fontWeight="semibold"
+            _selected={{ 
+              color: 'blue.500',
+              borderBottomWidth: '3px'
+            }}
+          >
+            EXPIRED
+          </Tab>
         </TabList>
         <TabPanels>
           <TabPanel>
@@ -318,31 +361,77 @@ useEffect(() => {
     }
   };
 
+  const renderMobileNav = () => {
+    return (
+      <Tabs 
+        isFitted 
+        mb={4} 
+        variant="solid-rounded" 
+        colorScheme="blue"
+        bg="gray.100" 
+        p={2} 
+        borderRadius="lg"
+      >
+        <TabList gap={3}>
+          <Tab
+            fontWeight="semibold"
+            onClick={() => handleMenuItemClick('packages')}
+            isSelected={selectedMenuItem === 'packages'}
+            _selected={{ 
+              bg: 'blue.500', 
+              color: 'white',
+              boxShadow: 'md'
+            }}
+            borderRadius="md"
+          >
+            Ad Packages
+          </Tab>
+          <Tab
+            fontWeight="semibold"
+            onClick={() => handleMenuItemClick('boost')}
+            isSelected={selectedMenuItem === 'boost'}
+            _selected={{ 
+              bg: 'blue.500', 
+              color: 'white',
+              boxShadow: 'md'
+            }}
+            borderRadius="md"
+          >
+            Boost Packages
+          </Tab>
+        </TabList>
+      </Tabs>
+    );
+  };
+
   return (
     <Box maxWidth="container.xl" margin="auto" padding={8} className='min-h-screen'>
-      <Grid templateColumns="1fr 3fr" gap={6}>
-        <GridItem>
-          <VStack align="stretch" spacing={4} p={6}>
-            <Text
-              fontWeight="semibold"
-              cursor="pointer"
-              color={selectedMenuItem === 'packages' ? 'blue.500' : 'gray.700'}
-              onClick={() => handleMenuItemClick('packages')}
-              _hover={{ color: 'blue.400' }}
-            >
-              Ad Packages
-            </Text>
-            <Text
-              fontWeight="semibold"
-              cursor="pointer"
-              color={selectedMenuItem === 'boost' ? 'blue.500' : 'gray.700'}
-              onClick={() => handleMenuItemClick('boost')}
-              _hover={{ color: 'blue.400' }}
-            >
-              Boost Packages
-            </Text>
-          </VStack>
-        </GridItem>
+      {isMobile && renderMobileNav()}
+      <Grid templateColumns={{ base: "1fr", md: "1fr 3fr" }} gap={6}>
+        {!isMobile && (
+          <GridItem>
+            <VStack align="stretch" spacing={4} p={6}>
+              <Text
+                fontWeight="semibold"
+                cursor="pointer"
+                color={selectedMenuItem === 'packages' ? 'blue.500' : 'gray.700'}
+                onClick={() => handleMenuItemClick('packages')}
+                _hover={{ color: 'blue.400' }}
+              >
+                Ad Packages
+              </Text>
+              <Text
+                fontWeight="semibold"
+                cursor="pointer"
+                color={selectedMenuItem === 'boost' ? 'blue.500' : 'gray.700'}
+                onClick={() => handleMenuItemClick('boost')}
+                _hover={{ color: 'blue.400' }}
+              >
+                Boost Packages
+              </Text>
+            </VStack>
+          </GridItem>
+        )}
         <GridItem>
           {renderContent()}
         </GridItem>

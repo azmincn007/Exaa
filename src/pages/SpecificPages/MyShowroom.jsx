@@ -330,8 +330,8 @@ const MyShowroom = () => {
         <GridItem colSpan={{ base: 1, md: 6, lg: 8 }} bg="#0071BC1A" minHeight="300px" borderRadius="xl" boxShadow="md" p={6}>
           {selectedShowroom ? (
             <VStack spacing={4} align="stretch" height="100%">
-              <div className="flex flex-col justify-center items-center">
-                <h2 className="font-semibold text-xl md:text-base">My Showroom - {selectedShowroom?.name}</h2>
+              <div className=" flex-col md:flex-row items-center md:flex  md:justify-between ">
+                <h2 className="font-semibold text-base md:text-xl">My Showroom - {selectedShowroom?.name}</h2>
                 <Button leftIcon={<CiLocationOn />} className="bg-[#D2BA8580]" variant="solid" size="sm" mt={2}>
                   {selectedShowroom.locationTown?.name || "Location not set"}
                 </Button>

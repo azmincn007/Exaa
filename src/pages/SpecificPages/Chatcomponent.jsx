@@ -92,21 +92,30 @@ const ChatComponent = () => {
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       <div className="w-full md:w-[90%] mx-auto flex flex-col flex-grow">
-        {/* Tab Navigation */}
-        <div className="flex-none bg-white">
+        {/* Tab Navigation - Desktop Only */}
+        <div className="hidden md:block flex-none bg-white">
           <TabNavigation activeTab={activeTab} onTabChange={handleTabChange} />
         </div>
 
-        {/* Mobile Header */}
+        {/* Mobile Header with Chat Info */}
         <div className="md:hidden flex-none h-16 fixed top-0 left-0 right-0 bg-[#0071BC] z-10">
-          <div className="flex items-center justify-between p-4">
-            <Menu onClick={toggleDrawer} className="text-white cursor-pointer" />
-            <h1 className="text-white font-semibold">Chats</h1>
+          <div className="flex items-center p-4">
+            <Menu onClick={toggleDrawer} className="text-white cursor-pointer mr-4" />
+            {selectedChat ? (
+              <div className="flex items-center">
+                <h1 className="text-white font-semibold">{selectedChat.ad.title}</h1>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between w-full">
+                <h1 className="text-white font-semibold">Your Chats</h1>
+                <span className="text-white text-sm">Tap menu to view chats</span>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Main Content Area */}
-        <div className="flex flex-grow overflow-hidden h-[calc(100vh-4rem)] bg-white">
+        <div className="flex flex-grow overflow-hidden h-[calc(100vh-4rem)] bg-white mt-16 md:mt-0">
           {/* Chat List - Desktop */}
           <div className="hidden md:flex w-1/3 flex-col bg-[#0071BC1A] border-r border-gray-300">
             <div className="flex-grow overflow-y-auto">
@@ -122,15 +131,29 @@ const ChatComponent = () => {
 
           {/* Chat Content Area */}
           <div className="flex-grow flex flex-col min-w-0 bg-[#0071BC1A]">
+            {!selectedChat && !isDrawerOpen && (
+              <div className="md:hidden flex items-center justify-center h-full p-4 text-center">
+                <div>
+                  <Menu className="mx-auto mb-4 w-8 h-8 text-gray-500" />
+                  <p className="text-gray-600">Tap the menu icon above to view your chats</p>
+                  <button 
+                    onClick={toggleDrawer}
+                    className="mt-4 px-6 py-2 bg-[#0071BC] text-white rounded-lg"
+                  >
+                    View Chats
+                  </button>
+                </div>
+              </div>
+            )}
             <ChatDetailsContainer selectedChat={selectedChat} isLoading={isLoading} />
           </div>
         </div>
 
-        {/* Mobile Drawer */}
+        {/* Mobile Drawer - Same as before */}
         <div
           className={`md:hidden fixed inset-y-0 left-0 transform ${
             isDrawerOpen ? 'translate-x-0' : '-translate-x-full'
-          } w-[70%] bg-white transition-transform duration-300 ease-in-out z-20`}
+          } w-[80%] bg-white transition-transform duration-300 ease-in-out z-20`}
         >
           <div className="flex flex-col h-full pt-16">
             <div className="flex-none p-4 bg-[#0071BC] text-white">
@@ -142,6 +165,9 @@ const ChatComponent = () => {
                   </svg>
                 </button>
               </div>
+            </div>
+            <div className="flex-none bg-white">
+              <TabNavigation activeTab={activeTab} onTabChange={handleTabChange} />
             </div>
             <div className="flex-grow overflow-y-auto bg-[#0071BC1A]">
               <ChatList

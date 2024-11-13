@@ -26,7 +26,7 @@ const ChatMessages = ({ chats, userId }) => {
 
     return (
       <div className={`flex ${isMessageFromReceiver ? 'justify-start' : 'justify-end'}`}>
-        <div className={`relative group max-w-[70%] rounded-lg  
+        <div className={`relative group max-w-[70%] rounded-lg p-2  
           ${isMessageFromReceiver ? 'bg-gray-200 text-black' : 'bg-blue-500 text-white'}
           ${message.status === 'sending' ? 'opacity-70' : 'opacity-100'}`}>
           {message.message}
@@ -46,7 +46,7 @@ const ChatMessages = ({ chats, userId }) => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-lg shadow-sm">
+    <div className="flex flex-col h-full bg-white rounded-lg shadow-sm p-2">
       <div className="flex-none flex justify-between items-center px-4 py-2 bg-gray-100 rounded-t-lg">
         <p className="text-gray-700 font-semibold">{receiverName}</p>
         <p className="text-gray-500">Today</p>
