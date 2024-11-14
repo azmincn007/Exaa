@@ -59,7 +59,7 @@ const SimilarAds = ({ adId, adCategoryId }) => {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6">
+      <div className=" mx-auto py-6">
         <h2 className="text-xl md:text-2xl font-semibold mb-6">Similar Ads</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((i) => (
@@ -120,7 +120,7 @@ const SimilarAds = ({ adId, adCategoryId }) => {
   };
 
   return (
-    <div className="container mx-auto px-6">
+    <div className=" w-[90%] mx-auto ">
       <h2 className="text-xl md:text-2xl font-semibold mb-6">Similar Ads</h2>
 
       {/* Mobile View with Swiper (below 500px) */}

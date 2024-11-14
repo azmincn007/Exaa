@@ -19,6 +19,7 @@ const SellInput = ({
         pt={4}
         pb={2}
         px={3}
+        height={name === 'description' ? '140px' :null}
         borderWidth="1px"
         borderColor="black.300"
         className='sell-input'

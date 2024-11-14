@@ -1,7 +1,7 @@
 import React from 'react';
 import { vehicleData } from '../../../Data/VehicleData';
 
-const textFields = ['title', 'description'];
+const textFields = ['title'];
 const numberFields = ['salary'];
 
 const generateFloorOptions = (max) =>
@@ -69,8 +69,8 @@ const specialFields = {
   facing: { type: 'select', rules: {},label: "Facing", options: [{ id: "East", name: "East" }, { id: "North", name: "North" }, { id: "South", name: "South" }, { id: "West", name: "West" }, { id: "North-East", name: "North-East" }, { id: "North-West", name: "North-West" }, { id: "South-East", name: "South-East" }, { id: "South-West", name: "South-West" }] },
   typeOfAccomodation: { type: 'select', label: "Type of Accommodation", options: [{ id: "any", name: "Any" }, { id: "family", name: "Family Only" }, { id: "bachelors", name: "Bachelors Only" }, { id: "ladies", name: "Ladies Only" }], rules: {} },
   totalLandArea: { type: 'number', label: "Total Land Area (in cents)", rules: { required: "Total Land Area is required", min: { value: 1, message: "Land area must be at least 1 cent" }, max: { value: 10000, message: "Land area cannot exceed 10000 cents" } } },
-  superBuiltupArea: { type: 'number', label: "Super Built Up Area", rules: { required: "Super Built Up Area is required", min: { value: 50, message: "Area must be at least 50 sq ft" }, max: { value: 10000, message: "Area cannot exceed 10000 sq ft" } } },
-  carpetArea: { type: 'number', label: "Carpet Area", rules: { required: "Carpet Area is required", min: { value: 50, message: "Area must be at least 50 sq ft" }, max: { value: 10000, message: "Area cannot exceed 10000 sq ft" } } },
+  superBuiltupArea: { type: 'number', label: "Super Built Up Area (in Square Feet)", rules: { required: "Super Built Up Area is required", min: { value: 50, message: "Area must be at least 50 sq ft" }, max: { value: 10000, message: "Area cannot exceed 10000 sq ft" } } },
+  carpetArea: { type: 'number', label: "Carpet Area (in Square Feet)", rules: { required: "Carpet Area is required", min: { value: 50, message: "Area must be at least 50 sq ft" }, max: { value: 10000, message: "Area cannot exceed 10000 sq ft" } } },
   price: { 
     type: 'number', 
     label: "Price", 
@@ -111,6 +111,17 @@ const specialFields = {
   experience: { type: 'select', label: "Experience Required", options: vehicleData.experienceLevels, rules: {} },
   salary: { type: 'number', label: "Approximate Salary", rules: {} },
   plotArea: { type: 'number', label: "Plot Area (in cents) *", rules: { required: "Plot Area is required", min: { value: 1, message: "Plot Area must be at least 1 cent" } } },
+  description: { 
+    type: 'textarea', 
+    label: "Description", 
+    rules: { 
+      required: "Description is required",
+      validate: (value) => {
+        const wordCount = value?.trim().split(/\s+/).length || 0;
+        return wordCount <= 200 || "Description cannot exceed 200 words";
+      }
+    }
+  },
 };
 
 export const getFieldConfig = (fieldName, districts, towns, brands, models, variants, types, selectedSubCategoryId) => {

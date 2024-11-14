@@ -517,9 +517,28 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
 
   return (
     <>
-      <Modal isOpen={isOpen} onClose={onClose} size={modalSize}>
+      <Modal isOpen={isOpen} onClose={onClose} size={modalSize}    closeOnOverlayClick={false} >
         <ModalOverlay />
-        <ModalContent bg="#F1F1F1" color="black">
+        <ModalContent 
+          bg="#F1F1F1" 
+          color="black" 
+          maxWidth={{ base: "80%", md: modalSize }}
+          position="relative"
+        >
+          <Icon
+            as={IoClose}
+            position="absolute"
+            top="4"
+            right="4"
+            w={6}
+            h={6}
+            cursor="pointer"
+            onClick={() => {
+              clearForm();
+              onClose();
+            }}
+            zIndex="1"
+          />
           <ModalBody>
             {isCompleteAdLoading ? (
               <Text>Loading ad data...</Text>
@@ -639,11 +658,6 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
               </form>
             )}
           </ModalBody>
-          <ModalFooter>
-            <Button colorScheme="gray" mr={3} onClick={onClose} fontSize={fontSize}>
-              Close
-            </Button>
-          </ModalFooter>
         </ModalContent>
       </Modal>
 

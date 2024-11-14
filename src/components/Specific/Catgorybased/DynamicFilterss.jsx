@@ -288,8 +288,8 @@ const DynamicFilters = ({ subCategoryId, onFilterChange, filters, setFilters }) 
   };
 
   return (
-    <Card className="">
-      <CardHeader>
+    <Card className="h-full">
+      <CardHeader position="sticky" top={0} bg="white" zIndex={1} borderBottom="1px" borderColor="gray.200">
         <Heading size="md">Filters</Heading>
       </CardHeader>
       <CardBody>
@@ -303,7 +303,7 @@ const DynamicFilters = ({ subCategoryId, onFilterChange, filters, setFilters }) 
             </Button>
           </div>
           <Divider borderColor="gray.300" />
-          <Box maxHeight="500px" overflowY="auto" css={scrollbarStyles}>
+          <Box overflowY="auto" css={scrollbarStyles}>
             {filterConfig.map((filterKey, index) => {
               const filterComponent = renderFilter(filterKey);
               if (filterComponent) {

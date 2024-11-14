@@ -590,11 +590,23 @@ console.log(selectedBoostTag);
 
   return (
     <>
-      <Modal isOpen={isOpen} onClose={onClose} size={modalSize}>
+      <Modal isOpen={isOpen} onClose={onClose} size={modalSize}    closeOnOverlayClick={false} >
         <ModalOverlay />
-        <ModalContent className="bg-gray-100">
-          <ModalHeader>Edit Showroom Ad</ModalHeader>
-          <ModalCloseButton />
+        <ModalContent 
+          className="bg-gray-100"
+          position="relative"
+        >
+          <Icon
+            as={IoClose}
+            position="absolute"
+            top="4"
+            right="4"
+            w={6}
+            h={6}
+            cursor="pointer"
+            onClick={onClose}
+            zIndex="1"
+          />
           <ModalBody>
             {isDataLoaded ? (
               <form onSubmit={handleSubmit(onSubmit)}>
@@ -684,16 +696,6 @@ console.log(selectedBoostTag);
                     Update Ad
                   </Button>
                 </div>
-                
-                <Flex justify="flex-end" mt={6} gap={3}>
-                  <Button
-                    variant="ghost"
-                    onClick={onClose}
-                    disabled={isLoading}
-                  >
-                    Cancel
-                  </Button>
-                </Flex>
               </form>
             ) : (
               <Center py={8}>

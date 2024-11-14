@@ -429,13 +429,25 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
 
   return (
     <>
-      <Modal isOpen={isOpen} onClose={onClose} size={modalSize}>
+      <Modal isOpen={isOpen} onClose={onClose} size={modalSize}    closeOnOverlayClick={false} >
         <ModalOverlay />
         <ModalContent 
           bg="#F1F1F1" 
           color="black" 
           maxWidth={{ base: "80%", md: modalSize }}
+          position="relative"
         >
+          <Icon
+            as={IoClose}
+            position="absolute"
+            top="4"
+            right="4"
+            w={6}
+            h={6}
+            cursor="pointer"
+            onClick={onClose}
+            zIndex="1"
+          />
           <ModalBody>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-3 py-3'>
               <h3 className={`text-${headingSize} font-bold mb-3`}>Add your showroom ad details</h3>
@@ -511,9 +523,6 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
               <Button type="submit" colorScheme="blue" mt={3} fontSize={fontSize}>Submit</Button>
             </form>
           </ModalBody>
-          <ModalFooter>
-            <Button colorScheme="gray" mr={3} onClick={onClose} fontSize={fontSize}>Close</Button>
-          </ModalFooter>
         </ModalContent>
       </Modal>
     </>
