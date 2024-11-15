@@ -15,7 +15,7 @@ const fetchCategories = async () => {
   return response.data.data;
 };
 
-function Tabcategory() {
+function Tabcategory({isFromShowroom}) {
   const navigate = useNavigate();
   const { data, isLoading, isError, error } = useQuery('categories', fetchCategories);
   const [activeTab, setActiveTab] = useState(null);
@@ -24,12 +24,21 @@ function Tabcategory() {
     return <div>Error: {error.message}</div>;
   }
 
-  const limitedData = data ? data.slice(0, 8) : [];
+  const limitedData = data ? data : [];
 
   const handleCategoryClick = (categoryId, categoryName) => {
     setActiveTab(categoryId);
-    navigate(`/category/${categoryId}/${categoryName}`);
+    if (isFromShowroom) {
+      navigate(`/showroom?category=${categoryId}`);
+    } else {
+      navigate(`/category/${categoryId}/${categoryName}`);
+    }
   };
+
+  const allCategories = [
+    { id: 'all', name: 'All Categories' },
+    ...(limitedData || [])
+  ];
 
   return (
     <div className="w-full">
@@ -52,7 +61,7 @@ function Tabcategory() {
                       </Tab>
                     </SwiperSlide>
                   ))
-              : limitedData.map((category) => (
+              : allCategories.map((category) => (
                   <SwiperSlide key={category.id} style={{ width: 'auto' }}>
                     <Tab
                       className={`min-w-fit text-2xs sm:text-xs md:text-sm whitespace-nowrap px-2 py-1 ${

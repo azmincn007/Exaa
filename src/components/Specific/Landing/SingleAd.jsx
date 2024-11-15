@@ -550,26 +550,30 @@ console.log(isAdFavourite);
         </ModalContent>
       </Modal>
 
-      <div className='mt-2'>
+      <div className='mt-8'>
         <SimilarAds 
           adId={adId}
           adCategoryId={adCategoryId}
         />
-
-        {adData.adShowroom && (
-          <>
-            <NearbyShowroomAds
-              adShowroomId={adData.adShowroom.id}
-            />
-
-            <FindOtherShowrooms
-              adId={adId}
-              adCategoryId={adCategoryId}
-              adShowroomId={adData.adShowroom.id}
-            />
-          </>
-        )}
       </div>
+
+      {adData.adShowroom && (
+        <div className='mt-2'>
+          <NearbyShowroomAds
+            adShowroomId={adData.adShowroom.id}
+          />
+        </div>
+      )}
+
+      {adData.adShowroom && (
+        <div className='mt-2'>
+          <FindOtherShowrooms
+            adId={adId}
+            adCategoryId={adCategoryId}
+            adShowroomId={adData.adShowroom.id}
+          />
+        </div>
+      )}
 
       <PriceAdjuster
         initialPrice={adData.price}

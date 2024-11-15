@@ -28,14 +28,7 @@ function Showroomsingle() {
   const [isMobile, setIsMobile] = useState(false);
 
   const navigate = useNavigate();
-const { isLoggedIn, isInitialized } = useAuth();
-
-// 3. The useEffect hook that handles the navigation
-useEffect(() => {
-  if (isInitialized && !isLoggedIn) {
-    navigate("/");
-  }
-}, [isInitialized, isLoggedIn, navigate]);
+  const { isLoggedIn, isInitialized } = useAuth();
 
   useEffect(() => {
     const checkIfMobile = () => {

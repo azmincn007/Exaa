@@ -120,8 +120,8 @@ const SimilarAds = ({ adId, adCategoryId }) => {
   };
 
   return (
-    <div className=" w-[90%] mx-auto ">
-      <h2 className="text-xl md:text-2xl font-semibold mb-6">Similar Ads</h2>
+    <div className=" w-[90%] mx-auto  font-Inter">
+      <h2 className="text-16 md:text-22 font-semibold mb-2">Similar Ads</h2>
 
       {/* Mobile View with Swiper (below 500px) */}
       <div className="sm:hidden">

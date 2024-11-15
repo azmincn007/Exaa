@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from 'react-query';
 import axios from 'axios';
 import { Button, Select, Skeleton, Box } from '@chakra-ui/react';
@@ -10,15 +10,10 @@ import { RiGhostLine } from 'react-icons/ri';
 import { FaChevronRight } from 'react-icons/fa6';
 import { DistrictContext, TownContext } from '../../App';
 import { useSearch } from '../../Hooks/SearchContext';
-import { useAuth } from '../../Hooks/AuthContext';
 
-// Updated fetchShowrooms function
+// Updated fetchShowrooms function without token
 const fetchShowrooms = async ({ selectedDistrict, selectedTown, searchText }) => {
-  const token = localStorage.getItem('UserToken');
   const response = await axios.get(`${BASE_URL}/api/find-other-ad-showrooms`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
     params: {
       locationTownId: selectedTown === "all" ? '"all"' : String(selectedTown),
       locationDistrictId: selectedDistrict === "all" ? '"all"' : String(selectedDistrict),
@@ -29,14 +24,9 @@ const fetchShowrooms = async ({ selectedDistrict, selectedTown, searchText }) =>
   return response.data.data;
 };
 
-// Fetching categories
+// Updated fetchCategories function without token
 const fetchCategories = async () => {
-  const token = localStorage.getItem('UserToken');
-  const response = await axios.get(`${BASE_URL}/api/find-showroom-categories`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const response = await axios.get(`${BASE_URL}/api/find-showroom-categories`);
   return response.data.data;
 };
 
@@ -59,19 +49,19 @@ const CategorySkeleton = () => (
 
 const Showroom = () => {
   const navigate = useNavigate();
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const initialCategory = queryParams.get('category') || 'all';
+
+  const [selectedCategory, setSelectedCategory] = useState(
+    initialCategory === 'all' ? 'all' : Number(initialCategory)
+  );
   const [visibleItems, setVisibleItems] = useState(12);
   const [selectedTown] = useContext(TownContext);
   const [selectedDistrict] = useContext(DistrictContext);
-  const { isLoggedIn, isInitialized } = useAuth();
 
   const { searchText } = useSearch();
   console.log(searchText);
-  useEffect(() => {
-    if (isInitialized && !isLoggedIn) {
-      navigate('/');
-    }
-  }, [isInitialized, isLoggedIn, navigate]);
 
   // Updated useQuery hook for showrooms
   const { data: showrooms, isLoading: isShowroomsLoading } = useQuery(
@@ -123,7 +113,11 @@ const Showroom = () => {
           ) : (
             <Select
               value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value === 'all' ? 'all' : Number(e.target.value);
+                setSelectedCategory(value);
+                navigate(`?category=${value}`, { replace: true });
+              }}
               className='bg-[#D2BA8580] text-sm'
               size="sm"
             >
