@@ -2,11 +2,13 @@ import React, { useState, useCallback, useEffect } from "react";
 import { useQuery, useQueryClient, useMutation } from 'react-query';
 import axios from "axios";
 import { useForm, Controller } from "react-hook-form";
-import { Modal, ModalOverlay, ModalContent, ModalBody, ModalFooter, Button, Select, FormControl, FormLabel, FormErrorMessage, Box, Image, Icon, Flex, Text, useBreakpointValue, useToast, Textarea } from "@chakra-ui/react";
+import { Modal, ModalOverlay, ModalContent, ModalBody, ModalFooter, Button, Select, FormControl, FormLabel, FormErrorMessage, Box, Image, Icon, Flex, Text, useBreakpointValue, useToast, Textarea, Menu, MenuButton, MenuList, MenuItem, Input } from "@chakra-ui/react";
 import { BASE_URL } from "../../../config/config";
 import { IoAddOutline, IoClose } from "react-icons/io5";
 import SellInput from "../../../components/forms/Input/SellInput.jsx";
 import PhoneInputShowroom from "../../../components/forms/Input/MobileInputShowroom.jsx";
+import { ChevronDownIcon } from 'lucide-react';
+import { FaChevronDown } from "react-icons/fa";
 
 const fetchCategories = async (userToken) => {
   const { data } = await axios.get(`${BASE_URL}/api/find-showroom-categories`, {
@@ -49,6 +51,7 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
   const [selectedDistrictId, setSelectedDistrictId] = useState(null);
   const [uploadedImage, setUploadedImage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [townSearchQuery, setTownSearchQuery] = useState('');
 
   const {
     register,
@@ -201,6 +204,12 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
       setUserToken(localStorage.getItem("UserToken"));
     }
   }, [isOpen, reset]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setTownSearchQuery('');
+    }
+  }, [isOpen]);
 
   const ImageUploadBox = ({ onClick, children }) => (
     <Box w={imageBoxSize} h={imageBoxSize} backgroundColor="#4F7598" border="2px" borderColor="gray.300" borderRadius="md" display="flex" flexDirection="column" alignItems="center" justifyContent="center" cursor="pointer" color="white" onClick={onClick}>
@@ -369,13 +378,61 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
 
             <FormControl isInvalid={errors.locationTown} fontSize={fontSize}>
               <FormLabel>Town</FormLabel>
-              <Select className="border-black" placeholder="Select Town" isDisabled={!selectedDistrictId || townsQuery.isLoading} {...register("locationTown", { required: "Town is required" })}>
-                {townsQuery.data?.map(({ id, name }) => (
-                  <option key={id} value={id}>
-                    {name}
-                  </option>
-                ))}
-              </Select>
+              <Controller
+                name="locationTown"
+                control={control}
+                rules={{ required: "Town is required" }}
+                render={({ field }) => (
+                  <Menu matchWidth>
+                    <MenuButton
+                      as={Button}
+                      rightIcon={<FaChevronDown  className='h-3 w-3 text-black ' />}
+                      w="100%"
+                      textAlign="left"
+                      isDisabled={!selectedDistrictId || townsQuery.isLoading}
+                      className='border-black border-2'
+                      fontWeight="normal"
+                    >
+                      {field.value ? 
+                        townsQuery.data?.find(opt => opt.id.toString() === field.value)?.name || 'Select Town' 
+                        : 'Select Town'
+                      }
+                    </MenuButton>
+                    <MenuList maxH="200px" overflowY="auto">
+                      <Box p={2}>
+                        <Input
+                          placeholder="Search town..."
+                          value={townSearchQuery}
+                          onChange={(e) => setTownSearchQuery(e.target.value)}
+                          mb={2}
+                        />
+                      </Box>
+                      {townsQuery.data
+                        ?.filter(option => 
+                          option.name?.toLowerCase().includes(townSearchQuery.toLowerCase())
+                        )
+                        .map(option => (
+                          <MenuItem
+                            key={option.id}
+                            value={option.id}
+                            onClick={() => {
+                              field.onChange(option.id.toString());
+                              setTownSearchQuery('');
+                            }}
+                            fontWeight="normal"
+                          >
+                            {option.name}
+                          </MenuItem>
+                        ))}
+                      {!townsQuery.data?.filter(option => 
+                        option.name?.toLowerCase().includes(townSearchQuery.toLowerCase())
+                      ).length && (
+                        <MenuItem isDisabled fontWeight="normal">No towns found</MenuItem>
+                      )}
+                    </MenuList>
+                  </Menu>
+                )}
+              />
               <FormErrorMessage>{errors.locationTown && errors.locationTown.message}</FormErrorMessage>
             </FormControl>
 

@@ -9,6 +9,7 @@ import { BASE_URL } from '../../../config/config';
 import CarCar from '../AdSingleStructure/CarCar';
 import Rest from '../AdSingleStructure/Rest';
 import SkeletonSingleAdPage from '../../Skelton/singleadPageskelton';
+import Breadcrumb from '../AdSingleStructure/DummyBreadCrumb';
 
 const fetchAdData = async ({ queryKey }) => {
   const [_, adCategoryId, adId] = queryKey;
@@ -99,7 +100,18 @@ function AdPreviewPage() {
   };
 
   return (
-    <div className="my-16 font-Inter">
+    <div>
+      <div className="px-4 py-2">
+        <Breadcrumb 
+          title={adData.title} 
+          locationDistrict={adData.locationDistrict?.name} 
+          locationTown={adData.locationTown?.name} 
+          adCategory={adData.adCategory?.name} 
+          adSubCategory={adData.adSubCategory?.name} 
+        />
+      </div>
+      <div className="my-8 font-Inter">
+      
       <div className="w-[90%] mx-auto block">
         {/* Images Section */}
         <div className="w-full md:w-[70%] mb-4 md:float-left md:pr-8">
@@ -301,6 +313,7 @@ function AdPreviewPage() {
           </ModalBody>
         </ModalContent>
       </Modal>
+    </div>
     </div>
   );
 }

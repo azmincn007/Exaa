@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { useQuery } from 'react-query';
 import axios from 'axios';
 import {
@@ -15,10 +15,14 @@ import {
   Text,
   VStack,
   useToast,
+  Input,
+  InputGroup,
+  InputLeftElement,
 } from '@chakra-ui/react';
 import { IMAGES } from '../../../constants/logoimg';
 import { BASE_URL } from '../../../config/config';
 import { IoArrowBack } from 'react-icons/io5';
+import { Search } from 'lucide-react';
 import { TownContext } from '../../../App';
 
 const fetchTowns = async (districtId) => {
@@ -28,6 +32,7 @@ const fetchTowns = async (districtId) => {
 
 function TownModal({ isOpen, onClose, districtId, districtName, onLocationSet }) {
   const [selectedTown, setSelectedTown] = useContext(TownContext);
+  const [searchQuery, setSearchQuery] = useState('');
   const toast = useToast();
 
   const { data: towns, isLoading, error } = useQuery(
@@ -36,11 +41,15 @@ function TownModal({ isOpen, onClose, districtId, districtName, onLocationSet })
     { enabled: !!districtId }
   );
 
+  const filteredTowns = towns?.filter(town => 
+    town.name.toLowerCase().includes(searchQuery.toLowerCase())
+  ) || [];
+
   const handleTownSelect = (town) => {
     setSelectedTown(town.id);
     localStorage.setItem('selectedTownId', town.id);
     localStorage.setItem('selectedDistrictId', districtId);
-    localStorage.setItem('selectedTownName', town.name);  // Add this line
+    localStorage.setItem('selectedTownName', town.name);
   
     toast({
       title: "Location Selected",
@@ -53,6 +62,7 @@ function TownModal({ isOpen, onClose, districtId, districtName, onLocationSet })
     onClose();
     onLocationSet();
   };
+
   return (
     <Modal
       isCentered
@@ -78,11 +88,39 @@ function TownModal({ isOpen, onClose, districtId, districtName, onLocationSet })
             <Text textAlign="center" fontSize="sm" color="gray.600">
               Choose a town in {districtName}
             </Text>
+            
+            {/* Search Input */}
+            <InputGroup size="md">
+              <InputLeftElement>
+                <Search className="w-4 h-4 text-gray-400" />
+              </InputLeftElement>
+              <Input
+                placeholder="Search towns..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </InputGroup>
+
             {isLoading && <Text textAlign="center" fontSize="sm">Loading towns...</Text>}
             {error && <Text textAlign="center" fontSize="sm" color="red.500">Error loading towns. Please try again.</Text>}
-            {towns && (
-              <Grid templateColumns="repeat(3, 1fr)" gap={2} width="100%">
-                {towns.map((town) => (
+            
+            {filteredTowns.length === 0 && !isLoading && !error && (
+              <Text textAlign="center" fontSize="sm" color="gray.500">
+                No towns found matching "{searchQuery}"
+              </Text>
+            )}
+
+            {filteredTowns.length > 0 && (
+              <Grid 
+                templateColumns="repeat(3, 1fr)" 
+                gap={2} 
+                width="100%"
+                maxH="300px"
+                overflowY="auto"
+                className="scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
+              >
+                {filteredTowns.map((town) => (
                   <GridItem
                     key={town.id}
                     w="100%"

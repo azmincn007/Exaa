@@ -24,6 +24,11 @@ import {
   Text,
   useBreakpointValue,
   useToast,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  Input,
 } from '@chakra-ui/react';
 import { IoAddOutline, IoClose } from 'react-icons/io5';
 import { BASE_URL } from '../../../config/config';
@@ -36,6 +41,7 @@ import { useVariants } from '../../common/config/Api/UseVarient.jsx';
 import { useNavigate } from 'react-router-dom';
 import CongratulationsModal from './SellSuccessmodal.jsx'; // Update import path to match SellModal
 import { useTypes } from '../../common/config/Api/UseTypes.jsx';
+import { FaChevronDown } from 'react-icons/fa';
 
 const SellModalEdit = ({ isOpen, onClose, listingData }) => {
   
@@ -60,6 +66,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
   const [submittedImages, setSubmittedImages] = useState([]);
   const [submittedAdId, setSubmittedAdId] = useState(null);
   const [selectedTypeId, setSelectedTypeId] = useState(null);
+  const [townSearchQuery, setTownSearchQuery] = useState('');
 
   const queryClient = useQueryClient();
 
@@ -231,7 +238,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
 
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
-    if (file && uploadedImages.length < 4) {
+    if (file && uploadedImages.length < 10) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setUploadedImages(prevImages => [...prevImages, { file, preview: reader.result, isExisting: false }]);
@@ -427,6 +434,69 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
           </FormControl>
         );
       case 'select':
+        if (fieldName === 'locationTown') {
+          const filteredTowns = config.options.filter(option => 
+            option.name?.toLowerCase().includes(townSearchQuery.toLowerCase())
+          );
+
+          return (
+            <FormControl key={fieldName} isInvalid={errors[fieldName]} fontSize={fontSize}>
+              <FormLabel>{config.label}</FormLabel>
+              <Controller
+                name={fieldName}
+                control={control}
+                rules={config.rules}
+                render={({ field }) => (
+                  <Menu matchWidth>
+                    <MenuButton
+                      as={Button}
+                      rightIcon={<FaChevronDown  className='h-3 w-3 text-black ' />}
+                      w="100%"
+                      textAlign="left"
+                      isDisabled={isTownsLoading || !selectedDistrictId}
+                      className='border-black'
+                      fontWeight="normal"
+                    >
+                      {field.value ? 
+                        config.options.find(opt => opt.id === field.value)?.name || 'Select Town' 
+                        : 'Select Town'
+                      }
+                    </MenuButton>
+                    <MenuList maxH="200px" overflowY="auto">
+                      <Box p={2}>
+                        <Input
+                          placeholder="Search town..."
+                          value={townSearchQuery}
+                          onChange={(e) => setTownSearchQuery(e.target.value)}
+                          mb={2}
+                        />
+                      </Box>
+                      {filteredTowns.map(option => (
+                        <MenuItem
+                          key={option.id}
+                          value={option.id}
+                          onClick={() => {
+                            field.onChange(option.id);
+                            setTownSearchQuery('');
+                          }}
+                          fontWeight="normal"
+                        >
+                          {option.name}
+                        </MenuItem>
+                      ))}
+                      {filteredTowns.length === 0 && (
+                        <MenuItem isDisabled fontWeight="normal">No towns found</MenuItem>
+                      )}
+                    </MenuList>
+                  </Menu>
+                )}
+              />
+              <FormErrorMessage>
+                {errors[fieldName] && errors[fieldName].message}
+              </FormErrorMessage>
+            </FormControl>
+          );
+        }
         return (
           <FormControl key={fieldName} isInvalid={errors[fieldName]} fontSize={fontSize}>
             <FormLabel>{config.label}</FormLabel>
@@ -515,9 +585,24 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
     }
   }, [selectedDistrictId, towns, setValue, getValues]);
 
+  const clearForm = () => {
+    reset(); // Reset form values
+    setSelectedCategoryId(null);
+    setSelectedSubCategoryId(null);
+    setSelectedDistrictId(null);
+    setUploadedImages([]);
+    setSubCategoryDetails(null);
+    setCompleteAdData(null);
+    setSelectedBrandId(null);
+    setSelectedModelId(null);
+    setSelectedVariantId(null);
+    setSelectedTypeId(null);
+    setTownSearchQuery('');
+  };
+
   return (
     <>
-      <Modal isOpen={isOpen} onClose={onClose} size={modalSize}    closeOnOverlayClick={false} >
+      <Modal isOpen={isOpen} onClose={onClose} size={modalSize} closeOnOverlayClick={false}>
         <ModalOverlay />
         <ModalContent 
           bg="#F1F1F1" 
@@ -582,11 +667,38 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
                 
                 {subCategoryDetails && subCategoryDetails.requiredFields?.map(fieldName => renderField(fieldName))}
                 
-                <FormControl fontSize={fontSize}>
-                  <FormLabel>Images (Max 4)</FormLabel>
-                  <Flex gap={3} flexWrap="wrap" justifyContent="center">
-                    {uploadedImages.map((image, index) => (
-                      <Box key={index} position="relative">
+                {subCategoryDetails && (
+                  <FormControl fontSize={fontSize} isInvalid={uploadedImages.length === 0}>
+                    <FormLabel>Images (Max 10)</FormLabel>
+                    <Flex gap={3} flexWrap="wrap" justifyContent="center">
+                      {uploadedImages.map((image, index) => (
+                        <Box key={index} position="relative">
+                          <Box
+                            w={imageBoxSize}
+                            h={imageBoxSize}
+                            backgroundColor='#4F7598'
+                            border="2px"
+                            borderColor="gray.300"
+                            borderRadius="md"
+                            overflow="hidden"
+                          >
+                            <Image src={image.preview} alt={`Uploaded ${index + 1}`} objectFit="cover" w="100%" h="100%" />
+                            <Icon
+                              as={IoClose}
+                              position="absolute"
+                              top={1}
+                              right={1}
+                              bg="#4F7598"
+                              color="white"
+                              borderRadius="full"
+                              boxSize={5}
+                              cursor="pointer"
+                              onClick={() => removeImage(index)}
+                            />
+                          </Box>
+                        </Box>
+                      ))}
+                      {uploadedImages.length < 10 && (
                         <Box
                           w={imageBoxSize}
                           h={imageBoxSize}
@@ -594,55 +706,33 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
                           border="2px"
                           borderColor="gray.300"
                           borderRadius="md"
-                          overflow="hidden"
+                          display="flex"
+                          flexDirection="column"
+                          alignItems="center"
+                          justifyContent="center"
+                          cursor="pointer"
+                          color='white'
+                          onClick={() => document.getElementById('imageUpload').click()}
                         >
-                          <Image src={image.preview} alt={`Uploaded ${index + 1}`} objectFit="cover" w="100%" h="100%" />
-                          <Icon
-                            as={IoClose}
-                            position="absolute"
-                            top={1}
-                            right={1}
-                            bg="#4F7598"
-                            color="white"
-                            borderRadius="full"
-                            boxSize={5}
-                            cursor="pointer"
-                            onClick={() => removeImage(index)}
-                          />
+                          <Icon as={IoAddOutline} w={5} h={5} />
+                          <Text fontSize="xs" textAlign="center" mt={1}>
+                            {uploadedImages.length === 0 ? 'Add image' : 'Upload more'}
+                          </Text>
                         </Box>
-                      </Box>
-                    ))}
-                    {uploadedImages.length < 4 && (
-                      <Box
-                        w={imageBoxSize}
-                        h={imageBoxSize}
-                        backgroundColor='#4F7598'
-                        border="2px"
-                        borderColor="gray.300"
-                        borderRadius="md"
-                        display="flex"
-                        flexDirection="column"
-                        alignItems="center"
-                        justifyContent="center"
-                        cursor="pointer"
-                        color='white'
-                        onClick={() => document.getElementById('imageUpload').click()}
-                      >
-                        <Icon as={IoAddOutline} w={5} h={5} />
-                        <Text fontSize="xs" textAlign="center" mt={1}>
-                          {uploadedImages.length === 0 ? 'Add image' : 'Upload more'}
-                        </Text>
-                      </Box>
+                      )}
+                      <input
+                        id="imageUpload"
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={handleImageUpload}
+                      />
+                    </Flex>
+                    {uploadedImages.length === 0 && (
+                      <FormErrorMessage>At least one image is required</FormErrorMessage>
                     )}
-                    <input
-                      id="imageUpload"
-                      type="file"
-                      accept="image/*"
-                      style={{ display: 'none' }}
-                      onChange={handleImageUpload}
-                    />
-                  </Flex>
-                </FormControl>
+                  </FormControl>
+                )}
                 
                 <Button 
                   type="submit" 

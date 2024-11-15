@@ -23,6 +23,11 @@ import {
   Text,
   useBreakpointValue,
   useToast,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  Input,
 } from '@chakra-ui/react';
 import { BASE_URL } from '../../../config/config';
 import { IoAddOutline, IoClose } from 'react-icons/io5';
@@ -35,6 +40,9 @@ import { useModels } from '../../common/config/Api/UseModels.jsx';
 import { useVariants } from '../../common/config/Api/UseVarient.jsx';
 import { useTypes } from '../../common/config/Api/UseTypes.jsx';
 import { useNavigate } from 'react-router-dom';
+import { ChevronDownIcon } from 'lucide-react';
+import { FaAngleDown } from 'react-icons/fa';
+import { FaChevronDown } from 'react-icons/fa6';
 
 const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
   const [isUpdatingFields, setIsUpdatingFields] = useState(false);
@@ -310,7 +318,7 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
   };
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
-    if (file && uploadedImages.length < 4) {
+    if (file && uploadedImages.length < 10) {
       setUploadedImages(prevImages => [...prevImages, { file, preview: URL.createObjectURL(file) }]);
     }
   };
@@ -349,6 +357,9 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
       }
     }, [watchModel, setValue]);
   
+    // Add this new state for town search
+    const [townSearchQuery, setTownSearchQuery] = useState('');
+
     const renderField = (fieldName) => {
       const config = getFieldConfig(fieldName, districts, towns, brands, models, variants, types, selectedSubCategoryId);
       
@@ -356,6 +367,72 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
       
       switch(config.type) {
         case 'select':
+          // Special handling for town selection
+          if (fieldName === 'locationTown') {
+            const filteredTowns = config.options.filter(option => 
+              option.name?.toLowerCase().includes(townSearchQuery.toLowerCase())
+            );
+
+            return (
+              <FormControl key={fieldName} isInvalid={errors[fieldName]} fontSize={fontSize}>
+                <FormLabel>{config.label}</FormLabel>
+                <Controller
+                  name={fieldName}
+                  control={control}
+                  rules={config.rules}
+                  render={({ field }) => (
+                    <Menu matchWidth>
+                      <MenuButton
+                        as={Button}
+                        rightIcon={<FaChevronDown  className='h-3 w-3 text-black ' />}
+                        w="100%"
+                        textAlign="left"
+                        isDisabled={isTownsLoading || !selectedDistrictId}
+                        className='border-black border-[1px] px-3'
+                        fontWeight="normal"
+                      >
+                        {field.value ? 
+                          config.options.find(opt => opt.id === field.value)?.name || 'Select Town' 
+                          : 'Select Town'
+                        }
+                      </MenuButton>
+                      <MenuList maxH="200px" overflowY="auto">
+                        <Box p={2}>
+                          <Input
+                            placeholder="Search town..."
+                            value={townSearchQuery}
+                            onChange={(e) => setTownSearchQuery(e.target.value)}
+                            mb={2}
+                          />
+                        </Box>
+                        {filteredTowns.map(option => (
+                          <MenuItem
+                            key={option.id}
+                            value={option.id}
+                            onClick={() => {
+                              field.onChange(option.id);
+                              setTownSearchQuery('');
+                            }}
+                            fontWeight="normal"
+                          >
+                            {option.name}
+                          </MenuItem>
+                        ))}
+                        {filteredTowns.length === 0 && (
+                          <MenuItem isDisabled fontWeight="normal">No towns found</MenuItem>
+                        )}
+                      </MenuList>
+                    </Menu>
+                  )}
+                />
+                <FormErrorMessage>
+                  {errors[fieldName] && errors[fieldName].message}
+                </FormErrorMessage>
+              </FormControl>
+            );
+          }
+          
+          // Default select handling for other fields
           return (
             <FormControl key={fieldName} isInvalid={errors[fieldName]} fontSize={fontSize}>
               <FormLabel>{config.label}</FormLabel>
@@ -478,6 +555,13 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
     </Box>
   );
 
+  // Add this useEffect to clear town search when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setTownSearchQuery('');
+    }
+  }, [isOpen]);
+
   return (
     <>
       <Modal 
@@ -550,7 +634,7 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
               
               {selectedSubCategoryId && (
                 <FormControl fontSize={fontSize} isInvalid={uploadedImages.length === 0}>
-                  <FormLabel>Upload Images (Max 4) *</FormLabel>
+                  <FormLabel>Upload Images (Max 10) *</FormLabel>
                   <Flex gap={3} flexWrap="wrap" justifyContent="center">
                     {uploadedImages.map((image, index) => (
                       <Box key={index} position="relative">
@@ -570,7 +654,7 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
                       </Box>
                     ))}
                    
-                    {uploadedImages.length < 4 && (
+                    {uploadedImages.length < 10 && (
                       <ImageUploadBox onClick={() => document.getElementById('imageUpload').click()}>
                         <Icon as={IoAddOutline} w={5} h={5} />
                         <Text fontSize="xs" textAlign="center" mt={1}>

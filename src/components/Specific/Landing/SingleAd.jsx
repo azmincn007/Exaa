@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FaChevronLeft, FaChevronRight, FaCommentDollar, FaComments, FaWhatsapp } from 'react-icons/fa';
-import { ArrowRight, Copy } from 'lucide-react';
+import { ArrowRight, Copy, Share2, Heart } from 'lucide-react';
 import { useQuery, useMutation } from 'react-query';
 import axios from 'axios';
-import { Button, Modal, ModalOverlay, ModalContent, ModalBody, ModalCloseButton, useDisclosure, useToast } from '@chakra-ui/react';
+import { Button, Modal, ModalOverlay, ModalContent, ModalBody, ModalCloseButton, useDisclosure, useToast, Popover, PopoverTrigger, PopoverContent, PopoverBody } from '@chakra-ui/react';
 import { BASE_URL } from '../../../config/config';
 import CarCar from '../AdSingleStructure/CarCar';
 import Rest from '../AdSingleStructure/Rest';
@@ -15,6 +15,10 @@ import PriceAdjuster from '../AdSingleStructure/PriceAdjuster';
 import SimilarAds from './SimilarAds';
 import NearbyShowroomAds from './NearbyShowroomads';
 import FindOtherShowrooms from './FindOtherShowroomAds';
+import { Facebook } from 'lucide-react';
+import { FcLike } from 'react-icons/fc';
+import DummyBreadcrumb from '../AdSingleStructure/DummyBreadCrumb';
+import { BiHeart, BiSolidHeart } from 'react-icons/bi';
 
 const fetchAdData = async ({ queryKey }) => {
   const [_, adCategoryId, adId, token] = queryKey;
@@ -118,6 +122,77 @@ function SingleAd() {
     },
   });
 
+  const [isAdFavourite, setIsAdFavourite] = useState(adData?.isAdFavourite || false);
+
+  useEffect(() => {
+    if (adData) {
+      setIsAdFavourite(adData.isAdFavourite);
+    }
+  }, [adData]);
+
+  console.log(adData?.isAdFavourite);
+  
+console.log(isAdFavourite);
+  const addFavoriteMutation = useMutation(
+    async () => {
+      const token = localStorage.getItem('UserToken');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+      const response = await axios.post(
+        `${BASE_URL}/api/ad-favourites`,
+        { adId, adCategoryId },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+      return response.data;
+    },
+    {
+      onSuccess: () => {
+        setIsAdFavourite(true);
+      },
+    }
+  );
+
+  const deleteFavoriteMutation = useMutation(
+    async () => {
+      const token = localStorage.getItem('UserToken');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+      const response = await axios.delete(
+        `${BASE_URL}/api/ad-delete-favourite/${adId}/${adCategoryId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+      return response.data;
+    },
+    {
+      onSuccess: () => {
+        setIsAdFavourite(false);
+      },
+    }
+  );
+
+  const handleFavoriteClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const token = localStorage.getItem('UserToken');
+    if (!token) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
+    if (isAdFavourite) {
+      deleteFavoriteMutation.mutate();
+    } else {
+      addFavoriteMutation.mutate();
+    }
+  };
+
   const handleChatWithSeller = () => {
     if (!isLoggedIn || !token) {
       setIsLoginModalOpen(true);
@@ -195,6 +270,23 @@ function SingleAd() {
     window.open(whatsappUrl, '_blank');
   };
 
+  const handleFacebookShare = () => {
+    const currentUrl = window.location.href;
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`;
+    window.open(facebookUrl, '_blank');
+  };
+
+  const handleInstagramShare = () => {
+    toast({
+      title: "Copy link to share on Instagram",
+      description: "Instagram doesn't support direct sharing via link",
+      status: "info",
+      duration: 3000,
+      position: "top",
+    });
+    handleCopyLink();
+  };
+
   if (isLoading) return <SkeletonSingleAdPage />;
   if (error) return <div>An error occurred: {error.message}</div>;
   if (!adData) return <div>No data available for this ad.</div>;
@@ -206,7 +298,13 @@ function SingleAd() {
   const isCarCategory = adData.adCategory?.id === 2 && adData.adSubCategory?.id === 11;
 
   return (
-    <div className="my-16 font-Inter">
+    <div>
+      <div className='px-4 py-2'>
+
+      <DummyBreadcrumb className="w-full md:w-[70%]" title={adData.title} locationDistrict={adData.locationDistrict.name} locationTown={adData.locationTown.name} adCategory={adData.adCategory?.name} adSubCategory={adData.adSubCategory?.name} />
+      </div>
+      <div className="my-8 font-Inter">
+
       <div className="w-[90%] mx-auto block">
         {/* Images Section */}
         <div className="w-full md:w-[70%] mb-4 md:float-left md:pr-8">
@@ -220,41 +318,82 @@ function SingleAd() {
                 <FaChevronLeft className="text-white text-xl" />
               </button>
               
-              {imageCount > 0 ? (
-                <div 
-                  className="w-full h-full px- bg-black flex justify-center items-center cursor-pointer" 
-                  onClick={onOpen}
-                >
-                  <img
-                    src={currentImageUrl}
-                    alt={`Ad Image ${currentImageIndex + 1}`}
-                    className="max-h-full max-w-full object-contain"
-                  />
+              {isLoggedIn && (
+                <div className="absolute top-4 right-4 z-20 flex gap-3">
+                  <Popover placement="bottom-end">
+                    <PopoverTrigger>
+                      <button 
+                        className="p-2 rounded-full bg-black/50 hover:bg-black/70 transition-colors text-white"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Share2 size={20} />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto bg-white rounded-lg shadow-lg p-2">
+                      <PopoverBody>
+                        <div className="flex gap-3 items-center">
+                          <button
+                            onClick={handleWhatsAppShare}
+                            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                            title="Share on WhatsApp"
+                          >
+                            <FaWhatsapp size={20} className="text-green-600" />
+                          </button>
+                          
+                          <button
+                            onClick={handleFacebookShare}
+                            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                            title="Share on Facebook"
+                          >
+                            <Facebook size={20} className="text-blue-600" />
+                          </button>
+                        </div>
+                      </PopoverBody>
+                    </PopoverContent>
+                  </Popover>
                   
-                  {/* Image Pagination Bullets */}
-                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
-                    {images.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setCurrentImageIndex(index);
-                        }}
-                        className={`w-2.5 h-2.5 rounded-full transition-all duration-300 
-                          ${currentImageIndex === index 
-                            ? 'bg-blue-500 scale-110' 
-                            : 'bg-gray-300 hover:bg-gray-400'
-                          }`}
-                        aria-label={`Go to image ${index + 1}`}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                  No Image Available
+                  <button 
+                    className="p-2 rounded-full transition-colors text-white"
+                    onClick={handleFavoriteClick}
+                  >
+                    {isAdFavourite ? (
+                      <BiSolidHeart className="w-5 h-5 text-red-500" />
+                    ) : (
+                      <BiHeart className="w-5 h-5 text-gray-600" />
+                    )}
+                  </button>
                 </div>
               )}
+              
+              <div 
+                className="w-full h-full px- bg-black flex justify-center items-center cursor-pointer" 
+                onClick={onOpen}
+              >
+                <img
+                  src={currentImageUrl}
+                  alt={`Ad Image ${currentImageIndex + 1}`}
+                  className="max-h-full max-w-full object-contain"
+                />
+                
+                {/* Image Pagination Bullets */}
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+                  {images.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCurrentImageIndex(index);
+                      }}
+                      className={`w-2.5 h-2.5 rounded-full transition-all duration-300 
+                        ${currentImageIndex === index 
+                          ? 'bg-blue-500 scale-110' 
+                          : 'bg-gray-300 hover:bg-gray-400'
+                        }`}
+                      aria-label={`Go to image ${index + 1}`}
+                    />
+                  ))}
+                </div>
+              </div>
               
               <button 
                 onClick={handleNextClick}
@@ -440,6 +579,7 @@ function SingleAd() {
       />
 
       <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
+    </div>
     </div>
   );
 }
