@@ -213,7 +213,7 @@ console.log(selectedBoostTag);
 
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
-    if (file && uploadedImages.length < 4) {
+    if (file && uploadedImages.length < 10) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setUploadedImages(prev => [...prev, { file, preview: reader.result, isExisting: false }]);
@@ -222,7 +222,7 @@ console.log(selectedBoostTag);
     } else {
       toast({
         title: 'Maximum images reached',
-        description: 'You can only upload up to 4 images',
+        description: 'You can only upload up to 10 images',
         status: 'warning',
         duration: 3000,
         isClosable: true,

@@ -268,7 +268,7 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
 
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
-    if (file && uploadedImages.length < 4) {
+    if (file && uploadedImages.length < 10) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setUploadedImages(prevImages => [...prevImages, { file, preview: reader.result }]);
@@ -480,7 +480,7 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
                 <FormErrorMessage>{errors?.boostTags && errors.boostTags.message}</FormErrorMessage>
               </FormControl>
               <FormControl fontSize={fontSize} isInvalid={errors.images} isRequired>
-                <FormLabel>Upload Images (Max 4) </FormLabel>
+                <FormLabel>Upload Images (Max 10) </FormLabel>
                 <Flex gap={3} flexWrap="wrap" justifyContent="center">
                   {uploadedImages.map((image, index) => (
                     <Box key={index} position="relative">
@@ -499,7 +499,7 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
                       </Text>
                     </Box>
                   ))}
-                  {uploadedImages.length < 4 && (
+                  {uploadedImages.length < 10 && (
                     <ImageUploadBox onClick={() => document.getElementById('imageUpload').click()}>
                       <Icon as={IoAddOutline} w={5} h={5} />
                       <Text fontSize="xs" textAlign="center" mt={1}>
