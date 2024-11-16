@@ -41,7 +41,6 @@ function SearchComponent({ isShowroom }) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [userToken, setUserToken] = useState(null);
   const { handleSearch, searchText } = useSearch();
-  const location = useLocation();
 
   // Add new ref for input focus
   const inputRef = useRef(null);
@@ -55,10 +54,6 @@ function SearchComponent({ isShowroom }) {
     setSearchTerm(searchText);
   }, [searchText]);
 
-  useEffect(() => {
-    setSearchTerm('');
-    handleSearch('');
-  }, [location.pathname]);
 
   const { data: suggestions, error, isLoading } = useQuery(
     ['suggestions', searchTerm, isShowroom, userToken],
