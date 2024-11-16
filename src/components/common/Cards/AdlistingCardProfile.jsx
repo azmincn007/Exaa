@@ -89,6 +89,21 @@ const AdListingCardProfile = ({ listing, onDelete, onRepost, isExpired, isPendin
 
   return (
     <>
+      {/* Separate the modal and dialog from the card container */}
+      <SellModalEdit 
+        isOpen={isEditModalOpen} 
+        onClose={() => setIsEditModalOpen(false)} 
+        listingData={selectedListing}
+      />
+
+      <DeleteConfirmationDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        itemName="Listing"
+        isLoading={isDeleting}
+      />
+
       {/* Card Container */}
       <div 
         className="border border-gray-200 rounded-lg overflow-hidden shadow-md mb-4 font-Inter cursor-pointer hover:shadow-lg transition-shadow"
@@ -234,22 +249,6 @@ const AdListingCardProfile = ({ listing, onDelete, onRepost, isExpired, isPendin
           </div>
         </div>
       </div>
-
-      {/* Edit Modal */}
-      <SellModalEdit 
-        isOpen={isEditModalOpen} 
-        onClose={() => setIsEditModalOpen(false)} 
-        listingData={selectedListing}
-      />
-
-      {/* Delete Confirmation Dialog */}
-      <DeleteConfirmationDialog
-        isOpen={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
-        onConfirm={handleDeleteConfirm}
-        itemName="Listing"
-        isLoading={isDeleting}
-      />
     </>
   );
 };

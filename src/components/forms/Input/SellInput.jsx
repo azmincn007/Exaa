@@ -12,23 +12,48 @@ const SellInput = ({
 }) => {
   return (
     <FormControl position="relative" mt={4} isInvalid={!!error}>
-      <Input
-        type={type}
-        {...props}
-        {...(register && name ? register(name, rules) : {})}
-        pt={4}
-        pb={2}
-        px={3}
-        height={name === 'description' ? '140px' :null}
-        borderWidth="1px"
-        borderColor="black.300"
-        className='sell-input'
-        _hover={{ borderColor: "black.300" }}
-        _focus={{
-          boxShadow: "0 0 0 1px #3182ce",
-          borderColor: "black.300",
-        }}
-      />
+      {name === 'description' ? (
+        <Input
+          as="textarea"
+          type={type}
+          {...props}
+          {...(register && name ? register(name, {
+            ...rules,
+            maxLength: { value: 200, message: 'Maximum 200 words allowed' }
+          }) : {})}
+          pt={4}
+          pb={2}
+          px={3}
+          height="140px"
+          resize="none"
+          borderWidth="1px"
+          borderColor="black.300"
+          className='sell-input'
+          _hover={{ borderColor: "black.300" }}
+          _focus={{
+            boxShadow: "0 0 0 1px #3182ce",
+            borderColor: "black.300",
+          }}
+        />
+      ) : (
+        <Input
+          type={type}
+          {...props}
+          {...(register && name ? register(name, rules) : {})}
+          pt={4}
+          pb={2}
+          px={3}
+          height={name === 'description' ? '140px' :null}
+          borderWidth="1px"
+          borderColor="black.300"
+          className='sell-input'
+          _hover={{ borderColor: "black.300" }}
+          _focus={{
+            boxShadow: "0 0 0 1px #3182ce",
+            borderColor: "black.300",
+          }}
+        />
+      )}
       <FormLabel
         position="absolute"
         top="-2.5"

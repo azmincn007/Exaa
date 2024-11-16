@@ -130,10 +130,13 @@ console.log(selectedBoostTag);
 
         if (subCategoryResponse.data.success) {
           const subCategoryData = subCategoryResponse.data.data;
+          console.log(subCategoryData);
+          
           setSubCategoryDetails(subCategoryData);
           
           // Check which fields are required based on the subcategory
           const fields = subCategoryData.fields || [];
+          
           setRequiredFields({
             brand: fields.includes('brand'),
             model: fields.includes('model'),
@@ -241,6 +244,36 @@ console.log(selectedBoostTag);
 
     const config = getFieldConfig(fieldName, [], [], brands, models, variants, types);
     if (!config) return null;
+
+    // Add special handling for description field
+    if (fieldName === 'description') {
+      return (
+        <FormControl key={fieldName} isInvalid={errors[fieldName]}>
+          <FormLabel fontSize={fontSize}>{config.label}</FormLabel>
+          <Input
+            as="textarea"
+            {...register(fieldName, {
+              ...config.rules,
+              maxLength: { value: 200, message: 'Maximum 200 words allowed' }
+            })}
+            fontSize={fontSize}
+            height="140px"
+            resize="none"
+            pt={4}
+            pb={2}
+            px={3}
+            borderWidth="1px"
+            borderColor="gray.300"
+            _hover={{ borderColor: "gray.400" }}
+            _focus={{
+              boxShadow: "0 0 0 1px #3182ce",
+              borderColor: "gray.400",
+            }}
+          />
+          <FormErrorMessage>{errors[fieldName]?.message}</FormErrorMessage>
+        </FormControl>
+      );
+    }
 
     const CommonWrapper = ({ children }) => (
       <FormControl key={fieldName} isInvalid={errors[fieldName]}>
@@ -640,7 +673,7 @@ console.log(selectedBoostTag);
                   </FormControl>
 
                   <FormControl>
-                    <FormLabel fontSize={fontSize}>Images (Max 4)</FormLabel>
+                    <FormLabel fontSize={fontSize}>Images (Max 10)</FormLabel>
                     <Flex gap={3} flexWrap="wrap" justifyContent="center">
                       {uploadedImages.map((image, index) => (
                         <Box key={index} position="relative">
@@ -655,7 +688,7 @@ console.log(selectedBoostTag);
                         </Box>
                       ))}
                       
-                      {uploadedImages.length < 4 && (
+                      {uploadedImages.length < 10 && (
                         <Box>
                           <Box
                             className="w-[150px] h-[150px] bg-[#4F7598] rounded-md flex flex-col items-center justify-center cursor-pointer"
@@ -667,7 +700,7 @@ console.log(selectedBoostTag);
                             </Text>
                           </Box>
                           <Text className="text-xs text-center mt-1">
-                            {4 - uploadedImages.length} remaining
+                            {10 - uploadedImages.length} remaining
                           </Text>
                         </Box>
                       )}
@@ -680,7 +713,7 @@ console.log(selectedBoostTag);
                       />
                     </Flex>
                     <Text className="text-xs text-gray-500 mt-2">
-                      Tip: You can upload up to 4 images in total. Click on the 'x' icon to remove an image.
+                      Tip: You can upload up to 10 images in total. Click on the 'x' icon to remove an image.
                     </Text>
                   </FormControl>
                 </VStack>

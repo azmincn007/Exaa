@@ -29,6 +29,7 @@ import {
   MenuList,
   MenuItem,
   Input,
+  Portal,
 } from '@chakra-ui/react';
 import { IoAddOutline, IoClose } from 'react-icons/io5';
 import { BASE_URL } from '../../../config/config';
@@ -602,13 +603,20 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
 
   return (
     <>
-      <Modal isOpen={isOpen} onClose={onClose} size={modalSize} closeOnOverlayClick={false}>
+      <Modal 
+        isOpen={isOpen} 
+        onClose={onClose} 
+        size={modalSize} 
+        closeOnOverlayClick={false}
+        zIndex={1400}
+      >
         <ModalOverlay />
         <ModalContent 
           bg="#F1F1F1" 
           color="black" 
           maxWidth={{ base: "80%", md: modalSize }}
           position="relative"
+          my={{ base: "auto", md: "3.75rem" }}
         >
           <Icon
             as={IoClose}
@@ -752,15 +760,18 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
       </Modal>
 
       {showCongratulations && (
-        <CongratulationsModal 
-          adType={submittedAdType}
-          formData={submittedFormData}
-          apiUrl={submittedApiUrl}
-          isTagCreationPossible={isTagCreationPossible}
-          images={submittedImages}
-          adId={submittedAdId}
-          onClose={() => setShowCongratulations(false)}
-        />
+        <Portal>
+          <CongratulationsModal 
+            adType={submittedAdType}
+            formData={submittedFormData}
+            apiUrl={submittedApiUrl}
+            isTagCreationPossible={isTagCreationPossible}
+            images={submittedImages}
+            adId={submittedAdId}
+            onClose={() => setShowCongratulations(false)}
+            zIndex={1500}
+          />
+        </Portal>
       )}
     </>
   );

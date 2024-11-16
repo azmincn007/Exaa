@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useQuery } from 'react-query';
 import {
   Input,
@@ -41,6 +41,9 @@ function SearchComponent({ isShowroom }) {
   const [userToken, setUserToken] = useState(null);
   const { handleSearch, searchText } = useSearch();
 
+  // Add new ref for input focus
+  const inputRef = useRef(null);
+
   useEffect(() => {
     const token = localStorage.getItem('UserToken');
     setUserToken(token);
@@ -75,17 +78,18 @@ function SearchComponent({ isShowroom }) {
     setSearchTerm(suggestion);
     handleSearch(suggestion);
     setShowSuggestions(false);
+    inputRef.current?.focus(); // Add focus back to input after selection
   };
 
   return (
-    <VStack spacing={0} align="stretch" maxWidth="md" margin="auto">
+    <Box position="relative" maxWidth="md" margin="auto">
       <Box
         className='bg-white text-gray-700'
         borderRadius="lg"
-        position="relative"
       >
         <InputGroup size="md">
           <Input
+            ref={inputRef}
             pr="4.5rem"
             type="text"
             placeholder="Find Cars, Mobile Phones and more..."
@@ -94,7 +98,7 @@ function SearchComponent({ isShowroom }) {
             onChange={handleInputChange}
             onKeyPress={handleKeyPress}
             onFocus={() => setShowSuggestions(true)}
-            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 300)}
           />
           <InputRightElement
             className='bg-blue-500 searchbutton'
@@ -116,7 +120,11 @@ function SearchComponent({ isShowroom }) {
       </Box>
       {showSuggestions && !isLoading && !error && suggestions && suggestions.length > 0 && (
         <Box
-          className="border border-gray-200 rounded-md bg-white shadow-md absolute z-10 w-full max-w-md"
+          className="border border-gray-200 rounded-md bg-white shadow-md absolute z-50 w-full"
+          top="100%"
+          mt="2"
+          maxH="300px"
+          overflowY="auto"
         >
           <List className="space-y-2 p-2">
             {suggestions.map((suggestion, index) => (
@@ -124,6 +132,7 @@ function SearchComponent({ isShowroom }) {
                 key={index}
                 onClick={() => handleSuggestionClick(suggestion)}
                 className="cursor-pointer hover:bg-gray-100 p-2 rounded-md text-black"
+                onMouseDown={(e) => e.preventDefault()}
               >
                 {suggestion}
               </ListItem>
@@ -131,7 +140,7 @@ function SearchComponent({ isShowroom }) {
           </List>
         </Box>
       )}
-    </VStack>
+    </Box>
   );
 }
 
