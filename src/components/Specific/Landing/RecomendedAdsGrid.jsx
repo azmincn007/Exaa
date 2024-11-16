@@ -20,11 +20,11 @@ function RecommendedAdsGrid() {
 
   
   
-  const [visibleAds, setVisibleAds] = useState(8);
+  const [visibleAds, setVisibleAds] = useState(16);
   const isSmallMobile = useBreakpointValue({ base: true, sm: false });
   const columns = useBreakpointValue({ base: 2, sm: 2, md: 2, lg: 3, xl: 4 });
-  const skeletonCount = useBreakpointValue({ base: 4, sm: 6, md: 6, lg: 6, xl: 8 });
-  const CARDS_PER_PAGE = useBreakpointValue({ base: 4, sm: 6, md: 6, lg: 6, xl: 8 });
+  const skeletonCount = useBreakpointValue({ base: 8, sm: 12, md: 12, lg: 12, xl: 16 });
+  const CARDS_PER_PAGE = useBreakpointValue({ base: 8, sm: 12, md: 12, lg: 12, xl: 16 });
   const [currentPage, setCurrentPage] = useState(1);
 
   const fetchRecommendedAds = async () => {
@@ -62,7 +62,7 @@ function RecommendedAdsGrid() {
   const dataLength = data ? data.length : 0;
 
   const showMoreAds = () => {
-    setVisibleAds((prevVisible) => Math.min(prevVisible + 8, dataLength));
+    setVisibleAds((prevVisible) => Math.min(prevVisible + 16, dataLength));
   };
 
   const renderCard = (ad) => (

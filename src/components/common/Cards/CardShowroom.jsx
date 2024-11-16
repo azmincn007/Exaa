@@ -137,7 +137,7 @@ const CardShowroom = ({ ad }) => {
   if (isMobile) {
     return (
       <>
-        <Link to={`/details/${ad.id}/${ad.adCategory?.id}`}>
+        <Link to={`/item?categoryId=${ad.adCategory?.id}&adId=${ad.id}&subCategoryId=${ad.adSubCategory?.id}`}>
           <Box borderWidth="1px" borderRadius="lg" overflow="hidden" bg="#0071BC1A" boxShadow="md" className="mb-4">
             <Box position="relative" width="100%">
               <img src={imageUrl} alt={ad.title} className="h-48 w-full rounded-t-lg" style={{ objectFit: "cover" }} />
@@ -185,7 +185,7 @@ const CardShowroom = ({ ad }) => {
 
   return (
     <>
-      <Link to={`/details/${ad.id}/${ad.adCategory?.id}`}>
+      <Link to={`/item?categoryId=${ad.adCategory?.id}&adId=${ad.id}&subCategoryId=${ad.adSubCategory?.id}`}>
         <Box borderWidth="1px" borderRadius="lg" overflow="hidden" bg="#0071BC1A" boxShadow="md">
           <Flex>
             <Box position="relative" width="40%" className="rounded-lg">

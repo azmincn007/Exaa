@@ -13,6 +13,7 @@ import {
 import { Search } from 'lucide-react';
 import { BASE_URL } from '../../../config/config';
 import { useSearch } from '../../../Hooks/SearchContext';
+import { useLocation } from 'react-router-dom';
 
 const fetchSuggestions = async (search, isShowroom, userToken) => {
   if (!search) return [];
@@ -40,6 +41,7 @@ function SearchComponent({ isShowroom }) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [userToken, setUserToken] = useState(null);
   const { handleSearch, searchText } = useSearch();
+  const location = useLocation();
 
   // Add new ref for input focus
   const inputRef = useRef(null);
@@ -52,6 +54,11 @@ function SearchComponent({ isShowroom }) {
   useEffect(() => {
     setSearchTerm(searchText);
   }, [searchText]);
+
+  useEffect(() => {
+    setSearchTerm('');
+    handleSearch('');
+  }, [location.pathname]);
 
   const { data: suggestions, error, isLoading } = useQuery(
     ['suggestions', searchTerm, isShowroom, userToken],
