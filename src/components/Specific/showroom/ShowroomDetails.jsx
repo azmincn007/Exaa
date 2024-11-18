@@ -128,11 +128,11 @@ const ShowroomDetails = ({
           <div className="flex flex-col space-y-3 md:space-y-4">
             {/* Category Details Section */}
             <div className="grid grid-cols-12 gap-2 border-b border-gray-200 pb-3">
-              <span className="font-semibold text-gray-700 col-span-4">Category:</span>
-              <span className="text-gray-600 col-span-8">{category}</span>
+              <span className="font-semibold text-gray-700 col-span-6">Category:</span>
+              <span className="text-gray-600 col-span-6">{category}</span>
               
-              <span className="font-semibold text-gray-700 col-span-4">Showroom Category:</span>
-              <span className="text-gray-600 col-span-8">{showroomCategory}</span>
+              <span className="font-semibold text-gray-700 col-span-6">Showroom Category:</span>
+              <span className="text-gray-600 col-span-6">{showroomCategory}</span>
             </div>
 
             {/* Interactive Rating Section - Updated for better mobile layout */}
@@ -168,7 +168,7 @@ const ShowroomDetails = ({
                       <span className="text-xs md:text-sm font-medium text-gray-500">Your Rating</span>
                       <div className="flex items-center space-x-2">
                         <RatingStars rating={userRating} size={14} />
-                        <span className="text-xs md:text-sm font-medium text-gray-700">
+                        <span className="text-xs md:text-sm font-medium text-gray-700 ml-2">
                           {userRating ? userRating.toFixed(1) : "Not rated yet"}
                         </span>
                       </div>
