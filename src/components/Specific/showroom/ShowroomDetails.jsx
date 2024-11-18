@@ -2,7 +2,9 @@ import { useState } from "react";
 import { Star, ChevronDown, Edit2, Share2, Copy } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 import RatingModal from "../../modal/ReviewModal";
+import LoginModal from "../../modals/Authentications/LoginModal";
 import { Button, Card, CardBody, CardHeader, Collapse, useToast } from "@chakra-ui/react";
+import { useAuth } from "../../../Hooks/AuthContext";
 
 const ShowroomDetails = ({ 
   imageUrl, 
@@ -11,15 +13,17 @@ const ShowroomDetails = ({
   showroomCategory, 
   userRating, 
   showroomRating,
-  showroomId 
+  showroomId
 }) => {
+  const { isLoggedIn } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRatingExpanded, setIsRatingExpanded] = useState(false);
   const [isShareExpanded, setIsShareExpanded] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const toast = useToast();
 
   const RatingStars = ({ rating, size = 16 }) => (
-    <div className="flex space-x-1">
+    <div className="flex space-x-0.5 md:space-x-1">
       {[...Array(5)].map((_, i) => (
         <Star
           key={i}
@@ -58,6 +62,14 @@ const ShowroomDetails = ({
     const shareText = `Check out this showroom: ${name}\n${currentUrl}`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
     window.open(whatsappUrl, '_blank');
+  };
+
+  const handleRatingButtonClick = () => {
+    if (!isLoggedIn) {
+      setIsLoginModalOpen(true);
+    } else {
+      setIsModalOpen(true);
+    }
   };
 
   return (
@@ -112,56 +124,55 @@ const ShowroomDetails = ({
           </Collapse>
         </CardHeader>
 
-        <CardBody className="px-3 md:px-4 py-3 bg-white">
-          <div className="flex flex-col space-y-4">
-            {/* Category Details */}
+        <CardBody className="px-2 md:px-4 py-2 md:py-3 bg-white">
+          <div className="flex flex-col space-y-3 md:space-y-4">
+            {/* Category Details - Updated text sizes */}
             <div className="flex flex-col space-y-2 border-b border-gray-200 pb-3">
-              <div className="flex justify-between text-sm md:text-base">
+              <div className="flex justify-between text-xs md:text-base">
                 <span className="font-semibold text-gray-700">Category:</span>
                 <span className="text-gray-600">{category}</span>
               </div>
               
-              <div className="flex justify-between text-sm md:text-base">
+              <div className="flex justify-between text-xs md:text-base">
                 <span className="font-semibold text-gray-700">Showroom Category:</span>
                 <span className="text-gray-600">{showroomCategory}</span>
               </div>
             </div>
 
-            {/* Interactive Rating Section */}
+            {/* Interactive Rating Section - Updated for better mobile layout */}
             <div className="flex flex-col space-y-2">
               {/* Overall Rating Button */}
               <button
                 onClick={() => setIsRatingExpanded(!isRatingExpanded)}
                 className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200"
               >
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2 md:space-x-3">
                   <div className="flex flex-col items-start">
-                    <span className="text-sm font-medium text-gray-500">Overall Rating</span>
+                    <span className="text-xs md:text-sm font-medium text-gray-500">Overall Rating</span>
                     <div className="flex items-center space-x-2">
-                      <RatingStars rating={showroomRating} size={20} />
-                      <span className="text-lg font-semibold text-gray-700">
+                      <RatingStars rating={showroomRating} size={16} />
+                      <span className="text-sm md:text-lg font-semibold text-gray-700">
                         {showroomRating?.toFixed(1) || "N/A"}
                       </span>
                     </div>
                   </div>
                 </div>
                 <ChevronDown 
-                  className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${
+                  className={`w-4 h-4 md:w-5 md:h-5 text-gray-500 transition-transform duration-200 ${
                     isRatingExpanded ? 'transform rotate-180' : ''
                   }`}
                 />
               </button>
 
-              {/* Expandable Content */}
+              {/* Expandable Content - Updated for better mobile layout */}
               <Collapse in={isRatingExpanded}>
-                <div className="pt-2 pb-1 px-2 space-y-4 bg-gray-50 rounded-lg">
-                  {/* User Rating Display */}
-                  <div className="flex items-center justify-between">
+                <div className="pt-2 pb-1 px-2 space-y-3 bg-gray-50 rounded-lg">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-2 md:space-y-0">
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium text-gray-500">Your Rating</span>
+                      <span className="text-xs md:text-sm font-medium text-gray-500">Your Rating</span>
                       <div className="flex items-center space-x-2">
-                        <RatingStars rating={userRating} size={16} />
-                        <span className="text-sm font-medium text-gray-700">
+                        <RatingStars rating={userRating} size={14} />
+                        <span className="text-xs md:text-sm font-medium text-gray-700">
                           {userRating ? userRating.toFixed(1) : "Not rated yet"}
                         </span>
                       </div>
@@ -170,15 +181,15 @@ const ShowroomDetails = ({
                       variant="ghost"
                       size="sm"
                       colorScheme="blue"
-                      leftIcon={<Edit2 size={16} />}
-                      onClick={() => setIsModalOpen(true)}
-                      className="hover:bg-blue-50"
+                      leftIcon={<Edit2 size={14} />}
+                      onClick={handleRatingButtonClick}
+                      className="hover:bg-blue-50 text-xs md:text-sm py-1 h-8"
                     >
                       {userRating ? "Update" : "Rate Now"}
                     </Button>
                   </div>
 
-                  <div className="text-xs text-gray-500 pb-1">
+                  <div className="text-[10px] md:text-xs text-gray-500 pb-1">
                     Click rate now to share your experience with this showroom
                   </div>
                 </div>
@@ -187,6 +198,12 @@ const ShowroomDetails = ({
           </div>
         </CardBody>
       </Card>
+
+      {/* LoginModal */}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+      />
 
       {/* Rating Modal */}
       <RatingModal

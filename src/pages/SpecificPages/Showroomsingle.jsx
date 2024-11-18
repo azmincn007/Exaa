@@ -43,8 +43,7 @@ function Showroomsingle() {
 
   const fetchShowroomData = async () => {
     const response = await axios.get(`${BASE_URL}/api/ad-showrooms/${id}`);
-    console.log(response.data.data);
-    
+    console.log("Showroom Detail API Response:", response.data);
     return response.data.data;
   };
 
