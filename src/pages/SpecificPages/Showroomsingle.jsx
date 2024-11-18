@@ -42,23 +42,14 @@ function Showroomsingle() {
   }, []);
 
   const fetchShowroomData = async () => {
-    const token = localStorage.getItem('UserToken');
-    const response = await axios.get(`${BASE_URL}/api/ad-showrooms/${id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await axios.get(`${BASE_URL}/api/ad-showrooms/${id}`);
     console.log(response.data.data);
     
     return response.data.data;
   };
 
   const fetchOtherShowroomAds = async () => {
-    const token = localStorage.getItem('UserToken');
     const response = await axios.get(`${BASE_URL}/api/find-other-showroom-ads/${id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
       params: {
         adSubCategoryId: showroomData?.adSubCategory?.id,
         locationTownId: selectedTown === "all" ? '"all"' : String(selectedTown),
