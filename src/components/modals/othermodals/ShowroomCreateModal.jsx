@@ -390,7 +390,7 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
                       w="100%"
                       textAlign="left"
                       isDisabled={!selectedDistrictId || townsQuery.isLoading}
-                      className='border-black border-2'
+                      className='border-black border-[1px] px-3'
                       fontWeight="normal"
                     >
                       {field.value ? 

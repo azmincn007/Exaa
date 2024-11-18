@@ -2,11 +2,14 @@ import React, { useState } from 'react';
 import Tabcategory from '../ui/Tabcategory';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import CategoryModal from '../modals/othermodals/CategoryModal';
+import { useSearch } from '../../Hooks/SearchContext';
 
 function CategoryTab() {
   const [isOpen, setIsOpen] = useState(false);
+  const { setHasSearched, resetSearch } = useSearch();
 
   const toggleOpen = () => {
+    resetSearch();
     setIsOpen(!isOpen);
   };
 

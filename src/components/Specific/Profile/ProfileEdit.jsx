@@ -12,16 +12,22 @@ import {
   FormControl,
   useToast,
   Select,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  FormErrorMessage,
 } from '@chakra-ui/react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { BASE_URL } from '../../../config/config';
 import { UserdataContext } from '../../../App';
 import axios from 'axios';
+import { FaChevronDown } from 'react-icons/fa';
 
 const ProfileEditForm = () => {
   const { userData, setUserData } = useContext(UserdataContext);
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const { register, handleSubmit, formState: { errors }, control } = useForm({
     defaultValues: {
       name: userData?.name,
       phone: userData?.phone?.slice(-10) || '',
@@ -37,6 +43,7 @@ const ProfileEditForm = () => {
   const [districts, setDistricts] = useState([]);
   const [towns, setTowns] = useState([]);
   const [selectedDistrict, setSelectedDistrict] = useState(userData?.userLocation?.locationDistrict?.id || '');
+  const [townSearchQuery, setTownSearchQuery] = useState('');
 
   useEffect(() => {
     const fetchDistricts = async () => {
@@ -273,21 +280,61 @@ const ProfileEditForm = () => {
               
               <GridItem colSpan={{ base: 12, md: 5 }}>
                 <FormControl>
-                  <Select
-                    {...register("town")}
-                    placeholder={getDefaultTownName()}
-                    border="1px"
-                    borderColor="black"
-                    _hover={{ borderColor: 'black' }}
-                    _focus={{ borderColor: 'blue' }}
-                    isDisabled={!selectedDistrict}
-                  >
-                    {towns.map((town) => (
-                      <option key={town.id} value={town.id}>
-                        {town.name}
-                      </option>
-                    ))}
-                  </Select>
+                  <Controller
+                    name="town"
+                    control={control}
+                    rules={{ required: "Town is required" }}
+                    render={({ field }) => (
+                      <Menu matchWidth>
+                        <MenuButton
+                          as={Button}
+                          rightIcon={<FaChevronDown className='h-3 w-3 text-black' />}
+                          w="100%"
+                          textAlign="left"
+                          isDisabled={!selectedDistrict}
+                          className='border-black border-[1px] px-3'
+                          fontWeight="normal"
+                        >
+                          {field.value ? 
+                            towns.find(opt => opt.id.toString() === field.value)?.name || 'Select Town' 
+                            : 'Select Town'
+                          }
+                        </MenuButton>
+                        <MenuList maxH="200px" overflowY="auto">
+                          <Box p={2}>
+                            <Input
+                              placeholder="Search town..."
+                              value={townSearchQuery}
+                              onChange={(e) => setTownSearchQuery(e.target.value)}
+                              mb={2}
+                            />
+                          </Box>
+                          {towns
+                            .filter(option => 
+                              option.name?.toLowerCase().includes(townSearchQuery.toLowerCase())
+                            )
+                            .map(option => (
+                              <MenuItem
+                                key={option.id}
+                                onClick={() => {
+                                  field.onChange(option.id.toString());
+                                  setTownSearchQuery('');
+                                }}
+                                fontWeight="normal"
+                              >
+                                {option.name}
+                              </MenuItem>
+                            ))}
+                          {!towns.filter(option => 
+                            option.name?.toLowerCase().includes(townSearchQuery.toLowerCase())
+                          ).length && (
+                            <MenuItem isDisabled fontWeight="normal">No towns found</MenuItem>
+                          )}
+                        </MenuList>
+                      </Menu>
+                    )}
+                  />
+                  <FormErrorMessage>{errors.town && errors.town.message}</FormErrorMessage>
                 </FormControl>
               </GridItem>
               <GridItem colSpan={{ base: 12, md: 7 }} />

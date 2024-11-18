@@ -3,12 +3,16 @@ import Tabcategory from '../ui/Tabcategory';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import CategoryModal from '../modals/othermodals/CategoryModal';
 import { useNavigate } from 'react-router-dom';
+import { useSearch } from '../../Hooks/SearchContext';
 
 function ShowroomCategoryTab() {
   const [isOpen, setIsOpen] = useState(false);
+  const { setHasSearched, resetSearch } = useSearch();
+
   const navigate = useNavigate();
 
   const navigateToShowrooms = () => {
+    resetSearch();
   navigate('/showroom')
   };
 

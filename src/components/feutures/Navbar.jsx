@@ -141,6 +141,11 @@ const handleCloseLogoutModal = () => {
     );
   };
 
+  const handleShowroomClick = () => {
+    resetSearch(); // Clear the search text
+    navigate('/showroom'); // Navigate to the showroom route
+  };
+
   const renderNavIcons = (isMobile) => {
     const iconSize = isMobile ? 'text-lg' : 'text-xl';
     const buttonSize = isMobile ? 'sm' : 'md';
@@ -149,7 +154,7 @@ const handleCloseLogoutModal = () => {
       <>
         <IconButton 
           aria-label="showroom" 
-          icon={<MdDoorSliding onClick={() => navigate('/showroom')} className={`${iconSize} text-white`} />} 
+          icon={<MdDoorSliding onClick={handleShowroomClick} className={`${iconSize} text-white`} />} 
           className="bg-[#FFFFFF1A] rounded-full" 
           size={buttonSize}
         />

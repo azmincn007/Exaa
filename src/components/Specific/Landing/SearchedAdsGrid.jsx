@@ -1,4 +1,4 @@
-import React, { useState, memo, useContext, useEffect } from 'react';
+import React, { useState, memo, useContext, useEffect, useMemo } from 'react';
 import { useQuery } from 'react-query';
 import axios from 'axios';
 import { SimpleGrid, Box, Button, Center, useBreakpointValue, Skeleton, SkeletonText } from '@chakra-ui/react';
@@ -16,6 +16,8 @@ function SearchedAdsGrid() {
   const [selectedDistrict] = useContext(DistrictContext);
   const { searchText } = useSearch();
   
+  const [currentPage, setCurrentPage] = useState(1);
+  const CARDS_PER_PAGE = 16;
   const [visibleAds, setVisibleAds] = useState(8);
   const isSmallMobile = useBreakpointValue({ base: true, sm: false });
   const columns = useBreakpointValue({ base: 1, sm: 2, md: 2, lg: 3, xl: 4 });
@@ -55,8 +57,71 @@ function SearchedAdsGrid() {
 
   const dataLength = data ? data.length : 0;
 
-  const showMoreAds = () => {
-    setVisibleAds((prevVisible) => Math.min(prevVisible + 4, dataLength));
+  const renderPaginatedCards = (data) => {
+    const startIndex = (currentPage - 1) * CARDS_PER_PAGE;
+    const endIndex = startIndex + CARDS_PER_PAGE;
+    return data.slice(startIndex, endIndex).map(renderCard);
+  };
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const renderPagination = (totalItems) => {
+    const totalPages = Math.ceil(totalItems / CARDS_PER_PAGE);
+    const maxVisiblePages = 5;
+    
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    return (
+      <Center mt={4} mb={4}>
+        <Box display="flex" gap={2} alignItems="center">
+          {startPage > 1 && (
+            <>
+              <Button
+                size="sm"
+                onClick={() => handlePageChange(1)}
+                colorScheme={currentPage === 1 ? "blue" : "gray"}
+              >
+                1
+              </Button>
+              {startPage > 2 && <Box>...</Box>}
+            </>
+          )}
+          
+          {Array.from(
+            { length: endPage - startPage + 1 },
+            (_, i) => startPage + i
+          ).map((pageNum) => (
+            <Button
+              key={pageNum}
+              onClick={() => handlePageChange(pageNum)}
+              colorScheme={currentPage === pageNum ? "blue" : "gray"}
+            >
+              {pageNum}
+            </Button>
+          ))}
+          
+          {endPage < totalPages && (
+            <>
+              {endPage < totalPages - 1 && <Box>...</Box>}
+              <Button
+                size="sm"
+                onClick={() => handlePageChange(totalPages)}
+                colorScheme={currentPage === totalPages ? "blue" : "gray"}
+              >
+                {totalPages}
+              </Button>
+            </>
+          )}
+        </Box>
+      </Center>
+    );
   };
 
   const renderCard = (ad) => (
@@ -127,21 +192,15 @@ function SearchedAdsGrid() {
               {renderSkeleton()}
             </>
           ) : (
-            data.map(renderCard)
+            renderPaginatedCards(data)
           )}
         </Swiper>
       ) : (
         <>
           <SimpleGrid columns={columns} spacing={4}>
-            {isLoading ? renderSkeletons() : data.slice(0, visibleAds).map(renderCard)}
+            {isLoading ? renderSkeletons() : renderPaginatedCards(data)}
           </SimpleGrid>
-          {!isLoading && visibleAds < dataLength && (
-            <Center mt={4}>
-              <Button onClick={showMoreAds} colorScheme="black" variant="outline" className="border-2">
-                Load More
-              </Button>
-            </Center>
-          )}
+          {renderPagination(dataLength)}
         </>
       )}
     </Box>

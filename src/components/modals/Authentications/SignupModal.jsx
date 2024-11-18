@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import axios from "axios";
-import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, Button, Divider, ModalFooter, useToast } from "@chakra-ui/react";
+import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, Button, Divider, ModalFooter, useToast, Menu, MenuButton, MenuList, MenuItem, Box, Input, FormErrorMessage } from "@chakra-ui/react";
 import { IMAGES } from "../../../constants/logoimg";
 import { IoArrowBack } from "react-icons/io5";
 import { Camera } from "lucide-react";
+import { FaChevronDown } from "react-icons/fa";
 
 import CustomInput from "../../forms/Input/signup/CustomInput";
 import MobileNumberInput from "../../forms/Input/signup/MobileNumberInput";
@@ -16,7 +17,8 @@ function SignupModal({ isOpen, onClose }) {
     register,
     handleSubmit,
     formState: { errors },
-    reset
+    reset,
+    control
   } = useForm();
   const toast = useToast();
   const [selectedImage, setSelectedImage] = useState(null);
@@ -30,6 +32,8 @@ function SignupModal({ isOpen, onClose }) {
   const [selectedTown, setSelectedTown] = useState("");
   const [isLoadingDistricts, setIsLoadingDistricts] = useState(false);
   const [isLoadingTowns, setIsLoadingTowns] = useState(false);
+
+  const [townSearchQuery, setTownSearchQuery] = useState('');
 
   // Fetch districts on component mount
   useEffect(() => {
@@ -248,19 +252,64 @@ function SignupModal({ isOpen, onClose }) {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Select Town</label>
-                <select
-                  value={selectedTown}
-                  onChange={(e) => setSelectedTown(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={!selectedDistrict || isLoadingTowns}
-                >
-                  <option value="">Select a town</option>
-                  {towns.map((town) => (
-                    <option key={town.id} value={town.id}>
-                      {town.name}
-                    </option>
-                  ))}
-                </select>
+                <Controller
+                 className="border-[1px]"
+                  name="locationTown"
+                  control={control}
+                  rules={{ required: "Town is required" }}
+                  render={({ field }) => (
+                    <Menu matchWidth>
+                      <MenuButton
+                        as={Button}
+                        rightIcon={<FaChevronDown className='h-3 w-3 text-black' />}
+                        w="100%"
+                        textAlign="left"
+                        isDisabled={!selectedDistrict || isLoadingTowns}
+                        className='border-black border-[1px] px-3'
+                        fontWeight="normal"
+                      >
+                        {field.value ? 
+                          towns.find(opt => opt.id.toString() === field.value)?.name || 'Select Town' 
+                          : 'Select Town'
+                        }
+                      </MenuButton>
+                      <MenuList maxH="200px" overflowY="auto">
+                        <Box p={2}>
+                          <Input
+                           
+                            placeholder="Search town..."
+                            value={townSearchQuery}
+                            onChange={(e) => setTownSearchQuery(e.target.value)}
+                            mb={2}
+                          />
+                        </Box>
+                        {towns
+                          .filter(option => 
+                            option.name?.toLowerCase().includes(townSearchQuery.toLowerCase())
+                          )
+                          .map(option => (
+                            <MenuItem
+                              key={option.id}
+                              onClick={() => {
+                                field.onChange(option.id.toString());
+                                setTownSearchQuery('');
+                              }}
+                              fontWeight="normal"
+                            
+                            >
+                              {option.name}
+                            </MenuItem>
+                          ))}
+                        {!towns.filter(option => 
+                          option.name?.toLowerCase().includes(townSearchQuery.toLowerCase())
+                        ).length && (
+                          <MenuItem isDisabled fontWeight="normal">No towns found</MenuItem>
+                        )}
+                      </MenuList>
+                    </Menu>
+                  )}
+                />
+                <FormErrorMessage>{errors.locationTown && errors.locationTown.message}</FormErrorMessage>
               </div>
             </div>
 

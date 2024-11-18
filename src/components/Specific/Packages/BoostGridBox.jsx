@@ -236,8 +236,8 @@ const BoostGridBox = ({ boostTags,id }) => {
               fontWeight="bold" 
               mb={2}
             >
-              {boost.noOfTags} Tags
-            </Text>
+              {boost.noOfTags} Tags in {boost.noOfTags} Ads
+             </Text>
             <Text 
               color="green.500" 
               fontSize="lg" 

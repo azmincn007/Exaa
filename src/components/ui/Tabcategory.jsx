@@ -8,6 +8,7 @@ import 'swiper/css';
 import 'swiper/css/free-mode';
 import { BASE_URL } from '../../config/config';
 import { useNavigate } from 'react-router-dom';
+import { useSearch } from '../../Hooks/SearchContext';
 
 const fetchCategories = async () => {
   const response = await axios.get(`${BASE_URL}/api/ad-categories`);
@@ -16,6 +17,7 @@ const fetchCategories = async () => {
 };
 
 function Tabcategory({isFromShowroom}) {
+  const { setHasSearched, resetSearch } = useSearch();
   const navigate = useNavigate();
   const { data, isLoading, isError, error } = useQuery('categories', fetchCategories);
   const [activeTab, setActiveTab] = useState(null);
@@ -29,8 +31,10 @@ function Tabcategory({isFromShowroom}) {
   const handleCategoryClick = (categoryId, categoryName) => {
     setActiveTab(categoryId);
     if (isFromShowroom) {
+      resetSearch();
       navigate(`/showroom?category=${categoryId}`);
     } else {
+      resetSearch();
       navigate(`/category/${categoryId}/${categoryName}`);
     }
   };

@@ -62,6 +62,7 @@ const CategoryBasedGrid = () => {
     plotAreaStart:0,
     plotAreaEnd:50000
   });
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Fetch subcategories
   const { data: subCategories, isLoading: isLoadingSubCategories } = useQuery(
@@ -133,6 +134,34 @@ const CategoryBasedGrid = () => {
     console.log('Filters changed:', newFilters);
     setFilters(newFilters);
     refetchAdsData(); // Refetch data when filters change
+  };
+
+  const renderPaginatedAds = (ads) => {
+    const startIndex = (currentPage - 1) * 16;
+    const endIndex = startIndex + 16;
+    return ads.slice(startIndex, endIndex);
+  };
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const renderPagination = (totalItems) => {
+    const totalPages = Math.ceil(totalItems / 16);
+    return (
+      <Box display="flex" gap={2} justifyContent="center" mt={4}>
+        {Array.from({ length: totalPages }, (_, i) => (
+          <Button
+            key={i + 1}
+            onClick={() => handlePageChange(i + 1)}
+            colorScheme={currentPage === i + 1 ? "blue" : "gray"}
+            size="sm"
+          >
+            {i + 1}
+          </Button>
+        ))}
+      </Box>
+    );
   };
 
   // Updated breakpoint values
@@ -207,9 +236,9 @@ const CategoryBasedGrid = () => {
                 </Select>
               </Box>
 
-              {filteredAndSortedAdsData().slice(0, visibleCount).length > 0 ? (
+              {filteredAndSortedAdsData().length > 0 ? (
                 <SimpleGrid columns={cardColumns} spacing={[3, 4, 6]}>
-                  {filteredAndSortedAdsData().slice(0, visibleCount).map((ad) => (
+                  {renderPaginatedAds(filteredAndSortedAdsData()).map((ad) => (
                     <CardUser
                       key={ad.id}
                       id={ad.id}
@@ -229,13 +258,7 @@ const CategoryBasedGrid = () => {
                 <Text fontSize={["sm", "md"]}>No ads available for this category.</Text>
               )}
 
-              {filteredAndSortedAdsData().length > visibleCount && (
-                <Box className='w-full flex justify-center mt-4'>
-                  <Button colorScheme='blue' onClick={handleShowMore}>
-                    Show More
-                  </Button>
-                </Box>
-              )}
+              {filteredAndSortedAdsData().length > 16 && renderPagination(filteredAndSortedAdsData().length)}
             </>
           )}
         </GridItem>

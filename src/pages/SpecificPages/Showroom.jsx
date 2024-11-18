@@ -21,6 +21,7 @@ const fetchShowrooms = async ({ selectedDistrict, selectedTown, searchText }) =>
       sort: ''
     }
   });
+  console.log(response.data.data);
   return response.data.data;
 };
 
@@ -101,6 +102,40 @@ const Showroom = () => {
     </div>
   );
 
+  // New state for pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const CARDS_PER_PAGE = window.innerWidth < 640 ? 8 : 16; // Adjusted for small devices
+
+  // Calculate the total number of pages
+  const totalPages = Math.ceil(filteredShowrooms?.length / CARDS_PER_PAGE);
+
+  // Function to handle page change
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  // Get the current items to display based on the current page
+  const currentItems = filteredShowrooms?.slice((currentPage - 1) * CARDS_PER_PAGE, currentPage * CARDS_PER_PAGE);
+
+  // New pagination component
+  const renderPagination = () => {
+    return (
+      <div className="flex justify-center mt-4">
+        {Array.from({ length: totalPages }, (_, index) => (
+          <Button
+            key={index + 1}
+            onClick={() => handlePageChange(index + 1)}
+            colorScheme={currentPage === index + 1 ? "blue" : "gray"}
+            size="sm"
+            className="mx-1"
+          >
+            {index + 1}
+          </Button>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="container mx-auto p-2 sm:p-4 font-Inter">
       {/* Header with Select and Location */}
@@ -136,8 +171,8 @@ const Showroom = () => {
       <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
         {isShowroomsLoading
           ? Array.from({ length: 12 }).map((_, idx) => <ShowroomSkeleton key={idx} />)
-          : filteredShowrooms?.length > 0
-            ? filteredShowrooms.slice(0, visibleItems).map((item) => (
+          : currentItems?.length > 0
+            ? currentItems.map((item) => (
                 <div
                   key={item.id}
                   className="bg-[#0071BC26] rounded-lg shadow-md overflow-hidden cursor-pointer"
@@ -155,18 +190,8 @@ const Showroom = () => {
         }
       </div>
 
-      {/* Load More Button */}
-      {filteredShowrooms && filteredShowrooms.length > visibleItems && (
-        <div className="flex justify-end mt-4">
-          <Button
-            onClick={loadMore}
-            className='bg-[#0071BC] text-white px-4  flex gap-4 font-Inter font-400 rounded-lg'
-            size="sm"
-          >
-            <span className='text-12'>See all</span> <FaChevronRight />
-          </Button>
-        </div>
-      )}
+      {/* Render Pagination */}
+      {totalPages > 1 && renderPagination()}
     </div>
   );
 };
