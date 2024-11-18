@@ -126,17 +126,13 @@ const ShowroomDetails = ({
 
         <CardBody className="px-2 md:px-4 py-2 md:py-3 bg-white">
           <div className="flex flex-col space-y-3 md:space-y-4">
-            {/* Category Details - Updated text sizes */}
-            <div className="flex flex-col space-y-2 border-b border-gray-200 pb-3">
-              <div className="flex justify-between text-xs md:text-base">
-                <span className="font-semibold text-gray-700">Category:</span>
-                <span className="text-gray-600">{category}</span>
-              </div>
+            {/* Category Details Section */}
+            <div className="grid grid-cols-12 gap-2 border-b border-gray-200 pb-3">
+              <span className="font-semibold text-gray-700 col-span-4">Category:</span>
+              <span className="text-gray-600 col-span-8">{category}</span>
               
-              <div className="flex justify-between text-xs md:text-base">
-                <span className="font-semibold text-gray-700">Showroom Category:</span>
-                <span className="text-gray-600">{showroomCategory}</span>
-              </div>
+              <span className="font-semibold text-gray-700 col-span-4">Showroom Category:</span>
+              <span className="text-gray-600 col-span-8">{showroomCategory}</span>
             </div>
 
             {/* Interactive Rating Section - Updated for better mobile layout */}

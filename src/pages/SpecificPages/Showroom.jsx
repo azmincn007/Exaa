@@ -137,7 +137,7 @@ const Showroom = () => {
   };
 
   return (
-    <div className="container mx-auto p-2 sm:p-4 font-Inter">
+    <div className="max-w-[80%] mx-auto p-2 sm:p-4 font-Inter">
       {/* Header with Select and Location */}
       <div className='flex flex-col sm:flex-row justify-between py-2 space-y-2 sm:space-y-0'>
         <h2 className='font-semibold text-16 sm:text-18'>Showroom</h2>

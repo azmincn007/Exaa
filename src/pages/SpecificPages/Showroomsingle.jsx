@@ -42,7 +42,17 @@ function Showroomsingle() {
   }, []);
 
   const fetchShowroomData = async () => {
-    const response = await axios.get(`${BASE_URL}/api/ad-showrooms/${id}`);
+    const headers = {};
+    // Get token from localStorage or wherever it's stored
+    const token = localStorage.getItem('UserToken');
+    
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await axios.get(`${BASE_URL}/api/ad-showrooms/${id}`, {
+      headers
+    });
     console.log("Showroom Detail API Response:", response.data);
     return response.data.data;
   };
