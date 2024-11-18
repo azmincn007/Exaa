@@ -121,6 +121,7 @@ const NearbyShowroomAds = ({ adShowroomId }) => {
           {nearbyShowrooms.map(showroom => (
             <SwiperSlide key={showroom.id}>
               <NearbyCard
+                id={showroom.id}
                 name={showroom.name}
                 locationTown={showroom.locationTown?.name}
                 locationDistrict={showroom.locationDistrict?.name}
@@ -137,6 +138,7 @@ const NearbyShowroomAds = ({ adShowroomId }) => {
           {nearbyShowrooms.slice(0, getCurrentVisibleCount()).map(showroom => (
             <NearbyCard
               key={showroom.id}
+              id={showroom.id}
               name={showroom.name}
               locationTown={showroom.locationTown?.name}
               locationDistrict={showroom.locationDistrict?.name}
