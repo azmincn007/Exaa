@@ -114,11 +114,16 @@ function CardUser({ id, imageUrl, price, title, location, postedDate, adBoostTag
     }
   };
 
+  const handleCardClick = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <>
     <Link 
   to={`/item?categoryId=${adCategoryId}&adId=${id}&subCategoryId=${adSubCategoryId}`} 
   className="block"
+  onClick={handleCardClick}
 >
         <Card maxW='300px' className='overflow-hidden shadow-md relative cardUser'>
           {adBoostTag && <div className='absolute left-0 bottom-0 w-1 h-[100px] bg-[#FFCE32]'></div>}

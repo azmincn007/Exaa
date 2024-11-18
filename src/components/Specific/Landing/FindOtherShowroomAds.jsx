@@ -112,7 +112,7 @@ const FindOtherShowrooms = ({ adId, adCategoryId, adShowroomId }) => {
 
   return (
     <div className="w-[90%] mx-auto ">
-      <h2 className="text-16 md:text-22 font-semibold mb-2">Other Showrooms</h2>
+      <h2 className="text-16 md:text-22 font-semibold mb-2">Other Showrooms Ads</h2>
 
       {/* Mobile View with Swiper (below 500px) */}
       <div className="sm:hidden">

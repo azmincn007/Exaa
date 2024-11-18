@@ -1,9 +1,19 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BASE_URL } from '../../../config/config';
 
-const NearbyCard = ({ name, locationTown, locationDistrict, imageUrl }) => {
+const NearbyCard = ({ id, name, locationTown, locationDistrict, imageUrl }) => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate(`/showroom/${id}`);
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+    <div 
+      className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer"
+      onClick={handleClick}
+    >
       <div className="relative h-48 w-full">
         {imageUrl ? (
           <img
