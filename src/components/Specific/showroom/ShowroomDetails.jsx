@@ -166,7 +166,7 @@ const ShowroomDetails = ({
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-2 md:space-y-0">
                     <div className="flex flex-col">
                       <span className="text-xs md:text-sm font-medium text-gray-500">Your Rating</span>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-4">
                         <RatingStars rating={userRating} size={14} />
                         <span className="text-xs md:text-sm font-medium text-gray-700 ml-2">
                           {userRating ? userRating.toFixed(1) : "Not rated yet"}
