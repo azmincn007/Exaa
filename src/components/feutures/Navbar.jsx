@@ -229,7 +229,7 @@ const handleCloseLogoutModal = () => {
            
           </div>
           <div className="flex items-center justify-between">
-            <Link to={"/"}>
+            <Link to={"/"} onClick={handleLogoClick}>
               <img className="h-[30px]" src={IMAGES.ExaLogo} alt="Logo" />
             </Link>
             <div className="flex items-center space-x-1">
