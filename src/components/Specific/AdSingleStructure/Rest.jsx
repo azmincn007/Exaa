@@ -24,8 +24,10 @@ const Rest = ({ adData }) => {
     
     // Create a key-value pair data structure for specific fields
     const keyValuePairs = [
-        { label: 'Category', value: adData?.adCategory?.name },
-        { label: 'Sub Category', value: adData?.adSubCategory?.name },
+        { label: 'Location', value: adData?.locationDistrict?.name || adData?.locationTown?.name || 'Location not available' },
+        { label: 'Posting Date', value: adData?.createdAt ? formatDate(adData.createdAt) : undefined },
+        // { label: 'Category', value: adData?.adCategory?.name },
+        // { label: 'Sub Category', value: adData?.adSubCategory?.name },
         { label: 'Brand', value: adData?.brand },
         { label: 'Model', value: adData?.model },
         { label: 'Variant', value: adData?.variant },
@@ -35,7 +37,7 @@ const Rest = ({ adData }) => {
         { label: 'KM Driven', value: adData?.kmDriven },
         { label: 'Number of Owners', value: adData?.noOfOwners },
         { label: 'RTO Code', value: adData?.rtoCode },
-        { label: 'Price', value: adData?.price ? `₹ ${new Intl.NumberFormat('en-IN').format(adData.price)}` : undefined },
+        // { label: 'Price', value: adData?.price ? `₹ ${new Intl.NumberFormat('en-IN').format(adData.price)}` : undefined },
         { label: 'Type', value: adData?.type },
         { label: 'Bedrooms', value: adData?.bedrooms },
         { label: 'Bathrooms', value: adData?.bathrooms },
@@ -62,8 +64,7 @@ const Rest = ({ adData }) => {
         { label: 'Salary Period', value: adData?.salaryPeriod },
         { label: 'Qualification', value: adData?.qualification },
         { label: 'Experience', value: adData?.experience },
-        { label: 'Location', value: adData?.locationDistrict?.name || adData?.locationTown?.name || 'Location not available' },
-        { label: 'Posting Date', value: adData?.createdAt ? formatDate(adData.createdAt) : undefined },
+      
     ];
    
     return (

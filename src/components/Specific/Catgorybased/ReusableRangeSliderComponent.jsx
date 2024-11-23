@@ -40,6 +40,7 @@ const ReusableRangeSlider = ({
           value={value}
           onChange={onChange}
           aria-label={['min', 'max']}
+          zIndex={0}
         >
           <RangeSliderTrack bg="black">
             <RangeSliderFilledTrack bg="gray.600" />

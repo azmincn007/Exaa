@@ -13,7 +13,7 @@ const Layout = ({ children, onShowPackagesAndOrders }) => {
       <Navbar onShowPackagesAndOrders={onShowPackagesAndOrders} />
       <CategoryTab />
       <div className='mt-1'>
-      {location.pathname === '/' && <ShowroomCategoryTab />}
+      {<ShowroomCategoryTab />}
       </div>
       <div>{children}</div>
       <Footer />

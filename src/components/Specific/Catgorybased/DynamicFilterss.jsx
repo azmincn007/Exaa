@@ -34,6 +34,7 @@ import ModelFilter from "./FiltersSingle/ModalFilter";
 import MonthlyRentRangeFilter from "./FiltersSingle/MonthlyRentFilter";
 import SecurityAmountRangeFilter from "./FiltersSingle/SecurityAmountFilter";
 import PlotAreaRangeFilter from "./FiltersSingle/PlotareaFilter";
+import SalaryFilter from "./FiltersSingle/SalaryFilter";
 
 const DynamicFilters = ({ subCategoryId, onFilterChange, filters, setFilters }) => {
   const getUserToken = useCallback(() => localStorage.getItem("UserToken"), []);
@@ -125,7 +126,7 @@ const DynamicFilters = ({ subCategoryId, onFilterChange, filters, setFilters }) 
       monthlyRent: ["monthlyRentStart", "monthlyRentEnd"],
       securityAmount: ["securityAmountStart", "securityAmountEnd"],
       plotArea: ["plotAreaStart", "plotAreaEnd"],
-
+      salary: ["salaryStart", "salaryEnd"],
     };
 
     for (const [rangeKey, [startKey, endKey]] of Object.entries(rangeFilters)) {
@@ -149,6 +150,8 @@ const DynamicFilters = ({ subCategoryId, onFilterChange, filters, setFilters }) 
   return <SecurityAmountRangeFilter filterValues={localFilters} handleFilterChange={handleLocalFilterChange} />;
   case "plotArea":
   return <PlotAreaRangeFilter filterValues={localFilters} handleFilterChange={handleLocalFilterChange} />;
+  case "salary":
+  return <SalaryFilter filterValues={localFilters} handleFilterChange={handleLocalFilterChange} />;
         }
       } else if (filterKey === endKey) {
         return null;
@@ -195,7 +198,7 @@ const DynamicFilters = ({ subCategoryId, onFilterChange, filters, setFilters }) 
       case "carParking":
         return <CarParkingFilter filterValues={localFilters} handleFilterChange={handleLocalFilterChange} />;
       case "rtoCode":
-        return <RTOCodeFilter filterValues={localFilters} handleFilterChange={handleLocalFilterChange} />;
+        return null;
       case "brand":
         return (
           <BrandFilter 
@@ -290,18 +293,19 @@ const DynamicFilters = ({ subCategoryId, onFilterChange, filters, setFilters }) 
   return (
     <Card className="h-full">
       <CardHeader position="sticky" top={0} bg="white" zIndex={1} borderBottom="1px" borderColor="gray.200">
-        <Heading size="md">Filters</Heading>
-      </CardHeader>
-      <CardBody>
-        <VStack spacing={4} align="stretch">
-          <div className="flex flex-col gap-2" mb={4}>
-            <Button colorScheme="blue" onClick={handleApplyFilters}>
+        <Heading className="mb-4" size="md">Filters</Heading>
+        <div className="flex flex-col gap-2 z-100" mb={4}>
+            <Button className="z-10" colorScheme="blue" onClick={handleApplyFilters}>
               Apply Filters
             </Button>
-            <Button colorScheme="gray" variant="outline" onClick={handleResetFilters}>
+            <Button className="z-50" colorScheme="gray" variant="outline" onClick={handleResetFilters}>
               Reset Filters
             </Button>
           </div>
+      </CardHeader>
+      <CardBody>
+        <VStack spacing={4} align="stretch">
+         
           <Divider borderColor="gray.300" />
           <Box overflowY="auto" css={scrollbarStyles}>
             {filterConfig.map((filterKey, index) => {

@@ -40,7 +40,6 @@ function Tabcategory({isFromShowroom}) {
   };
 
   const allCategories = [
-    { id: 'all', name: 'All Categories' },
     ...(limitedData || [])
   ];
 
@@ -65,7 +64,7 @@ function Tabcategory({isFromShowroom}) {
                       </Tab>
                     </SwiperSlide>
                   ))
-              : allCategories.map((category) => (
+              : limitedData.map((category) => (
                   <SwiperSlide key={category.id} style={{ width: 'auto' }}>
                     <Tab
                       className={`min-w-fit text-2xs sm:text-xs md:text-sm whitespace-nowrap px-2 py-1 ${

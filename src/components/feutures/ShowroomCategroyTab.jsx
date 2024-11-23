@@ -24,7 +24,7 @@ function ShowroomCategoryTab() {
           className="flex-shrink-0 py-2 md:py-0 flex items-center cursor-pointer text-xs sm:text-sm whitespace-nowrap mr-4"
           onClick={navigateToShowrooms}
         >
-          <span className="font-semibold text-blue-500 ">All Showroom</span>
+          <span className="font-semibold text-blue-500 ">All Showrooms</span>
           {isOpen ? (
             <FaChevronUp className="ml-1 sm:ml-2" size={12} />
           ) : (

@@ -99,6 +99,16 @@ function AdPreviewPage() {
     return null;
   };
 
+  const formatDescription = (description) => {
+    if (!description) return 'No description available.';
+    return description.split('\n').map((line, index) => (
+      <React.Fragment key={index}>
+        {line}
+        <br />
+      </React.Fragment>
+    ));
+  };
+
   return (
     <div>
       <div className="px-4 py-2">
@@ -205,8 +215,8 @@ function AdPreviewPage() {
           
           <div className="mt-8">
             <div className="font-semibold text-lg md:text-xl">Description</div>
-            <p className="text-sm md:text-base text-gray-500">
-              {adData.description || 'No description available.'}
+            <p className="text-sm md:text-base text-gray-500 whitespace-pre-line">
+              {formatDescription(adData.description)}
             </p>
           </div>
         </div>
@@ -270,8 +280,8 @@ function AdPreviewPage() {
           
           <div className="mt-8">
             <div className="font-semibold text-lg md:text-xl">Description</div>
-            <p className="text-sm md:text-base text-gray-500">
-              {adData.description || 'No description available.'}
+            <p className="text-sm md:text-base text-gray-500 whitespace-pre-line">
+              {formatDescription(adData.description)}
             </p>
           </div>
         </div>

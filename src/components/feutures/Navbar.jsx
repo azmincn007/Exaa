@@ -125,8 +125,8 @@ const handleCloseLogoutModal = () => {
       <div className="relative" ref={ref}>
         <IconButton
           aria-label="User Profile"
-          icon={<AiOutlineUser className={`${isMobile ? 'text-lg' : 'text-xl'} text-white`} />}
-          className="bg-[#FFFFFF1A] rounded-full"
+          icon={<AiOutlineUser className={`${isMobile ? 'text-lg' : 'text-xl'} text-blue-500`} />}
+          className="bg-white rounded-full"
           onClick={() => toggleProfileDropdown(isMobile)}
           size={buttonSize}
         />

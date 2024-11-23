@@ -19,6 +19,9 @@ import { Facebook } from 'lucide-react';
 import { FcLike } from 'react-icons/fc';
 import DummyBreadcrumb from '../AdSingleStructure/DummyBreadCrumb';
 import { BiHeart, BiSolidHeart } from 'react-icons/bi';
+import AdBoostBadge from '../../common/buttons/AdBoostBadge';
+import { Phone } from 'lucide-react';
+import ChatWarningModal from '../../modals/othermodals/ChatWarningModal';
 
 const fetchAdData = async ({ queryKey }) => {
   const [_, adCategoryId, adId, token] = queryKey;
@@ -287,6 +290,23 @@ console.log(isAdFavourite);
     handleCopyLink();
   };
 
+  const [showPhoneNumber, setShowPhoneNumber] = useState(false);
+  const [isChatWarningOpen, setIsChatWarningOpen] = useState(false);
+
+  const formatPhoneNumber = (number) => {
+    if (!number) return '';
+    return number;  // Return the number as is, without formatting
+  };
+
+  const handleCallSeller = () => {
+    setIsChatWarningOpen(true);
+  };
+
+  const handleWarningClose = () => {
+    setIsChatWarningOpen(false);
+    setShowPhoneNumber(true);
+  };
+
   if (isLoading) return <SkeletonSingleAdPage />;
   if (error) return <div>An error occurred: {error.message}</div>;
   if (!adData) return <div>No data available for this ad.</div>;
@@ -311,6 +331,9 @@ console.log(isAdFavourite);
           <div className="relative flex flex-col gap-4">
             {/* Main Image Container */}
             <div className="relative flex items-center justify-center overflow-hidden rounded-lg h-[300px]">
+              <div className="absolute top-4 left-4 z-20">
+                <AdBoostBadge tag={adData.adBoostTag} />
+              </div>
               <button 
                 onClick={handlePrevClick}
                 className="absolute left-4 z-10 p-2 rounded-full bg-black/30 hover:bg-black/50 transition-colors"
@@ -318,40 +341,40 @@ console.log(isAdFavourite);
                 <FaChevronLeft className="text-white text-xl" />
               </button>
               
-              {isLoggedIn && (
-                <div className="absolute top-4 right-4 z-20 flex gap-3">
-                  <Popover placement="bottom-end">
-                    <PopoverTrigger>
-                      <button 
-                        className="p-2 rounded-full bg-black/50 hover:bg-black/70 transition-colors text-white"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Share2 size={20} />
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto bg-white rounded-lg shadow-lg p-2">
-                      <PopoverBody>
-                        <div className="flex gap-3 items-center">
-                          <button
-                            onClick={handleWhatsAppShare}
-                            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                            title="Share on WhatsApp"
-                          >
-                            <FaWhatsapp size={20} className="text-green-600" />
-                          </button>
-                          
-                          <button
-                            onClick={handleFacebookShare}
-                            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                            title="Share on Facebook"
-                          >
-                            <Facebook size={20} className="text-blue-600" />
-                          </button>
-                        </div>
-                      </PopoverBody>
-                    </PopoverContent>
-                  </Popover>
-                  
+              <div className="absolute top-4 right-4 z-20 flex gap-3">
+                <Popover placement="bottom-end">
+                  <PopoverTrigger>
+                    <button 
+                      className="p-2 rounded-full bg-black/50 hover:bg-black/70 transition-colors text-white"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Share2 size={20} />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto bg-white rounded-lg shadow-lg p-2">
+                    <PopoverBody>
+                      <div className="flex gap-3 items-center">
+                        <button
+                          onClick={handleWhatsAppShare}
+                          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                          title="Share on WhatsApp"
+                        >
+                          <FaWhatsapp size={20} className="text-green-600" />
+                        </button>
+                        
+                        <button
+                          onClick={handleFacebookShare}
+                          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                          title="Share on Facebook"
+                        >
+                          <Facebook size={20} className="text-blue-600" />
+                        </button>
+                      </div>
+                    </PopoverBody>
+                  </PopoverContent>
+                </Popover>
+                
+                {isLoggedIn && (
                   <button 
                     className="p-2 rounded-full transition-colors text-white"
                     onClick={handleFavoriteClick}
@@ -362,8 +385,8 @@ console.log(isAdFavourite);
                       <BiHeart className="w-5 h-5 text-gray-600" />
                     )}
                   </button>
-                </div>
-              )}
+                )}
+              </div>
               
               <div 
                 className="w-full h-full px- bg-black flex justify-center items-center cursor-pointer" 
@@ -455,13 +478,6 @@ console.log(isAdFavourite);
               >
                 <FaCommentDollar /> Make Offer
               </Button>
-              <Button
-                className="w-full bg-blue-500 gap-2 text-white text-sm md:text-base py-6"
-                onClick={handleChatWithSeller}
-                isLoading={chatMutation.isLoading}
-              >
-                <FaComments /> Chat with Seller
-              </Button>
               <Button 
                 className="w-full bg-green-600 gap-2 text-white text-sm md:text-base py-6"
                 onClick={handleWhatsAppShare}
@@ -481,20 +497,64 @@ console.log(isAdFavourite);
             </div>
           </div>
           
-          <div className="flex items-center justify-between bg-white p-4 rounded-lg shadow-md cursor-pointer" onClick={handleSellerProfileClick}>
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
-                {adData.adSeller?.profileImage?.url && (
-                  <img 
-                    src={`${BASE_URL}${adData.adSeller.profileImage.url}`} 
-                    className="w-full h-full object-cover" 
-                    alt="Seller" 
-                  />
+          <div className="bg-white p-4 rounded-lg shadow-md">
+            <div 
+              className="flex items-center justify-between cursor-pointer mb-4" 
+              onClick={handleSellerProfileClick}
+            >
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+                  {adData.adSeller?.profileImage?.url && (
+                    <img 
+                      src={`${BASE_URL}${adData.adSeller.profileImage.url}`} 
+                      className="w-full h-full object-cover" 
+                      alt="Seller" 
+                    />
+                  )}
+                </div>
+                <h2 className="text-14 font-semibold">{adData.adSeller?.name || 'Unknown Seller'}</h2>
+              </div>
+              <ArrowRight className="text-gray-600" />
+            </div>
+            
+            <Button
+              className="w-full bg-white border-cyan-600 border-2 gap-2 text-cyan-600 font-semibold text-sm md:text-base py-6 mb-4"
+              onClick={handleChatWithSeller}
+              isLoading={chatMutation.isLoading}
+            >
+              <FaComments /> Chat with Seller
+            </Button>
+
+            {/* Call Seller Button - Mobile Only */}
+            <div className="md:hidden">
+              <Button
+                className="w-full bg-white border-green-600 border-2 gap-2 text-green-600 font-semibold text-sm md:text-base py-6 mb-4"
+                onClick={handleCallSeller}
+              >
+                <Phone className="w-5 h-5" /> Call Seller
+              </Button>
+
+              <div className="flex items-center gap-2 justify-center">
+                <Phone className="w-5 h-5 text-gray-600" />
+                <span className="text-gray-500 tracking-wider">
+                  {showPhoneNumber ? (
+                    <a href={`tel:${adData.adSeller?.phone}`} className="text-green-600 hover:text-green-700">
+                      {adData.adSeller?.phone}
+                    </a>
+                  ) : (
+                    '**********'
+                  )}
+                </span>
+                {!showPhoneNumber && (
+                  <button 
+                    className="text-blue-500 underline text-14 font-Inter hover:text-blue-600"
+                    onClick={() => setShowPhoneNumber(true)}
+                  >
+                    Show number
+                  </button>
                 )}
               </div>
-              <h2 className="text-14 font-semibold">{adData.adSeller?.name || 'Unknown Seller'}</h2>
             </div>
-            <ArrowRight className="text-gray-600" />
           </div>
         </div>
 
@@ -583,6 +643,12 @@ console.log(isAdFavourite);
       />
 
       <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
+
+      <ChatWarningModal 
+      phoneNumber={adData.adSeller?.phone}
+        isOpen={isChatWarningOpen} 
+        onClose={handleWarningClose}
+      />
     </div>
     </div>
   );

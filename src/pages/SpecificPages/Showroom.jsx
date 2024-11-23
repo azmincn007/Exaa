@@ -80,6 +80,17 @@ const Showroom = () => {
     console.log('Selected Category:', selectedCategory);
   }, [selectedCategory]);
 
+  useEffect(() => {
+    // Update the selectedCategory state based on the URL parameter
+    const categoryFromParams = queryParams.get('category') || 'all';
+    setSelectedCategory(categoryFromParams === 'all' ? 'all' : Number(categoryFromParams));
+  }, [location.search]); // Listen for changes in the URL parameters
+
+  useEffect(() => {
+    // Update the URL parameters when selectedCategory changes
+    navigate(`?category=${selectedCategory}`, { replace: true });
+  }, [selectedCategory, navigate]);
+
   const handleShowroomClick = (id) => {
     navigate(`/showroom/${id}`);
   };
@@ -150,8 +161,7 @@ const Showroom = () => {
               value={selectedCategory}
               onChange={(e) => {
                 const value = e.target.value === 'all' ? 'all' : Number(e.target.value);
-                setSelectedCategory(value);
-                navigate(`?category=${value}`, { replace: true });
+                setSelectedCategory(value); // This will trigger the useEffect above
               }}
               className='bg-[#D2BA8580] text-sm'
               size="sm"

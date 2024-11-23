@@ -12,6 +12,7 @@ import CategoryDropdown from '../Catgorybased/CategoryDropdown';
 import DynamicFilters from '../Catgorybased/DynamicFilterss';
 import CardUser from '../../common/Cards/CardUser';
 import AdsService from '../../../Services/AdsServices';
+import RTOCodeFilter from '../Catgorybased/FiltersSingle/RtoCOdefilter';
 
 const CategoryBasedGrid = () => {
   const { categoryId, categoryName } = useParams();
@@ -51,7 +52,7 @@ const CategoryBasedGrid = () => {
     priceEnd: 3000000,
     floorNo:[],
     carParking:[],
-    rtoCode:[],
+    // rtoCodes: [],
     brand:[],
     types:[],
     model:[],
@@ -60,7 +61,9 @@ const CategoryBasedGrid = () => {
     securityAmountStart:0,
     securityAmountEnd:500000,
     plotAreaStart:0,
-    plotAreaEnd:50000
+    plotAreaEnd:50000,
+    salaryStart:0,
+    salaryEnd:100000,
   });
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -132,7 +135,23 @@ const CategoryBasedGrid = () => {
 
   const handleFilterChange = (newFilters) => {
     console.log('Filters changed:', newFilters);
-    setFilters(newFilters);
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      ...newFilters,
+    }));
+    
+    // Log the API call details
+    console.log('API Call:', {
+        subCategoryId: selectedCategory?.id,
+        selectedTownId: selectedTown || "all",
+        selectedDistrictId: selectedDistrict || "all",
+        filters: {
+          ...filters,
+          ...newFilters,
+        },
+        sortOption
+    });
+
     refetchAdsData(); // Refetch data when filters change
   };
 

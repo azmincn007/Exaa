@@ -241,7 +241,7 @@ function Showroomsingle() {
               className="bg-[#0071BC] text-white px-4 flex gap-4 font-Inter font-400 rounded-lg"
               size="sm"
             >
-              <span className="text-12">See all</span> <FaChevronRight />
+              <span className="text-12">Load More</span> <FaChevronRight />
             </Button>
           </div>
         )}

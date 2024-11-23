@@ -215,21 +215,22 @@ console.log(selectedBoostTag);
   }, [selectedBrandId, setValue]);
 
   const handleImageUpload = (event) => {
-    const file = event.target.files[0];
-    if (file && uploadedImages.length < 10) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setUploadedImages(prev => [...prev, { file, preview: reader.result, isExisting: false }]);
-      };
-      reader.readAsDataURL(file);
+    const files = Array.from(event.target.files); // Get all selected files
+    if (uploadedImages.length + files.length <= 10) { // Check total count
+        const newImages = files.map(file => ({
+            file,
+            preview: URL.createObjectURL(file),
+            isExisting: false
+        }));
+        setUploadedImages(prev => [...prev, ...newImages]); // Append new images
     } else {
-      toast({
-        title: 'Maximum images reached',
-        description: 'You can only upload up to 10 images',
-        status: 'warning',
-        duration: 3000,
-        isClosable: true,
-      });
+        toast({
+            title: 'Maximum images reached',
+            description: 'You can only upload up to 10 images',
+            status: 'warning',
+            duration: 3000,
+            isClosable: true,
+        });
     }
   };
 
@@ -708,7 +709,8 @@ console.log(selectedBoostTag);
                         id="imageUpload"
                         type="file"
                         accept="image/*"
-                        className="hidden"
+                        multiple // Allow multiple file selection
+                        style={{ display: 'none' }}
                         onChange={handleImageUpload}
                       />
                     </Flex>

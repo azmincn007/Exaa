@@ -317,9 +317,10 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
     }
   };
   const handleImageUpload = (event) => {
-    const file = event.target.files[0];
-    if (file && uploadedImages.length < 10) {
-      setUploadedImages(prevImages => [...prevImages, { file, preview: URL.createObjectURL(file) }]);
+    const files = Array.from(event.target.files); // Get all selected files
+    if (files.length + uploadedImages.length <= 10) { // Check total count
+        const newImages = files.map(file => ({ file, preview: URL.createObjectURL(file) }));
+        setUploadedImages(prevImages => [...prevImages, ...newImages]); // Append new images
     }
   };
 
@@ -666,6 +667,7 @@ const SellModal = ({ isOpen, onClose, onSuccessfulSubmit }) => {
                       id="imageUpload"
                       type="file"
                       accept="image/*"
+                      multiple // Allow multiple file selection
                       style={{ display: 'none' }}
                       onChange={handleImageUpload}
                     />
