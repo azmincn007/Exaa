@@ -49,7 +49,7 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [selectedSubCategoryId, setSelectedSubCategoryId] = useState(null);
   const [selectedDistrictId, setSelectedDistrictId] = useState(null);
-  const [uploadedImage, setUploadedImage] = useState(null);
+  const [uploadedImages, setUploadedImages] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [townSearchQuery, setTownSearchQuery] = useState('');
 
@@ -143,29 +143,28 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
   );
 
   const handleImageUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      clearErrors('images');
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setUploadedImage({ file, preview: reader.result });
-      };
-      reader.readAsDataURL(file);
+    const files = Array.from(event.target.files);
+    if (files.length + uploadedImages.length <= 10) {
+      const newImages = files.map(file => ({ file, preview: URL.createObjectURL(file) }));
+      setUploadedImages(prevImages => [...prevImages, ...newImages]);
     }
   };
 
-  const removeImage = () => {
-    setUploadedImage(null);
+  const removeImage = (index) => {
+    setUploadedImages(prevImages => {
+      const newImages = prevImages.filter((_, i) => i !== index);
+      return newImages;
+    });
   };
 
   const onSubmit = useCallback(
     async (data) => {
       if (isSubmitting) return;
 
-      if (!uploadedImage) {
+      if (uploadedImages.length === 0) {
         setError('images', {
           type: 'required',
-          message: 'atleast upload a single image'
+          message: 'At least upload a single image'
         });
         return;
       }
@@ -180,9 +179,9 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
         }
       });
 
-      if (uploadedImage) {
-        formData.append("images", uploadedImage.file);
-      }
+      uploadedImages.forEach(image => {
+        formData.append("images", image.file);
+      });
 
       try {
         await createShowroomMutation.mutateAsync(formData);
@@ -191,7 +190,7 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
         setIsSubmitting(false);
       }
     },
-    [createShowroomMutation, uploadedImage, isSubmitting, setError]
+    [createShowroomMutation, uploadedImages, isSubmitting, setError]
   );
 
   useEffect(() => {
@@ -200,7 +199,7 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
       setSelectedCategoryId(null);
       setSelectedSubCategoryId(null);
       setSelectedDistrictId(null);
-      setUploadedImage(null);
+      setUploadedImages([]);
       setUserToken(localStorage.getItem("UserToken"));
     }
   }, [isOpen, reset]);
@@ -218,7 +217,7 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
   );
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size={modalSize}    closeOnOverlayClick={false} >
+    <Modal isOpen={isOpen} onClose={onClose} size={modalSize} closeOnOverlayClick={false}>
       <ModalOverlay />
       <ModalContent 
         bg="#F1F1F1" 
@@ -226,17 +225,6 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
         maxWidth={{ base: "80%", md: modalSize }}
         position="relative"
       >
-        <Icon
-          as={IoClose}
-          position="absolute"
-          top="4"
-          right="4"
-          w={6}
-          h={6}
-          cursor="pointer"
-          onClick={onClose}
-          zIndex="1"
-        />
         <ModalBody>
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3 py-3">
             <h3 className={`text-${headingSize} font-bold mb-3`}>Create New Showroom</h3>
@@ -437,41 +425,47 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
             </FormControl>
 
             <FormControl isInvalid={errors.images} fontSize={fontSize}>
-              <FormLabel>Upload Image</FormLabel>
-              <Flex justifyContent="center" flexDirection="column" alignItems="center">
-                <Flex justifyContent="center">
-                  {uploadedImage ? (
-                    <Box position="relative">
-                      <ImageUploadBox>
-                        <Image src={uploadedImage.preview} alt="Uploaded" objectFit="cover" w="100%" h="100%" />
-                        <IoClose
-                          className="absolute top-1 right-1 bg-[#4F7598] rounded-full h-[20px] w-[20px]"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeImage();
-                          }}
-                        />
-                      </ImageUploadBox>
-                      <Text as="a" fontSize="xs" textAlign="center" mt={1}>
-                        Uploaded
-                      </Text>
-                    </Box>
-                  ) : (
-                    <ImageUploadBox onClick={() => document.getElementById("imageUpload").click()}>
-                      <Icon as={IoAddOutline} w={5} h={5} />
-                      <Text fontSize="xs" textAlign="center" mt={1}>
-                        Add image
-                      </Text>
+              <FormLabel>Upload Images (Max 10)</FormLabel>
+              <Flex gap={3} flexWrap="wrap" justifyContent="center">
+                {uploadedImages.map((image, index) => (
+                  <Box key={index} position="relative" width="30%">
+                    <ImageUploadBox>
+                      <Image src={image.preview} alt={`Uploaded ${index + 1}`} objectFit="cover" w="100%" h="100%" />
+                      <IoClose
+                        className="absolute top-1 right-3 bg-[#4F7598] rounded-full h-[20px] w-[20px]"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeImage(index);
+                        }}
+                      />
                     </ImageUploadBox>
-                  )}
-                  <input id="imageUpload" type="file" accept="image/*" style={{ display: "none" }} onChange={handleImageUpload} />
-                </Flex>
-                {errors.images && (
-                  <FormErrorMessage>
-                    {errors.images.message}
-                  </FormErrorMessage>
+                    <Text as="a" fontSize="xs" textAlign="center" mt={1}>
+                      Uploaded
+                    </Text>
+                  </Box>
+                ))}
+                {uploadedImages.length < 10 && (
+                  <ImageUploadBox onClick={() => document.getElementById("imageUpload").click()}>
+                    <Icon as={IoAddOutline} w={5} h={5} />
+                    <Text fontSize="xs" textAlign="center" mt={1}>
+                      {uploadedImages.length === 0 ? 'Add image' : 'Upload more'}
+                    </Text>
+                  </ImageUploadBox>
                 )}
+                <input
+                  id="imageUpload"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  style={{ display: 'none' }}
+                  onChange={handleImageUpload}
+                />
               </Flex>
+              {errors.images && (
+                <FormErrorMessage>
+                  {errors.images.message}
+                </FormErrorMessage>
+              )}
             </FormControl>
 
             <Button 

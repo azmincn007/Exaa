@@ -8,7 +8,7 @@ export const SearchProvider = ({ children }) => {
 
   const handleSearch = (text) => {
     setSearchText(text);
-    setHasSearched(true);
+    setHasSearched(text.trim() !== '');
   };
 
   const resetSearch = () => {

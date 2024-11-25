@@ -29,6 +29,8 @@ const fetchShowrooms = async (token) => {
       Authorization: `Bearer ${token}`,
     },
   });
+  console.log(response.data.data);
+  
   return response.data.data;
 };
 
@@ -401,7 +403,7 @@ const MyShowroom = () => {
         />
       )}
 
-      {showroomToEdit && <ShowroomEditModal isOpen={isEditModalOpen} onClose={handleEditModalClose} showroom={showroomToEdit} onSuccess={handleEditSuccess} />}
+      {showroomToEdit && <ShowroomEditModal isOpen={isEditModalOpen} onClose={handleEditModalClose} showroomId={showroomToEdit.id} onSuccess={handleEditSuccess} />}
 
       {adToEdit && (
         <EditShowroomad

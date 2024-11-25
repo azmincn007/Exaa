@@ -321,7 +321,7 @@ console.log(isAdFavourite);
     <div>
       <div className='px-4 py-2'>
 
-      <DummyBreadcrumb className="w-full md:w-[70%]" title={adData.title} locationDistrict={adData.locationDistrict.name} locationTown={adData.locationTown.name} adCategory={adData.adCategory?.name} adSubCategory={adData.adSubCategory?.name} />
+      <DummyBreadcrumb className="w-full md:w-[70%]" title={adData.title} locationDistrict={adData.locationDistrict.name} locationTown={adData.locationTown.name} adCategory={adData.adCategory} adSubCategory={adData.adSubCategory} />
       </div>
       <div className="my-8 font-Inter">
 

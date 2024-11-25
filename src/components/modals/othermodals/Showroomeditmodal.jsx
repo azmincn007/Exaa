@@ -16,7 +16,7 @@ import {
   Box,
   Image,
   Icon,
-  Flex,
+  Flex,  
   Text,
   useBreakpointValue,
   useToast,
@@ -26,6 +26,7 @@ import { BASE_URL } from "../../../config/config";
 import { IoAddOutline, IoClose } from "react-icons/io5";
 import SellInput from "../../../components/forms/Input/SellInput.jsx";
 import PhoneInputShowroom from "../../../components/forms/Input/MobileInputShowroom.jsx";
+import { useParams } from "react-router-dom";
 
 const fetchCategories = async (userToken) => {
   const { data } = await axios.get(`${BASE_URL}/api/find-showroom-categories`, {
@@ -62,14 +63,17 @@ const fetchTowns = async (userToken, districtId) => {
   return data.data;
 };
 
-const ShowroomEditModal = ({ isOpen, onClose, showroom, onSuccess }) => {
+const ShowroomEditModal = ({ isOpen, onClose, showroomId, onSuccess }) => {
+  console.log(showroomId);
+  
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [selectedSubCategoryId, setSelectedSubCategoryId] = useState(null);
   const [selectedShowroomSubCategoryId, setSelectedShowroomSubCategoryId] = useState(null);
   const [selectedDistrictId, setSelectedDistrictId] = useState(null);
   const [selectedTownId, setSelectedTownId] = useState(null);
-  const [uploadedImage, setUploadedImage] = useState(null);
-  const [imageFile, setImageFile] = useState(null);
+  const [uploadedImage, setUploadedImage] = useState([]);
+  const [imageFile, setImageFile] = useState([]);
+  const [showroom, setShowroom] = useState(null);
 
   const {
     register,
@@ -122,11 +126,31 @@ const ShowroomEditModal = ({ isOpen, onClose, showroom, onSuccess }) => {
   );
 
   useEffect(() => {
+    const fetchShowroomData = async () => {
+      const token = localStorage.getItem("UserToken");
+      try {
+        const response = await axios.get(`${BASE_URL}/api/ad-showrooms/${showroomId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        console.log(response.data.data);
+        
+        setShowroom(response.data.data);
+      } catch (error) {
+        console.error("Error fetching showroom data:", error);
+      }
+    };
+
+    if (isOpen) {
+      fetchShowroomData();
+    }
+  }, [isOpen, showroomId]);
+
+  useEffect(() => {
     if (isOpen && showroom) {
       const formData = {
         name: showroom.name,
-        phone: showroom.phone.replace("+91", ""),
-        whatsappNumber: showroom.whatsappNumber?.replace("+91", ""),
+        phone: showroom.phone,
+        whatsappNumber: showroom.whatsappNumber,
         address: showroom.address,
         description: showroom.description,
         websiteLink: showroom.websiteLink,
@@ -147,13 +171,24 @@ const ShowroomEditModal = ({ isOpen, onClose, showroom, onSuccess }) => {
       setSelectedTownId(showroom.locationTown?.id);
       
       if (showroom.images) {
-        setUploadedImage({ preview: `${BASE_URL}${showroom.images.url}` });
-        fetch(`${BASE_URL}${showroom.images.url}`)
-          .then((res) => res.blob())
-          .then((blob) => {
-            const file = new File([blob], "existing_image.jpg", { type: "image/jpeg" });
-            setImageFile(file);
-          });
+        console.log(showroom.images);
+        
+        const imageFiles = showroom.images.map((image, index) => {
+          const imageUrl = `${BASE_URL}${image.url}`;
+          fetch(imageUrl)
+            .then((res) => res.blob())
+            .then((blob) => {
+              const file = new File([blob], `existing_image_${index}.jpg`, { type: "image/jpeg" });
+              if (!uploadedImage.some(img => img.preview === imageUrl)) {
+                setImageFile((prevFiles) => [...prevFiles, file]);
+              }
+            });
+          return { preview: imageUrl };
+        });
+        setUploadedImage(prevImages => {
+          const newImages = imageFiles.filter(img => !prevImages.some(prevImg => prevImg.preview === img.preview));
+          return [...prevImages, ...newImages];
+        });
       }
     }
   }, [isOpen, showroom, reset]);
@@ -212,56 +247,62 @@ const ShowroomEditModal = ({ isOpen, onClose, showroom, onSuccess }) => {
   );
 
   const handleImageUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setUploadedImage({ preview: reader.result });
-        setImageFile(file);
-      };
-      reader.readAsDataURL(file);
+    const files = Array.from(event.target.files);
+    if (files.length + uploadedImage.length <= 10) {
+      const newImages = files.map((file) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setUploadedImage((prevImages) => [...prevImages, { preview: reader.result }]);
+          setImageFile((prevFiles) => [...prevFiles, file]);
+        };
+        reader.readAsDataURL(file);
+        return { file, preview: URL.createObjectURL(file) };
+      });
+      setUploadedImage((prevImages) => [...prevImages, ...newImages]);
+    } else {
+      toast({
+        title: "Limit Reached",
+        description: "You can only upload up to 10 images.",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+      });
     }
   };
 
-  const removeImage = () => {
-    setUploadedImage(null);
-    setImageFile(null);
+  const removeImage = (index) => {
+    setUploadedImage((prevImages) => prevImages.filter((_, i) => i !== index));
+    setImageFile((prevFiles) => prevFiles.filter((_, i) => i !== index));
   };
 
   const onSubmit = async (data) => {
-    const formData = new FormData();
-    Object.keys(data).forEach((key) => {
-      if (key === "phone" || key === "whatsappNumber") {
-        formData.append(key, `+91${data[key]}`);
-      } else {
-        formData.append(key, data[key]);
-      }
+    console.log("Data being sent to API:", {
+      ...data,
+   
+      images: imageFile,
     });
 
-    if (imageFile) {
-      formData.append("images", imageFile);
-    }
-
     try {
-      const response = await axios.put(
-        `${BASE_URL}/api/ad-showrooms/${showroom.id}`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${userToken}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const formData = new FormData();
+      Object.keys(data).forEach((key) => {
+        formData.append(key, data[key]);
+      });
 
-      if (response.status === 200) {
-        queryClient.invalidateQueries("showrooms");
-        onSuccess();
-        onClose();
- 
-      }
+      imageFile.forEach((file) => {
+        formData.append("images", file);
+      });
+
+      const response = await axios.put(`${BASE_URL}/api/ad-showrooms/${showroomId}`, formData, {
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      console.log("Showroom updated successfully:", response.data);
+      onSuccess(response.data);
     } catch (error) {
-      console.error("API Error:", error.response || error);
+      console.error("Error updating showroom:", error);
       toast({
         title: "Error updating showroom",
         description: error.response?.data?.message || error.message,
@@ -309,42 +350,6 @@ const ShowroomEditModal = ({ isOpen, onClose, showroom, onSuccess }) => {
               error={errors.name}
               fontSize={fontSize}
             />
-
-            <FormControl isInvalid={errors.phone}>
-              <FormLabel fontSize={fontSize}>Mobile Number</FormLabel>
-              <Controller
-                name="phone"
-                control={control}
-                rules={{
-                  required: "Mobile number is required",
-                  pattern: {
-                    value: /^[6-9]\d{9}$/,
-                    message: "Invalid mobile number",
-                  },
-                }}
-                render={({ field }) => <PhoneInputShowroom {...field} error={errors.phone} />}
-              />
-              <FormErrorMessage>{errors.phone && errors.phone.message}</FormErrorMessage>
-            </FormControl>
-
-            <FormControl isInvalid={errors.whatsappNumber}>
-              <FormLabel fontSize={fontSize}>WhatsApp Number</FormLabel>
-              <Controller
-                name="whatsappNumber"
-                control={control}
-                rules={{
-                  required: "WhatsApp number is required",
-                  pattern: {
-                    value: /^[6-9]\d{9}$/,
-                    message: "Invalid WhatsApp number",
-                  },
-                }}
-                render={({ field }) => <PhoneInputShowroom {...field} error={errors.whatsappNumber} />}
-              />
-              <FormErrorMessage>
-                {errors.whatsappNumber && errors.whatsappNumber.message}
-              </FormErrorMessage>
-            </FormControl>
 
             <SellInput
               label="Address"
@@ -483,29 +488,35 @@ const ShowroomEditModal = ({ isOpen, onClose, showroom, onSuccess }) => {
               <FormErrorMessage>{errors.locationTown && errors.locationTown.message}</FormErrorMessage>
             </FormControl>
             <FormControl fontSize={fontSize}>
-              <FormLabel>Upload Image</FormLabel>
-              <Flex justifyContent="center">
-                {uploadedImage ? (
-                  <Box position="relative">
+              <FormLabel>Upload Images (Max 10)</FormLabel>
+              <Flex 
+                justifyContent="center" 
+                gap={3}
+                flexWrap="wrap"
+              >
+                {uploadedImage.map((image, index) => (
+                  <Box key={index} position="relative">
                     <ImageUploadBox>
-                      <Image src={uploadedImage.preview} alt="Uploaded" objectFit="cover" w="100%" h="100%" />
+                      <Image src={image.preview} alt="Uploaded" objectFit="cover" w="100%" h="100%" />
                       <IoClose
                         className="absolute top-1 right-1 bg-[#4F7598] rounded-full h-[20px] w-[20px]"
                         onClick={(e) => {
                           e.stopPropagation();
-                          removeImage();
+                          removeImage(index);
                         }}
                       />
                     </ImageUploadBox>
                     <Text as="a" fontSize="xs" textAlign="center" mt={1}>
-                      {imageFile ? imageFile.name : "Existing Image"}
+                      {imageFile[index] ? imageFile[index].name : "Existing Image"}
                     </Text>
                   </Box>
-                ) : (
+                ))}
+                {/* Show the upload more button only if less than 10 images are uploaded */}
+                {uploadedImage.length < 10 && (
                   <ImageUploadBox onClick={() => document.getElementById("imageUpload").click()}>
                     <Icon as={IoAddOutline} w={5} h={5} />
                     <Text fontSize="xs" textAlign="center" mt={1}>
-                      Add image
+                      {uploadedImage.length === 0 ? 'Add image' : 'Upload more'}
                     </Text>
                   </ImageUploadBox>
                 )}

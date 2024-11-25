@@ -11,9 +11,13 @@ import { FaChevronRight } from 'react-icons/fa6';
 import { DistrictContext, TownContext } from '../../App';
 import { useSearch } from '../../Hooks/SearchContext';
 
-// Updated fetchShowrooms function without token
+// Updated fetchShowrooms function to include token if logged in
 const fetchShowrooms = async ({ selectedDistrict, selectedTown, searchText }) => {
+  const token = localStorage.getItem('UserToken'); // Assuming the token is stored in local storage
   const response = await axios.get(`${BASE_URL}/api/find-other-ad-showrooms`, {
+    headers: {
+      Authorization: token ? `Bearer ${token}` : undefined, // Include token if available
+    },
     params: {
       locationTownId: selectedTown === "all" ? '"all"' : String(selectedTown),
       locationDistrictId: selectedDistrict === "all" ? '"all"' : String(selectedDistrict),
@@ -25,9 +29,14 @@ const fetchShowrooms = async ({ selectedDistrict, selectedTown, searchText }) =>
   return response.data.data;
 };
 
-// Updated fetchCategories function without token
+// Updated fetchCategories function to include token if logged in
 const fetchCategories = async () => {
-  const response = await axios.get(`${BASE_URL}/api/find-showroom-categories`);
+  const token = localStorage.getItem('UserToken'); // Assuming the token is stored in local storage
+  const response = await axios.get(`${BASE_URL}/api/find-showroom-categories`, {
+    headers: {
+      Authorization: token ? `Bearer ${token}` : undefined, // Include token if available
+    }
+  });
   return response.data.data;
 };
 
@@ -191,8 +200,8 @@ const Showroom = () => {
                   <img src={`${BASE_URL}${item.images.url}`} alt="" className='p-1 sm:p-2 w-full h-32 sm:h-48 object-cover' />
                   <div className="p-2 sm:p-4 flex flex-col gap-1 sm:gap-2">
                     <h3 className="font-bold text-14 sm:text-16">{item.name}</h3>
-                    <p className="text-10 sm:text-12 text-gray-600">Category: {item.adShowroomCategory.name}</p>
-                    <p className="text-10 sm:text-12 text-gray-600">Created On: {new Date(item.createdAt).toLocaleDateString()}</p>
+                    <p className="text-10 sm:text-12 text-gray-600">Location: {item.locationTown?.name}</p>
+                    <p className="text-10 sm:text-12 text-gray-600">Total Ads: {item.adCount}</p>
                   </div>
                 </div>
               ))

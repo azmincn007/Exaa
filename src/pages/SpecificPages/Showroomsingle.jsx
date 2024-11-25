@@ -142,21 +142,23 @@ function Showroomsingle() {
     return <div>Error: {showroomError?.message || otherAdsError?.message}</div>;
   }
 
-  const imageUrl = showroomData?.images && showroomData.images.length > 0
-    ? `${BASE_URL}${showroomData.images[0].url}`
-    : Showroomsingleimg;
+  const imageUrls = showroomData?.images && showroomData.images.length > 0
+    ? showroomData.images.map(image => `${BASE_URL}${image.url}`)
+    : [Showroomsingleimg]; // Default to an array with a single image
 
   return (
     <div className="w-[80%] mx-auto font-Inter">
       <h1 className="py-2 font-semibold flex justify-center">Showroom</h1>
       <ShowroomDetails
-        imageUrl={imageUrl}
+        imageUrls={imageUrls}
         name={showroomData?.name}
         category={showroomData?.adCategory?.name}
         showroomCategory={showroomData?.adShowroomCategory?.name}
         userRating={showroomData?.userRating}
         showroomId={showroomData?.id}
         showroomRating={showroomData?.showroomRating}
+        adCount={showroomData.adCount}
+        locationTown={showroomData?.locationTown?.name}
       />
       <div className="py-2">
         <h1 className="font-semibold py-2">All Ads</h1>

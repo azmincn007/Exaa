@@ -4,6 +4,9 @@ import { Box, VStack, Text, Icon, Flex } from '@chakra-ui/react';
 import { ChevronDown, ChevronUp, Minus } from 'lucide-react';
 
 const CategoryDropdown = ({ title, items, selectedItemId, onItemClick }) => {
+
+
+  
   const [isOpen, setIsOpen] = useState(true);
 
   return (

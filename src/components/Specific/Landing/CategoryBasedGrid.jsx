@@ -4,7 +4,7 @@ import {
   DrawerBody, DrawerHeader, DrawerOverlay, DrawerContent, DrawerCloseButton, useDisclosure, 
   IconButton, Skeleton, SkeletonCircle, SkeletonText
 } from '@chakra-ui/react';
-import { useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import { useQuery } from 'react-query';
 import { TownContext } from '../../../App';
 import { Filter } from 'lucide-react'; 
@@ -16,6 +16,10 @@ import RTOCodeFilter from '../Catgorybased/FiltersSingle/RtoCOdefilter';
 
 const CategoryBasedGrid = () => {
   const { categoryId, categoryName } = useParams();
+  const location = useLocation();
+  const { subId } = location.state || {};
+  console.log(subId);
+  
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [sortOption, setSortOption] = useState('relevance');
   const [visibleCount, setVisibleCount] = useState(16);
@@ -76,9 +80,14 @@ const CategoryBasedGrid = () => {
 
   useEffect(() => {
     if (subCategories && subCategories.length > 0) {
-      setSelectedCategory(subCategories[0]);
+      if (subId) {
+        const initialCategory = subCategories.find(sub => sub.id === subId);
+        setSelectedCategory(initialCategory || subCategories[0]);
+      } else {
+        setSelectedCategory(subCategories[0]);
+      }
     }
-  }, [subCategories]);
+  }, [subCategories, subId]);
 
   // Fetch ads data
   const { data: adsData, isLoading: isLoadingAdsData, refetch: refetchAdsData } = useQuery(
@@ -190,7 +199,7 @@ const CategoryBasedGrid = () => {
 
   const FilterSection = () => (
     <VStack align="stretch" spacing={4}>
-      <CategoryDropdown
+      <CategoryDropdown 
         title={categoryName}
         items={subCategories || []}
         selectedItemId={selectedCategory?.id}

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Star, ChevronDown, Edit2, Share2, Copy } from "lucide-react";
+import { Star, ChevronDown, Edit2, Share2, Copy, ChevronLeft, ChevronRight, MapPin, Tag } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 import RatingModal from "../../modal/ReviewModal";
 import LoginModal from "../../modals/Authentications/LoginModal";
@@ -7,20 +7,37 @@ import { Button, Card, CardBody, CardHeader, Collapse, useToast } from "@chakra-
 import { useAuth } from "../../../Hooks/AuthContext";
 
 const ShowroomDetails = ({ 
-  imageUrl, 
+  imageUrls,
   name, 
   category, 
   showroomCategory, 
   userRating, 
   showroomRating,
-  showroomId
+  showroomId,
+  adCount,
+  locationTown
 }) => {
+  console.log(adCount);
+  
   const { isLoggedIn } = useAuth();
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRatingExpanded, setIsRatingExpanded] = useState(false);
   const [isShareExpanded, setIsShareExpanded] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const toast = useToast();
+
+  const handlePrevImage = () => {
+    setCurrentImageIndex((prev) => 
+      prev === 0 ? imageUrls.length - 1 : prev - 1
+    );
+  };
+
+  const handleNextImage = () => {
+    setCurrentImageIndex((prev) => 
+      prev === imageUrls.length - 1 ? 0 : prev + 1
+    );
+  };
 
   const RatingStars = ({ rating, size = 16 }) => (
     <div className="flex space-x-0.5 md:space-x-1">
@@ -75,17 +92,56 @@ const ShowroomDetails = ({
   return (
     <div className="w-full p-2 md:p-4 font-Inter">
       <Card className="w-full max-w-md mx-auto shadow-lg overflow-hidden border border-gray-200 rounded-xl">
-        {/* Image and Name Section */}
+        {/* Image Carousel Section */}
         <CardHeader className="px-3 md:px-4 pb-2 bg-gray-50">
           <div className="relative w-full pb-[56.25%] mb-3">
             <img
-              src={imageUrl}
-              alt={name}
+              src={imageUrls[currentImageIndex]}
+              alt={`${name} - Image ${currentImageIndex + 1}`}
               className="absolute inset-0 w-full h-full object-cover rounded-md shadow-sm"
               onError={(e) => {
                 e.target.src = "/path/to/fallback-image.jpg";
               }}
             />
+            
+            {/* Navigation Buttons */}
+            {imageUrls.length > 1 && (
+              <>
+                <button
+                  onClick={handlePrevImage}
+                  className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1.5 transition-colors duration-200"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={handleNextImage}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1.5 transition-colors duration-200"
+                  aria-label="Next image"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </>
+            )}
+
+            {/* Image Counter */}
+            {imageUrls.length > 1 && (
+              <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
+                {currentImageIndex + 1} / {imageUrls.length}
+              </div>
+            )}
+          </div>
+
+          {/* Location and Ad Count Section */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center space-x-2 text-gray-600">
+              <MapPin className="w-4 h-4" />
+              <span className="text-sm">{locationTown}</span>
+            </div>
+            <div className="flex items-center space-x-2 text-gray-600">
+              <Tag className="w-4 h-4" />
+              <span className="text-sm">{adCount} Ads</span>
+            </div>
           </div>
           
           <div className="flex justify-between items-start">
@@ -135,9 +191,8 @@ const ShowroomDetails = ({
               <span className="text-gray-600 col-span-6">{showroomCategory}</span>
             </div>
 
-            {/* Interactive Rating Section - Updated for better mobile layout */}
+            {/* Interactive Rating Section */}
             <div className="flex flex-col space-y-2">
-              {/* Overall Rating Button */}
               <button
                 onClick={() => setIsRatingExpanded(!isRatingExpanded)}
                 className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200"
@@ -160,7 +215,6 @@ const ShowroomDetails = ({
                 />
               </button>
 
-              {/* Expandable Content - Updated for better mobile layout */}
               <Collapse in={isRatingExpanded}>
                 <div className="pt-2 pb-1 px-2 space-y-3 bg-gray-50 rounded-lg">
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-2 md:space-y-0">
@@ -195,13 +249,12 @@ const ShowroomDetails = ({
         </CardBody>
       </Card>
 
-      {/* LoginModal */}
+      {/* Modals */}
       <LoginModal
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
       />
 
-      {/* Rating Modal */}
       <RatingModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

@@ -15,6 +15,8 @@ function SearchedAdsGrid() {
   const [selectedTown] = useContext(TownContext);
   const [selectedDistrict] = useContext(DistrictContext);
   const { searchText } = useSearch();
+  console.log(searchText);
+  
   
   const [currentPage, setCurrentPage] = useState(1);
   const CARDS_PER_PAGE = 16;
@@ -58,6 +60,7 @@ function SearchedAdsGrid() {
   const dataLength = data ? data.length : 0;
 
   const renderPaginatedCards = (data) => {
+    if (!data) return null;
     const startIndex = (currentPage - 1) * CARDS_PER_PAGE;
     const endIndex = startIndex + CARDS_PER_PAGE;
     return data.slice(startIndex, endIndex).map(renderCard);
