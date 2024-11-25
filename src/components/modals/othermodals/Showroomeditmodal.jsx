@@ -74,6 +74,7 @@ const ShowroomEditModal = ({ isOpen, onClose, showroomId, onSuccess }) => {
   const [uploadedImage, setUploadedImage] = useState([]);
   const [imageFile, setImageFile] = useState([]);
   const [showroom, setShowroom] = useState(null);
+  const [uploadedLogo, setUploadedLogo] = useState(null);
 
   const {
     register,
@@ -190,6 +191,10 @@ const ShowroomEditModal = ({ isOpen, onClose, showroomId, onSuccess }) => {
           return [...prevImages, ...newImages];
         });
       }
+      if (showroom.logo) {
+        const logoUrl = `${BASE_URL}${showroom.logo.url}`;
+        setUploadedLogo({ preview: logoUrl });
+      }
     }
   }, [isOpen, showroom, reset]);
 
@@ -275,11 +280,22 @@ const ShowroomEditModal = ({ isOpen, onClose, showroomId, onSuccess }) => {
     setImageFile((prevFiles) => prevFiles.filter((_, i) => i !== index));
   };
 
+  const handleLogoUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setUploadedLogo({ file, preview: URL.createObjectURL(file) });
+    }
+  };
+
+  const removeLogo = () => {
+    setUploadedLogo(null);
+  };
+
   const onSubmit = async (data) => {
     console.log("Data being sent to API:", {
       ...data,
-   
       images: imageFile,
+      logo: uploadedLogo ? uploadedLogo.file : null,
     });
 
     try {
@@ -291,6 +307,10 @@ const ShowroomEditModal = ({ isOpen, onClose, showroomId, onSuccess }) => {
       imageFile.forEach((file) => {
         formData.append("images", file);
       });
+
+      if (uploadedLogo) {
+        formData.append("logo", uploadedLogo.file);
+      }
 
       const response = await axios.put(`${BASE_URL}/api/ad-showrooms/${showroomId}`, formData, {
         headers: {
@@ -349,6 +369,42 @@ const ShowroomEditModal = ({ isOpen, onClose, showroomId, onSuccess }) => {
               rules={{ required: "Name is required" }}
               error={errors.name}
               fontSize={fontSize}
+            />
+
+            <SellInput
+              label="Mobile Number"
+              type="text"
+              name="phone"
+              register={register}
+              rules={{ 
+                required: "Mobile number is required",
+                pattern: {
+                  value: /^\+91[0-9]{10}$/,
+                  message: "Mobile number must be in the format +91XXXXXXXXXX"
+                }
+              }}
+              error={errors.phone}
+              fontSize={fontSize}
+              defaultValue={showroom?.phone}
+              maxLength={13}
+            />
+
+            <SellInput
+              label="WhatsApp Number"
+              type="text"
+              name="whatsappNumber"
+              register={register}
+              rules={{ 
+                required: "WhatsApp number is required",
+                pattern: {
+                  value: /^\+91[0-9]{10}$/,
+                  message: "WhatsApp number must be in the format +91XXXXXXXXXX"
+                }
+              }}
+              error={errors.whatsappNumber}
+              fontSize={fontSize}
+              defaultValue={showroom?.whatsappNumber}
+              maxLength={13}
             />
 
             <SellInput
@@ -487,6 +543,7 @@ const ShowroomEditModal = ({ isOpen, onClose, showroomId, onSuccess }) => {
               </Select>
               <FormErrorMessage>{errors.locationTown && errors.locationTown.message}</FormErrorMessage>
             </FormControl>
+
             <FormControl fontSize={fontSize}>
               <FormLabel>Upload Images (Max 10)</FormLabel>
               <Flex 
@@ -524,15 +581,55 @@ const ShowroomEditModal = ({ isOpen, onClose, showroomId, onSuccess }) => {
               </Flex>
             </FormControl>
 
+            <FormControl fontSize={fontSize}>
+              <FormLabel>Upload Logo (Optional)</FormLabel>
+              <Flex justifyContent="center" gap={3} flexWrap="wrap">
+                {uploadedLogo && (
+                  <Box position="relative">
+                    <ImageUploadBox>
+                      <Image src={uploadedLogo.preview} alt="Uploaded Logo" objectFit="cover" w="100%" h="100%" />
+                      <IoClose
+                        className="absolute top-1 right-1 bg-[#4F7598] rounded-full h-[20px] w-[20px]"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeLogo();
+                        }}
+                      />
+                    </ImageUploadBox>
+                    <Text as="a" fontSize="xs" textAlign="center" mt={1}>
+                      Uploaded Logo
+                    </Text>
+                  </Box>
+                )}
+                {!uploadedLogo && (
+                  <ImageUploadBox onClick={() => document.getElementById("logoUpload").click()}>
+                    <Icon as={IoAddOutline} w={5} h={5} />
+                    <Text fontSize="xs" textAlign="center" mt={1}>
+                      Add Logo
+                    </Text>
+                  </ImageUploadBox>
+                )}
+                <input id="logoUpload" type="file" accept="image/*" style={{ display: "none" }} onChange={handleLogoUpload} />
+              </Flex>
+            </FormControl>
+
             <Button type="submit" colorScheme="blue" mt={3} fontSize={fontSize}>
               Update Showroom
             </Button>
           </form>
         </ModalBody>
         <ModalFooter>
-          <Button colorScheme="gray" mr={3} onClick={onClose} fontSize={fontSize}>
-            Close
-          </Button>
+          <Icon 
+            as={IoClose} 
+            w={6} 
+            h={6} 
+            color="gray.500" 
+            onClick={onClose} 
+            position="absolute" 
+            top={4} 
+            right={4} 
+            cursor="pointer" 
+          />
         </ModalFooter>
       </ModalContent>
     </Modal>

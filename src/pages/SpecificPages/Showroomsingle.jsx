@@ -159,6 +159,7 @@ function Showroomsingle() {
         showroomRating={showroomData?.showroomRating}
         adCount={showroomData.adCount}
         locationTown={showroomData?.locationTown?.name}
+        logo={showroomData?.logo.url}
       />
       <div className="py-2">
         <h1 className="font-semibold py-2">All Ads</h1>

@@ -52,6 +52,7 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
   const [uploadedImages, setUploadedImages] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [townSearchQuery, setTownSearchQuery] = useState('');
+  const [uploadedLogo, setUploadedLogo] = useState(null);
 
   const {
     register,
@@ -157,6 +158,17 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
     });
   };
 
+  const handleLogoUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setUploadedLogo({ file, preview: URL.createObjectURL(file) });
+    }
+  };
+
+  const removeLogo = () => {
+    setUploadedLogo(null);
+  };
+
   const onSubmit = useCallback(
     async (data) => {
       if (isSubmitting) return;
@@ -183,6 +195,10 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
         formData.append("images", image.file);
       });
 
+      if (uploadedLogo) {
+        formData.append("logo", uploadedLogo.file);
+      }
+
       try {
         await createShowroomMutation.mutateAsync(formData);
       } catch (error) {
@@ -190,7 +206,7 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
         setIsSubmitting(false);
       }
     },
-    [createShowroomMutation, uploadedImages, isSubmitting, setError]
+    [createShowroomMutation, uploadedImages, uploadedLogo, isSubmitting, setError]
   );
 
   useEffect(() => {
@@ -225,6 +241,17 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
         maxWidth={{ base: "80%", md: modalSize }}
         position="relative"
       >
+        <Icon 
+          as={IoClose} 
+          w={6} 
+          h={6} 
+          color="gray.500" 
+          onClick={onClose} 
+          position="absolute" 
+          top={4} 
+          right={4} 
+          cursor="pointer" 
+        />
         <ModalBody>
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3 py-3">
             <h3 className={`text-${headingSize} font-bold mb-3`}>Create New Showroom</h3>
@@ -464,6 +491,49 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
               {errors.images && (
                 <FormErrorMessage>
                   {errors.images.message}
+                </FormErrorMessage>
+              )}
+            </FormControl>
+
+            <FormControl isInvalid={errors.logo} fontSize={fontSize}>
+              <FormLabel>Upload Logo (Optional)</FormLabel>
+              <Flex gap={3} flexWrap="wrap" justifyContent="center">
+                {uploadedLogo && (
+                  <Box position="relative" width="30%">
+                    <ImageUploadBox>
+                      <Image src={uploadedLogo.preview} alt="Uploaded Logo" objectFit="cover" w="100%" h="100%" />
+                      <IoClose
+                        className="absolute top-1 right-3 bg-[#4F7598] rounded-full h-[20px] w-[20px]"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeLogo();
+                        }}
+                      />
+                    </ImageUploadBox>
+                    <Text as="a" fontSize="xs" textAlign="center" mt={1}>
+                      Uploaded Logo
+                    </Text>
+                  </Box>
+                )}
+                {!uploadedLogo && (
+                  <ImageUploadBox onClick={() => document.getElementById("logoUpload").click()}>
+                    <Icon as={IoAddOutline} w={5} h={5} />
+                    <Text fontSize="xs" textAlign="center" mt={1}>
+                      Add Logo
+                    </Text>
+                  </ImageUploadBox>
+                )}
+                <input
+                  id="logoUpload"
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={handleLogoUpload}
+                />
+              </Flex>
+              {errors.logo && (
+                <FormErrorMessage>
+                  {errors.logo.message}
                 </FormErrorMessage>
               )}
             </FormControl>

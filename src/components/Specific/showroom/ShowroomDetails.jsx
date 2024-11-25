@@ -5,6 +5,7 @@ import RatingModal from "../../modal/ReviewModal";
 import LoginModal from "../../modals/Authentications/LoginModal";
 import { Button, Card, CardBody, CardHeader, Collapse, useToast } from "@chakra-ui/react";
 import { useAuth } from "../../../Hooks/AuthContext";
+import { BASE_URL } from "../../../config/config";
 
 const ShowroomDetails = ({ 
   imageUrls,
@@ -15,9 +16,10 @@ const ShowroomDetails = ({
   showroomRating,
   showroomId,
   adCount,
-  locationTown
+  locationTown,
+  logo
 }) => {
-  console.log(adCount);
+  console.log(imageUrls);
   
   const { isLoggedIn } = useAuth();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -94,6 +96,12 @@ const ShowroomDetails = ({
       <Card className="w-full max-w-md mx-auto shadow-lg overflow-hidden border border-gray-200 rounded-xl">
         {/* Image Carousel Section */}
         <CardHeader className="px-3 md:px-4 pb-2 bg-gray-50">
+          {/* Logo Section */}
+          {logo && (
+            <div className="absolute top-4 right-4 z-20 rounded-full">
+              <img src= {`${BASE_URL}${logo}`} alt={`${name} Logo`} className="h-16 w-16  rounded-full" />
+            </div>
+          )}
           <div className="relative w-full pb-[56.25%] mb-3">
             <img
               src={imageUrls[currentImageIndex]}
@@ -131,7 +139,8 @@ const ShowroomDetails = ({
               </div>
             )}
           </div>
-
+          {/* Logo Section Below Image */}
+        
           {/* Location and Ad Count Section */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center space-x-2 text-gray-600">
