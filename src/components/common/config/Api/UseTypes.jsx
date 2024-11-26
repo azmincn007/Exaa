@@ -6,11 +6,6 @@ export const useTypes = (isOpen, getUserToken, subcategoryId) => {
   return useQuery(
     ["types", subcategoryId],
     async () => {
-      const token = getUserToken();
-      if (!token) {
-        throw new Error("No authentication token found");
-      }
-
       const subcategoryIdString = String(subcategoryId);
 
       // Check for valid subcategory IDs
@@ -44,9 +39,7 @@ export const useTypes = (isOpen, getUserToken, subcategoryId) => {
         throw new Error("Invalid subcategory ID for types");
       }
 
-      const response = await axios.get(`${BASE_URL}/api/${endpoint}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(`${BASE_URL}/api/${endpoint}`);
 
       return response.data.data;
     },
