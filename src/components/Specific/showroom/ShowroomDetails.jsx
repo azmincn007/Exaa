@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Star, ChevronDown, Edit2, Share2, Copy, ChevronLeft, ChevronRight, MapPin, Tag } from "lucide-react";
-import { FaWhatsapp } from "react-icons/fa";
+import { Star, ChevronDown, Edit2, Share2, Copy, ChevronLeft, ChevronRight, MapPin, Tag, Phone } from "lucide-react";
+import { FaWhatsapp, FaFacebook, FaGlobe } from "react-icons/fa";
 import RatingModal from "../../modal/ReviewModal";
 import LoginModal from "../../modals/Authentications/LoginModal";
 import { Button, Card, CardBody, CardHeader, Collapse, useToast } from "@chakra-ui/react";
@@ -17,9 +17,12 @@ const ShowroomDetails = ({
   showroomId,
   adCount,
   locationTown,
-  logo
+  logo,
+  facebookPageLink,
+  websiteLink,
+  phone
 }) => {
-  console.log(imageUrls);
+  console.log(phone);
   
   const { isLoggedIn } = useAuth();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -139,30 +142,41 @@ const ShowroomDetails = ({
               </div>
             )}
           </div>
-          {/* Logo Section Below Image */}
-        
-          {/* Location and Ad Count Section */}
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center space-x-2 text-gray-600">
-              <MapPin className="w-4 h-4" />
-              <span className="text-sm">{locationTown}</span>
-            </div>
-            <div className="flex items-center space-x-2 text-gray-600">
-              <Tag className="w-4 h-4" />
-              <span className="text-sm">{adCount} Ads</span>
-            </div>
-          </div>
           
-          <div className="flex justify-between items-start">
-            <h2 className="text-lg md:text-xl font-bold truncate font-Inter text-gray-800">
-              {name}
-            </h2>
-            <button
-              onClick={() => setIsShareExpanded(!isShareExpanded)}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
-            >
-              <Share2 className="w-5 h-5 text-gray-600" />
-            </button>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg md:text-xl font-bold font-Inter text-gray-800 flex-1 pr-2">
+                {name}
+              </h2>
+              <div className="flex items-center gap-1 shrink-0">
+                {phone && (
+                  <button
+                    onClick={() => window.location.href = `tel:${phone}`}
+                    className="md:hidden p-1.5 rounded-full hover:bg-gray-100 transition-colors duration-200"
+                  >
+                    <Phone className="w-4 h-4 text-gray-600" />
+                  </button>
+                )}
+                <button
+                  onClick={() => setIsShareExpanded(!isShareExpanded)}
+                  className="p-1.5 rounded-full hover:bg-gray-100 transition-colors duration-200"
+                >
+                  <Share2 className="w-4 h-4 text-gray-600" />
+                </button>
+              </div>
+            </div>
+
+            {/* Location and Ad Count Section */}
+            <div className="flex items-center justify-between text-sm text-gray-600">
+              <div className="flex items-center space-x-1">
+                <MapPin className="w-4 h-4" />
+                <span>{locationTown}</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <Tag className="w-4 h-4" />
+                <span>{adCount} Ads</span>
+              </div>
+            </div>
           </div>
           
           {/* Share Options Collapse */}
@@ -184,6 +198,27 @@ const ShowroomDetails = ({
                   <Copy className="w-5 h-5 text-gray-600" />
                   <span className="text-sm font-medium text-gray-700">Copy Link</span>
                 </button>
+
+                {/* New Share Links Section */}
+                {facebookPageLink && (
+                  <button
+                    onClick={() => window.open(facebookPageLink, '_blank')}
+                    className="flex items-center space-x-3 w-full p-2 rounded-lg hover:bg-blue-50 transition-colors duration-200"
+                  >
+                    <FaFacebook className="w-5 h-5 text-blue-600" />
+                    <span className="text-sm font-medium text-gray-700">Visit Facebook Page</span>
+                  </button>
+                )}
+                
+                {websiteLink && (
+                  <button
+                    onClick={() => window.open(websiteLink, '_blank')}
+                    className="flex items-center space-x-3 w-full p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                  >
+                    <FaGlobe className="w-5 h-5 text-gray-600" />
+                    <span className="text-sm font-medium text-gray-700">Visit Website</span>
+                  </button>
+                )}
               </div>
             </div>
           </Collapse>
@@ -250,6 +285,29 @@ const ShowroomDetails = ({
 
                   <div className="text-[10px] md:text-xs text-gray-500 pb-1">
                     Click rate now to share your experience with this showroom
+                  </div>
+
+                  {/* New Share Links Section */}
+                  <div className="flex flex-col space-y-2">
+                    {facebookPageLink && (
+                      <button
+                        onClick={() => window.open(facebookPageLink, '_blank')}
+                        className="flex items-center space-x-3 w-full p-2 rounded-lg hover:bg-blue-50 transition-colors duration-200"
+                      >
+                        <FaFacebook className="w-5 h-5 text-blue-600" />
+                        <span className="text-sm font-medium text-gray-700">Visit Facebook Page</span>
+                      </button>
+                    )}
+                    
+                    {websiteLink && (
+                      <button
+                        onClick={() => window.open(websiteLink, '_blank')}
+                        className="flex items-center space-x-3 w-full p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                      >
+                        <FaGlobe className="w-5 h-5 text-gray-600" />
+                        <span className="text-sm font-medium text-gray-700">Visit Website</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               </Collapse>

@@ -3,7 +3,12 @@ import { Image, Text, Badge } from '@chakra-ui/react';
 import { Eye, Heart, MapPin } from 'lucide-react';
 import { BASE_URL } from '../../../config/config';
 
-const AdListing = ({ isActive, image, title, price, views, likes, location, postedDate, adCategory, description ,adSubcategory}) => {
+const AdListing = ({ isActive, image, title, price, views, likes, location, postedDate, adCategory, description, adSubcategory }) => {
+  const formatDescription = (description) => {
+    if (!description) return 'No description available.';
+    const firstLine = description.split('\n')[0]; // Get only first line
+    return firstLine.length > 100 ? `${firstLine.substring(0, 100)}...` : firstLine;
+  };
   
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden shadow-md mb-4 font-Inter">
@@ -29,7 +34,9 @@ const AdListing = ({ isActive, image, title, price, views, likes, location, post
             </Text>
             <Badge className="bg-yellow-400 text-white font-semibold">{adCategory}</Badge>
           </div>
-          <Text>{description}</Text>
+          <Text className="text-sm text-gray-600 line-clamp-1">
+            {formatDescription(description)}
+          </Text>
           <Text className="text-20 font-bold text-blue-500">
             ₹{price?.toLocaleString()}
           </Text>

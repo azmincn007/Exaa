@@ -18,9 +18,11 @@ const CategoryBasedGrid = () => {
   const { categoryId, categoryName } = useParams();
   const location = useLocation();
   const { subId } = location.state || {};
-  console.log(subId);
+
   
   const [selectedCategory, setSelectedCategory] = useState(null);
+  console.log(selectedCategory);
+  
   const [sortOption, setSortOption] = useState('relevance');
   const [visibleCount, setVisibleCount] = useState(16);
   const [selectedTown, selectedDistrict] = useContext(TownContext);
@@ -210,6 +212,7 @@ const CategoryBasedGrid = () => {
           subCategoryId={selectedCategory.id}
           filters={filters}
           setFilters={handleFilterChange}
+          hideBrandFilter={selectedCategory.id === 18}
         />
       )}
     </VStack>
@@ -271,6 +274,7 @@ const CategoryBasedGrid = () => {
                       key={ad.id}
                       id={ad.id}
                       adCategoryId={ad.adCategory.id}
+                      adSubCategoryId={ad.adSubCategory.id}
                       isFeatured={ad.isFeatured}
                       imageUrl={ad.images?.url || ''}
                       price={ad.price}

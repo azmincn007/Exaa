@@ -143,7 +143,7 @@ function Showroomsingle() {
   }
 
   const imageUrls = showroomData?.images && showroomData.images.length > 0
-    ? showroomData.images.map(image => `${BASE_URL}${image.url}`)
+    ? showroomData.images.map(image => `${BASE_URL}${image?.url}`)
     : [Showroomsingleimg]; // Default to an array with a single image
 
   return (
@@ -159,7 +159,10 @@ function Showroomsingle() {
         showroomRating={showroomData?.showroomRating}
         adCount={showroomData.adCount}
         locationTown={showroomData?.locationTown?.name}
-        logo={showroomData?.logo.url}
+        logo={showroomData?.logo?.url}
+        facebookPageLink={showroomData?.facebookPageLink}
+        websiteLink={showroomData?.websiteLink}
+        phone={showroomData?.phone}
       />
       <div className="py-2">
         <h1 className="font-semibold py-2">All Ads</h1>

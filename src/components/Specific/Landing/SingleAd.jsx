@@ -307,6 +307,16 @@ console.log(isAdFavourite);
     setShowPhoneNumber(true);
   };
 
+  const formatDescription = (description) => {
+    if (!description) return 'No description available.';
+    return description.split('\n').map((line, index) => (
+      <React.Fragment key={index}>
+        {line}
+        <br />
+      </React.Fragment>
+    ));
+  };
+
   if (isLoading) return <SkeletonSingleAdPage />;
   if (error) return <div>An error occurred: {error.message}</div>;
   if (!adData) return <div>No data available for this ad.</div>;
@@ -462,8 +472,8 @@ console.log(isAdFavourite);
           
           <div className="mt-8">
             <div className="font-semibold text-lg md:text-xl">Description</div>
-            <p className="text-sm md:text-base text-gray-500">
-              {adData.description || 'No description available.'}
+            <p className="text-sm md:text-base text-gray-500 whitespace-pre-line">
+              {formatDescription(adData.description)}
             </p>
           </div>
         </div>
@@ -566,8 +576,8 @@ console.log(isAdFavourite);
           
           <div className="mt-8">
             <div className="font-semibold text-lg md:text-xl">Description</div>
-            <p className="text-sm md:text-base text-gray-500">
-              {adData.description || 'No description available.'}
+            <p className="text-sm md:text-base text-gray-500 whitespace-pre-line">
+              {formatDescription(adData.description)}
             </p>
           </div>
         </div>

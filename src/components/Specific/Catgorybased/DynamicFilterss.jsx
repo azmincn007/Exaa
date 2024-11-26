@@ -36,7 +36,7 @@ import SecurityAmountRangeFilter from "./FiltersSingle/SecurityAmountFilter";
 import PlotAreaRangeFilter from "./FiltersSingle/PlotareaFilter";
 import SalaryFilter from "./FiltersSingle/SalaryFilter";
 
-const DynamicFilters = ({ subCategoryId, onFilterChange, filters, setFilters }) => {
+const DynamicFilters = ({ subCategoryId, onFilterChange, filters, setFilters, hideBrandFilter }) => {
   const getUserToken = useCallback(() => localStorage.getItem("UserToken"), []);
 
   const [filterConfig, setFilterConfig] = useState([]);
@@ -116,6 +116,12 @@ const DynamicFilters = ({ subCategoryId, onFilterChange, filters, setFilters }) 
     if (filterKey === "salary" || filterKey === "variant" ||  filterKey === "projectName"  ||  filterKey === "length"  ||  filterKey === "breadth") {
       return null;
     }
+
+    // Add check for brand filter
+    if (filterKey === "brand" && hideBrandFilter) {
+      return null;
+    }
+
     const rangeFilters = {
       totalLandArea: ["totalLandAreaStart", "totalLandAreaEnd"],
       superBuiltupArea: ["superBuiltupAreaStart", "superBuiltupAreaEnd"],
@@ -200,14 +206,14 @@ const DynamicFilters = ({ subCategoryId, onFilterChange, filters, setFilters }) 
       case "rtoCode":
         return null;
       case "brand":
-        return (
+        return !hideBrandFilter ? (
           <BrandFilter 
             filterValues={localFilters} 
             handleFilterChange={handleLocalFilterChange} 
             subCategoryId={subCategoryId} 
             getUserToken={getUserToken} 
           />
-        );
+        ) : null;
       case "model":
         // Only render ModelFilter if at least one brand is selected
         return selectedBrands.length > 0 ? (

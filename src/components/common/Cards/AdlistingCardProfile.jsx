@@ -79,12 +79,10 @@ const AdListingCardProfile = ({ listing, onDelete, onRepost, isExpired, isPendin
     return `${day} ${month}`;
   };
 
-  const truncateDescription = (text, wordLimit) => {
-    const words = text.split(' ');
-    if (words.length > wordLimit) {
-      return words.slice(0, wordLimit).join(' ') + '...';
-    }
-    return text;
+  const formatDescription = (description) => {
+    if (!description) return 'No description available.';
+    const firstLine = description.split('\n')[0]; // Get only first line
+    return firstLine.length > 100 ? `${firstLine.substring(0, 100)}...` : firstLine;
   };
 
   return (
@@ -196,17 +194,17 @@ const AdListingCardProfile = ({ listing, onDelete, onRepost, isExpired, isPendin
             {/* Description - Hidden on mobile, truncated on desktop */}
             <div className='flex w-full justify-between'>
               <div>
-              <Text className="text-sm hidden md:block">
-              {truncateDescription(description, 5)}
-            </Text>
+                <Text className="text-sm hidden md:block text-gray-600 line-clamp-1">
+                  {formatDescription(description)}
+                </Text>
               </div>
               <div>
-              {adBoostTag && (
+                {adBoostTag && (
                   <div onClick={(e) => e.stopPropagation()}>
                     <AdBoostBadge tag={adBoostTag} />
                   </div>
-                )}              </div>
-         
+                )}
+              </div>
             </div>
           
 

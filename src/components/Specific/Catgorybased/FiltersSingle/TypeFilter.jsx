@@ -5,7 +5,7 @@ const TypeFilter = ({ filterValues, handleFilterChange, subCategoryId, getUserTo
     const { data: types, isLoading, error } = useTypes(true, getUserToken, subCategoryId);
   
     if (isLoading) return <Skeleton height="20px" />;
-    if (error) return <Alert status="error"><AlertIcon />{error.message}</Alert>;
+    if (error) return <Alert status="error"><AlertIcon />{error.message}hii</Alert>;
   
     return (
       <Box>
