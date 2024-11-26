@@ -81,8 +81,20 @@ const AdListingCardProfile = ({ listing, onDelete, onRepost, isExpired, isPendin
 
   const formatDescription = (description) => {
     if (!description) return 'No description available.';
-    const firstLine = description.split('\n')[0]; // Get only first line
-    return firstLine.length > 100 ? `${firstLine.substring(0, 100)}...` : firstLine;
+    
+    // Get first line and trim whitespace
+    const firstLine = description.split('\n')[0].trim();
+    
+    // Check if there are multiple lines
+    const hasMoreLines = description.includes('\n');
+    
+    // If text is longer than 100 chars or has more lines, truncate and add ellipsis
+    if (firstLine.length > 100) {
+      return `${firstLine.substring(0, 100)}...`;
+    }
+    
+    // If there are more lines, add ellipsis even if first line is short
+    return hasMoreLines ? `${firstLine}...` : firstLine;
   };
 
   return (

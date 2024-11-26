@@ -233,7 +233,13 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
   );
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size={modalSize} closeOnOverlayClick={false}>
+    <Modal 
+      isOpen={isOpen} 
+      onClose={onClose} 
+      size={modalSize} 
+      closeOnOverlayClick={false}
+      closeOnEsc={false}
+    >
       <ModalOverlay />
       <ModalContent 
         bg="#F1F1F1" 
@@ -245,7 +251,7 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
           as={IoClose} 
           w={6} 
           h={6} 
-          color="gray.500" 
+          color="black" 
           onClick={onClose} 
           position="absolute" 
           top={4} 

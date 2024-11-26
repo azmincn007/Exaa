@@ -354,7 +354,13 @@ const ShowroomEditModal = ({ isOpen, onClose, showroomId, onSuccess }) => {
   );
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size={modalSize}>
+    <Modal 
+      isOpen={isOpen} 
+      onClose={onClose} 
+      size={modalSize} 
+      closeOnEsc={false}
+      closeOnOverlayClick={false} 
+    >
       <ModalOverlay />
       <ModalContent bg="#F1F1F1" color="black" maxWidth={{ base: "80%", md: modalSize }}>
         <ModalBody>
@@ -623,7 +629,7 @@ const ShowroomEditModal = ({ isOpen, onClose, showroomId, onSuccess }) => {
             as={IoClose} 
             w={6} 
             h={6} 
-            color="gray.500" 
+            color="black" 
             onClick={onClose} 
             position="absolute" 
             top={4} 

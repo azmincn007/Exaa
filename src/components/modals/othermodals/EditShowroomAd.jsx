@@ -622,12 +622,16 @@ console.log(selectedBoostTag);
     }
   }, [subCategoryId, selectedTypeId, setValue]);
 
+  const headingSize = useBreakpointValue({ base: "xl", md: "2xl" });
+
   return (
     <>
-      <Modal isOpen={isOpen} onClose={onClose} size={modalSize}    closeOnOverlayClick={false} >
+      <Modal isOpen={isOpen} onClose={onClose} size={modalSize}  closeOnOverlayClick={false}  closeOnEsc={false}  >
         <ModalOverlay />
         <ModalContent 
-          className="bg-gray-100"
+          bg="#F1F1F1" 
+          color="black" 
+          maxWidth={{ base: "80%", md: modalSize }}
           position="relative"
         >
           <Icon
@@ -643,7 +647,11 @@ console.log(selectedBoostTag);
           />
           <ModalBody>
             {isDataLoaded ? (
-              <form onSubmit={handleSubmit(onSubmit)}>
+              <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-3 py-3'>
+                <h3 className={`text-${headingSize} font-bold mb-3`}>
+                  Edit your showroom ad details
+                </h3>
+                
                 <VStack spacing={4} align="stretch">
                   {adData && Object.keys(adData).map((fieldName, index) => (
                     <React.Fragment key={fieldName + index}>
@@ -746,8 +754,6 @@ console.log(selectedBoostTag);
           </ModalBody>
         </ModalContent>
       </Modal>
-      
-     
     </>
   );
 };

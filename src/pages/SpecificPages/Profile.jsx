@@ -17,9 +17,16 @@ const Profile = () => {
   const queryClient = useQueryClient();
   const toast = useToast();
   
+  
   const { userData, isLoading: isUserDataLoading } = useContext(UserdataContext);
   
   const { isLoggedIn, isInitialized, getToken } = useAuth();
+ 
+  useEffect(() => {
+    if (isInitialized && !isLoggedIn) {
+      navigate('/');
+    }
+  }, [isInitialized, isLoggedIn, navigate]);
   const { isOpen: isSellModalOpen, onOpen: onSellModalOpen, onClose: onSellModalClose } = useDisclosure();
 
   const fetchUserAds = async () => {

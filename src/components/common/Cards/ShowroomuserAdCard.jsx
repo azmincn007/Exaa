@@ -12,6 +12,24 @@ const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString(undefined, options);
 };
 
+const formatDescription = (description) => {
+  if (!description) return 'No description available.';
+  
+  // Get first line and trim whitespace
+  const firstLine = description.split('\n')[0].trim();
+  
+  // Check if there are multiple lines
+  const hasMoreLines = description.includes('\n');
+  
+  // If text is longer than 100 chars or has more lines, truncate and add ellipsis
+  if (firstLine.length > 100) {
+    return `${firstLine.substring(0, 100)}...`;
+  }
+  
+  // If there are more lines, add ellipsis even if first line is short
+  return hasMoreLines ? `${firstLine}...` : firstLine;
+};
+
 const ActionButton = ({ icon: Icon, onClick, backgroundColor }) => (
   <Box
     as="button"
@@ -72,7 +90,9 @@ const ShowroomuserAdCard = ({ data, onEdit, onDelete, showroomId, token }) => {
             
             <Box p={2}>
               <Text className="font-bold text-xl">{data?.title}</Text>
-              <Text className="text-md truncate">{`${data?.description} `}</Text>
+              <Text className="text-md line-clamp-1">
+                {formatDescription(data?.description)}
+              </Text>
               <Text className="font-bold text-lg">{data?.price ? `₹${data.price.toLocaleString()}` : <Text color="green.500" fontSize="sm">Service</Text>}</Text>
 
               <Flex className="items-center space-x-4 my-2">
@@ -131,7 +151,9 @@ const ShowroomuserAdCard = ({ data, onEdit, onDelete, showroomId, token }) => {
               <div>
                 <Box className="space-y-2">
                   <Text className="font-bold text-xl">{data?.title}</Text>
-                  <Text className="text-md truncate">{`${data?.description} `}</Text>
+                  <Text className="text-md line-clamp-1">
+                    {formatDescription(data?.description)}
+                  </Text>
                   <Text className="font-bold text-lg">{data?.price ? `₹${data.price.toLocaleString()}` : <Text color="green.500" fontSize="sm">Service</Text>}</Text>
                   
                   <Flex className="items-center space-x-4">

@@ -287,28 +287,7 @@ const ShowroomDetails = ({
                     Click rate now to share your experience with this showroom
                   </div>
 
-                  {/* New Share Links Section */}
-                  <div className="flex flex-col space-y-2">
-                    {facebookPageLink && (
-                      <button
-                        onClick={() => window.open(facebookPageLink, '_blank')}
-                        className="flex items-center space-x-3 w-full p-2 rounded-lg hover:bg-blue-50 transition-colors duration-200"
-                      >
-                        <FaFacebook className="w-5 h-5 text-blue-600" />
-                        <span className="text-sm font-medium text-gray-700">Visit Facebook Page</span>
-                      </button>
-                    )}
-                    
-                    {websiteLink && (
-                      <button
-                        onClick={() => window.open(websiteLink, '_blank')}
-                        className="flex items-center space-x-3 w-full p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200"
-                      >
-                        <FaGlobe className="w-5 h-5 text-gray-600" />
-                        <span className="text-sm font-medium text-gray-700">Visit Website</span>
-                      </button>
-                    )}
-                  </div>
+                  
                 </div>
               </Collapse>
             </div>
