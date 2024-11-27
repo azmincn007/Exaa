@@ -6,6 +6,9 @@ import { BASE_URL } from "../../../../config/config";
 const ModelFilter = ({ filterValues, handleFilterChange, getUserToken, selectedBrands, subCategoryId }) => {
   const [models, setModels] = useState([]);
   const [selectedModels, setSelectedModels] = useState(filterValues.model || []);
+console.log(selectedBrands);
+
+console.log(subCategoryId);
 
   useEffect(() => {
     const fetchModels = async () => {
@@ -26,16 +29,16 @@ const ModelFilter = ({ filterValues, handleFilterChange, getUserToken, selectedB
           endpoint = "ad-motorcycle-scooter-brands-models";
           break;
         case 15:
-          endpoint = " ad-motorcycle-scooter-brands-models";
+          endpoint = "ad-motorcycle-scooter-brands-models";
           break;
         case 15:
-          endpoint = " ad-motorcycle-scooter-brands-models";
+          endpoint = "ad-motorcycle-scooter-brands-models";
           break;
         case 21:
-          endpoint = " ad-mobile-brands-models";
+          endpoint = "ad-mobile-brands-models";
           break;
         case 22:
-          endpoint = " ad-mobile-brands-models";
+          endpoint = "ad-mobile-brands-models";
           break;
 
         default:
@@ -73,13 +76,11 @@ const ModelFilter = ({ filterValues, handleFilterChange, getUserToken, selectedB
     handleFilterChange("model", updatedSelection);
   };
 
-  if (models.length === 0) {
-    return <Text>No models available for the selected brands</Text>;
-  }
+
 
   return (
     <VStack className="max-h-[200px] overflow-scroll" align="start" spacing={4}>
-      <Heading size="sm">Select Models</Heading>
+      <Text className="font-semibold" size="sm">Select Models</Text>
       {models.map((model) => (
         <Checkbox key={model.id} isChecked={selectedModels.includes(model.id)} onChange={() => handleModelChange(model.id)}>
           {model.name}

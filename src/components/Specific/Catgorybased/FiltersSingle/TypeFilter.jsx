@@ -1,4 +1,4 @@
-import { Alert, Box, Checkbox, CheckboxGroup, Heading, Skeleton, Stack } from "@chakra-ui/react";
+import { Alert, Box, Checkbox, CheckboxGroup, Heading, Skeleton, Stack, Text } from "@chakra-ui/react";
 import { useTypes } from "../../../common/config/Api/UseTypes";
 
 const TypeFilter = ({ filterValues, handleFilterChange, subCategoryId, getUserToken }) => {
@@ -9,7 +9,7 @@ const TypeFilter = ({ filterValues, handleFilterChange, subCategoryId, getUserTo
   
     return (
       <Box>
-        <Heading size="sm" mb={2}>Type</Heading>
+        <Text className="font-semibold" size="sm" mb={2}>Type</Text>
         <CheckboxGroup
           colorScheme="blue"
           value={filterValues.type || []}

@@ -1,4 +1,4 @@
-import { Alert, AlertIcon, Box, Checkbox, CheckboxGroup, Heading, Skeleton, Stack } from "@chakra-ui/react";
+import { Alert, AlertIcon, Box, Checkbox, CheckboxGroup, Heading, Skeleton, Stack, Text } from "@chakra-ui/react";
 import { useBrands } from "../../../common/config/Api/UseBrands";
 
 const BrandFilter = ({ filterValues, handleFilterChange, subCategoryId, getUserToken }) => {
@@ -9,7 +9,7 @@ const BrandFilter = ({ filterValues, handleFilterChange, subCategoryId, getUserT
   
     return (
       <Box maxH="200px" className="overflow-y-scroll">
-        <Heading size="sm" mb={2}>Brand</Heading>
+        <Text className="font-semibold" size="sm" mb={2}>Brand</Text>
         <CheckboxGroup
           colorScheme="blue"
           value={filterValues.brand || []}

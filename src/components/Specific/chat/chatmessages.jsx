@@ -1,25 +1,13 @@
 import React, { useState, useEffect } from 'react';
 
-const ChatMessages = ({ chats, userId }) => {
-  const [displayedMessages, setDisplayedMessages] = useState([]);
+const ChatMessages = ({ chats, userId ,isLoading}) => {
+  const displayedMessages = chats?.data?.messages?.filter(
+    message => message.status !== 'sending'
+  ) || [];
+
   const receiverName = chats?.data?.adChatReceiver?.name;
   const isBuyerReceiver = chats?.data?.adChatReceiver?.type === 'buyer';
-
-  // Loading state
-  if (!chats?.data) {
-    return (
-      <div className="flex flex-col h-full bg-white rounded-lg shadow-sm">
-        {/* Loading skeleton UI */}
-      </div>
-    );
-  }
-
-  useEffect(() => {
-    const confirmedMessages = chats.data.messages.filter(
-      message => message.status !== 'sending'
-    );
-    setDisplayedMessages(confirmedMessages);
-  }, [chats.data.messages]);
+console.log(chats);
 
   const MessageBubble = ({ message, isMessageFromReceiver }) => {
     if (!message) return null;
@@ -45,30 +33,51 @@ const ChatMessages = ({ chats, userId }) => {
     );
   };
 
+  const formatDate = (dateString) => {
+    const messageDate = new Date(dateString);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+
+    if (isNaN(messageDate)) return null; // Return null for invalid dates
+
+    if (messageDate.toDateString() === today.toDateString()) {
+      return "Today";
+    } else if (messageDate.toDateString() === yesterday.toDateString()) {
+      return "Yesterday";
+    } else {
+      return messageDate.toLocaleDateString(); // Return formatted date for other days
+    }
+  };
+
   return (
     <div className="flex flex-col h-full bg-white rounded-lg shadow-sm p-2">
-      <div className="flex-none flex justify-between items-center px-4 py-2 bg-gray-100 rounded-t-lg">
-        <p className="text-gray-700 font-semibold">{receiverName}</p>
-        <p className="text-gray-500">Today</p>
-      </div>
-
+      {isLoading && <p className="text-gray-500">Loading...</p>}
+      
       <div className="flex-1 overflow-y-auto px-4 py-2">
         <div className="space-y-4">
-          {chats.data.messages.map((message, index) => {
-            const isSenderBuyer = message.adBuyer && !message.adSeller;
-            const isMessageFromReceiver = isBuyerReceiver ? isSenderBuyer : !isSenderBuyer;
+          {isLoading ? null : (
+            displayedMessages.reduce((acc, message, index) => {
+              const messageDate = formatDate(message.createdMessageAt);
+              // Check if the last displayed date is different from the current message date
+              if (index === 0 || messageDate !== formatDate(displayedMessages[index - 1].createdMessageAt)) {
+                acc.push(
+                  <p key={`date-${index}`} className="text-xs text-gray-500">{messageDate}</p>
+                );
+              }
 
-            // Determine ownership before rendering
-            const isUserMessage = message.adBuyer === false && message.adSeller === true;
+              acc.push(
+                <div key={message.tempId || message.id || index}>
+                  <MessageBubble
+                    message={message}
+                    isMessageFromReceiver={message.adBuyer === false && message.adSeller === true}
+                  />
+                </div>
+              );
 
-            return (
-              <MessageBubble
-                key={message.tempId || message.id || index}
-                message={message}
-                isMessageFromReceiver={isUserMessage}
-              />
-            );
-          })}
+              return acc;
+            }, [])
+          )}
         </div>
       </div>
     </div>
