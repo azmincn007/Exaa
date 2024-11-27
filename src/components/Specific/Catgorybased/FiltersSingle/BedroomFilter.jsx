@@ -9,7 +9,7 @@ import {
 } from '@chakra-ui/react';
 
 const BedroomFilter = ({ filterValues, handleFilterChange }) => {
-  const options = ['Studio', '1', '2', '3', '4', '4+'];
+  const options = ['Studio+', '1', '2', '3', '4', '4+'];
 
   return (
     <FormControl>
