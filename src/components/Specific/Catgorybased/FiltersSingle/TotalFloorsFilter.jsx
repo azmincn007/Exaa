@@ -18,7 +18,7 @@ const TotalFloorsFilter = ({ filterValues, handleFilterChange }) => {
 
   return (
     <FormControl>
-      <FormLabel>Total Floors</FormLabel>
+      <FormLabel fontWeight="semibold">Total Floors</FormLabel>
       <SimpleGrid columns={2} maxH="200px" overflowY="auto" spacing={2}>
         {floorOptions.map((floor) => (
           <Checkbox
