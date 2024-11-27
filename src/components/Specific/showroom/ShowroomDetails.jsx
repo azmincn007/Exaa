@@ -287,7 +287,7 @@ const ShowroomDetails = ({
                     Click rate now to share your experience with this showroom
                   </div>
 
-                  
+             
                 </div>
               </Collapse>
             </div>

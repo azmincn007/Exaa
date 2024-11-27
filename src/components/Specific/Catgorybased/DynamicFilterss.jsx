@@ -234,6 +234,10 @@ const DynamicFilters = ({ subCategoryId, onFilterChange, filters, setFilters, hi
             getUserToken={getUserToken} 
           />
         );
+      case "maintenance":
+        return null;
+      case "typeOfAccomadations":
+        return null;
       default:
         return <div>Unsupported filter type: {filterKey}</div>;
     }

@@ -26,6 +26,7 @@ import LocationSelects from './components/modals/Authentications/LocationSelects
 import HelpAndSupport from './components/ui/HelpAndSupport';
 import Settings from './components/ui/Settings';
 import AdPreviewPage from './components/Specific/Landing/AdPreviewPage';
+import ScrollToTop from './components/common/ScrolltoTOp';
 
 export const TownContext = createContext();
 export const UserdataContext = createContext();
@@ -102,6 +103,7 @@ function App() {
               <DistrictContext.Provider value={[selectedDistrict, setSelectedDistrict]}>
                 <TownContext.Provider value={[selectedTown, setSelectedTown]}>
                   <Router>
+                    <ScrollToTop/>
                     <Routes>
                       <Route path="/" element={<Layout searchType="home"><Home /></Layout>} />
                       <Route path="/packages-and-orders/:section" element={<Layout><PackagesAndOrders /></Layout>} />
@@ -131,6 +133,8 @@ function App() {
                       <Route path="payment" element={<PaymentButton />} />
                       <Route path="test" element={<LocationSelects />} />
                       <Route path="/ad-preview" element={<Layout><AdPreviewPage /></Layout>} />
+                     
+
                     </Routes>
                   </Router>
                 </TownContext.Provider>
