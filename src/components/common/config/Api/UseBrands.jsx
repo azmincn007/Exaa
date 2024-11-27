@@ -9,25 +9,21 @@ export const useBrands = (isOpen, getUserToken, subcategoryId, selectedTypeId) =
     ["brands", subcategoryId, selectedTypeId], // Include selectedTypeId in query key
     async () => {
       const token = getUserToken();
-      if (!token) {
-        throw new Error("No authentication token found");
-      }
-
+     
       // Ensure subcategoryId is a string
       const subcategoryIdString = String(subcategoryId);
 
       // Special handling for subcategoryId 18
       if (subcategoryIdString === "18") {
-        if (!selectedTypeId) {
-          throw new Error("Type ID is required for commercial vehicles");
+        if (!selectedTypeId && isOpen) {
+          return []; // or handle as needed when selectedTypeId is not provided
         }
-        const response = await axios.get(
-          `${BASE_URL}/api/ad-com-veh-and-aut-com-veh-brand/${selectedTypeId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        return response.data.data;
+        if (selectedTypeId) {
+          const response = await axios.get(
+            `${BASE_URL}/api/ad-com-veh-and-aut-com-veh-brand/${selectedTypeId}`
+          );
+          return response.data.data;
+        }
       }
 
       // Handle other subcategories
@@ -68,7 +64,6 @@ export const useBrands = (isOpen, getUserToken, subcategoryId, selectedTypeId) =
       }
 
       const response = await axios.get(`${BASE_URL}/api/${subcategory}`, {
-        headers: { Authorization: `Bearer ${token}` },
       });
 
       return response.data.data;

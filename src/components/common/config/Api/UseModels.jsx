@@ -7,9 +7,7 @@ export const useModels = (isOpen, getUserToken, brandId, subcategoryId, selected
     ["models", brandId, subcategoryId, selectedTypeId], // Include selectedTypeId in query key
     async () => {
       const token = getUserToken();
-      if (!token) {
-        throw new Error("No authentication token found");
-      }
+     
 
       // Ensure subcategoryId is a string
       const subcategoryIdString = String(subcategoryId);
@@ -25,7 +23,7 @@ export const useModels = (isOpen, getUserToken, brandId, subcategoryId, selected
         const response = await axios.get(
           `${BASE_URL}/api/ad-com-veh-and-aut-com-veh-model/${selectedTypeId}/${brandId}`,
           {
-            headers: { Authorization: `Bearer ${token}` },
+            // headers: { Authorization: `Bearer ${token}` }, // Removed token
           }
         );
         return response.data.data;
@@ -87,7 +85,7 @@ export const useModels = (isOpen, getUserToken, brandId, subcategoryId, selected
       }
 
       const response = await axios.get(url, {
-        headers: { Authorization: `Bearer ${token}` },
+        // headers: { Authorization: `Bearer ${token}` }, // Removed token
       });
       return response.data.data;
     },

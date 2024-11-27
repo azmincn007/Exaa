@@ -45,7 +45,6 @@ const ModelFilter = ({ filterValues, handleFilterChange, getUserToken, selectedB
       try {
         const response = await axios.get(`${BASE_URL}/api/${endpoint}`, {
           params: { brandsArray: JSON.stringify(selectedBrands) },
-          headers: { Authorization: `Bearer ${getUserToken()}` },
         });
 
         if (response.data && Array.isArray(response.data.data)) {

@@ -2,14 +2,10 @@ import { useQuery } from 'react-query';
 import axios from 'axios';
 import { BASE_URL } from '../../../../config/config';
 
-export const useVariants = (isOpen, getUserToken, modelId, subcategoryId) => {
+export const useVariants = (isOpen, modelId, subcategoryId) => {
   return useQuery(
     ['variants', modelId, subcategoryId],
     async () => {
-      const token = getUserToken();
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
       if (!modelId || !subcategoryId) {
         return []; // Return empty array if no model or subcategory is selected
       }
@@ -43,9 +39,7 @@ export const useVariants = (isOpen, getUserToken, modelId, subcategoryId) => {
         endpoint = "ad-car-model-variants"; // Default case
       }
 
-      const response = await axios.get(`${BASE_URL}/api/${endpoint}/${modelId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const response = await axios.get(`${BASE_URL}/api/${endpoint}/${modelId}`);
       return response.data.data;
     },
     {
