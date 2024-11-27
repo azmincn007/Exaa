@@ -64,7 +64,6 @@ const fetchTowns = async (userToken, districtId) => {
 };
 
 const ShowroomEditModal = ({ isOpen, onClose, showroomId, onSuccess }) => {
-  console.log(showroomId);
   
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [selectedSubCategoryId, setSelectedSubCategoryId] = useState(null);
@@ -193,7 +192,18 @@ const ShowroomEditModal = ({ isOpen, onClose, showroomId, onSuccess }) => {
       }
       if (showroom.logo) {
         const logoUrl = `${BASE_URL}${showroom.logo.url}`;
-        setUploadedLogo({ preview: logoUrl });
+        
+        // Fetch the logo image and create a Blob URL
+        fetch(logoUrl)
+          .then((response) => response.blob())
+          .then((blob) => {
+            const logoFile = new File([blob], logoUrl.split('/').pop(), { type: "image/png" });
+            const blobUrl = URL.createObjectURL(blob);
+            setUploadedLogo({ file: logoFile, preview: blobUrl });
+          })
+          .catch((error) => {
+            console.error("Error fetching logo:", error);
+          });
       }
     }
   }, [isOpen, showroom, reset]);
@@ -295,7 +305,7 @@ const ShowroomEditModal = ({ isOpen, onClose, showroomId, onSuccess }) => {
     console.log("Data being sent to API:", {
       ...data,
       images: imageFile,
-      logo: uploadedLogo ? uploadedLogo.file : null,
+      logo: uploadedLogo ? uploadedLogo.file : showroom.logo ? showroom.logo.file : null,
     });
 
     try {
@@ -309,7 +319,11 @@ const ShowroomEditModal = ({ isOpen, onClose, showroomId, onSuccess }) => {
       });
 
       if (uploadedLogo) {
+        console.log(uploadedLogo);
         formData.append("logo", uploadedLogo.file);
+      } else if (showroom.logo) {
+        console.log(showroom.logo.file);
+        formData.append("logo", showroom.logo.file);
       }
 
       const response = await axios.put(`${BASE_URL}/api/ad-showrooms/${showroomId}`, formData, {
