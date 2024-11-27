@@ -25,7 +25,7 @@ const CarParkingFilter = ({ filterValues, handleFilterChange }) => {
 
   return (
     <FormControl>
-      <FormLabel>Car Parking</FormLabel>
+      <FormLabel >Car Parking</FormLabel>
       <SimpleGrid columns={2} spacing={2}>
         {parkingOptions.map((option) => (
           <Checkbox

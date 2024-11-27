@@ -16,7 +16,7 @@ const TransmissionFilter = ({ filterValues, handleFilterChange }) => {
 
   return (
     <FormControl>
-      <FormLabel>Transmission</FormLabel>
+      <FormLabel fontWeight="semibold">Transmission</FormLabel>
       <Stack spacing={2}>
         {transmissionOptions.map((transmission) => (
           <Checkbox

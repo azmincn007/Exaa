@@ -24,7 +24,7 @@ const EngineCCFilter = ({ filterValues, handleFilterChange }) => {
 
   return (
     <FormControl>
-      <FormLabel>Engine Capacity</FormLabel>
+      <FormLabel fontWeight="semibold">Engine Capacity</FormLabel>
       <Stack maxH="200px" overflowY="auto" spacing={2}>
         {engineCCOptions.map((engineCC) => (
           <Checkbox

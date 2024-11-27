@@ -23,7 +23,7 @@ const ReusableRangeSlider = ({
 }) => {
   return (
     <FormControl>
-      <FormLabel>{label}</FormLabel>
+      <FormLabel fontWeight="semibold" >{label}</FormLabel>
       <Box px={4} pt={4}>
         <Flex justify="space-between" mb={2}>
           <Text fontSize="sm" color="gray.600">

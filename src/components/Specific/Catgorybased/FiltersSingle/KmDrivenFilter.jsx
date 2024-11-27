@@ -30,7 +30,7 @@ const KmDrivenFilter = ({ filterValues, handleFilterChange }) => {
 
   return (
     <FormControl>
-      <FormLabel>Kilometers Driven</FormLabel>
+      <FormLabel fontWeight="semibold">Kilometers Driven</FormLabel>
       <Box maxH="200px" overflowY="auto" overflowX="hidden">
         <Stack spacing={2}>
           {kmDrivenOptions.map((option) => (

@@ -28,7 +28,7 @@ const YearFilter = ({ filterValues, handleFilterChange }) => {
 
   return (
     <FormControl>
-      <FormLabel>Year of Manufacture (2000-{endYear})</FormLabel>
+      <FormLabel fontWeight="semibold">Year of Manufacture (2000-{endYear})</FormLabel>
       {/* Scrollable box for checkboxes only */}
       <Box maxHeight="200px" overflowY="auto">
         <Wrap spacing={2}>

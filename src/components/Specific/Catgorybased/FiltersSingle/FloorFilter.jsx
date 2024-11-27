@@ -20,7 +20,7 @@ const FloorNoFilter = ({ filterValues, handleFilterChange }) => {
 
   return (
     <FormControl>
-      <FormLabel>Floor Number</FormLabel>
+      <FormLabel fontWeight="semibold">Floor Number</FormLabel>
       <SimpleGrid columns={2} spacing={2} maxH="200px" overflowY="auto">
         {floorOptions.map((floor) => (
           <Checkbox

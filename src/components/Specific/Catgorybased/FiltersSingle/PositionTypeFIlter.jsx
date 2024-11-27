@@ -16,7 +16,7 @@ const PositionTypeFilter = ({ filterValues, handleFilterChange }) => {
 
   return (
     <FormControl>
-      <FormLabel>Position Type</FormLabel>
+      <FormLabel fontWeight="semibold">Position Type</FormLabel>
       <Stack maxH="200px" spacing={2}>
         {options.map((option) => (
           <Checkbox

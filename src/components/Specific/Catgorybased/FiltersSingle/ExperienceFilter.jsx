@@ -16,7 +16,7 @@ const ExperienceFilter = ({ filterValues, handleFilterChange }) => {
 
   return (
     <FormControl>
-      <FormLabel>Experience</FormLabel>
+      <FormLabel fontWeight="semibold">Experience</FormLabel>
       <Stack maxH="200px" spacing={2}>
         {options.map((option) => (
           <Checkbox

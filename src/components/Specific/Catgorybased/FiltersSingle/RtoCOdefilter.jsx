@@ -15,7 +15,7 @@ const RTOCodeFilter = ({ filterValues, handleFilterChange }) => {
 
   return (
     <FormControl>
-      <FormLabel>RTO Code</FormLabel>
+      <FormLabel fontWeight="semibold">RTO Code</FormLabel>
       <Box maxH="200px" overflowY="auto">
         <Stack spacing={2}>
           {vehicleData.rtoCodes.map((option) => (

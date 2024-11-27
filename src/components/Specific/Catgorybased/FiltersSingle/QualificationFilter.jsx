@@ -16,7 +16,7 @@ const QualificationFilter = ({ filterValues, handleFilterChange }) => {
 
   return (
     <FormControl>
-      <FormLabel>Qualification</FormLabel>
+      <FormLabel fontWeight="semibold">Qualification</FormLabel>
       <Stack maxH="200px" spacing={2}>
         {options.map((option) => (
           <Checkbox

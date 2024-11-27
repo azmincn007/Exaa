@@ -16,7 +16,7 @@ const SalaryPeriodFilter = ({ filterValues, handleFilterChange }) => {
 
   return (
     <FormControl>
-      <FormLabel>Salary Period</FormLabel>
+      <FormLabel fontWeight="semibold">Salary Period</FormLabel>
       <Stack maxH="200px" spacing={2}>
         {options.map((option) => (
           <Checkbox

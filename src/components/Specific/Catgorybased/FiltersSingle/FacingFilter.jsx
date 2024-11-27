@@ -26,7 +26,7 @@ const FacingFilter = ({ filterValues, handleFilterChange }) => {
 
   return (
     <FormControl>
-      <FormLabel>Facing</FormLabel>
+      <FormLabel fontWeight="semibold">Facing</FormLabel>
       <SimpleGrid columns={2} maxH="200px" overflowY="auto" spacing={2}>
         {facingOptions.map((facing) => (
           <Checkbox

@@ -22,7 +22,7 @@ const NoOfOwnersFilter = ({ filterValues, handleFilterChange }) => {
 
   return (
     <FormControl>
-      <FormLabel>Number of Owners</FormLabel>
+      <FormLabel fontWeight="semibold">Number of Owners</FormLabel>
       <Stack spacing={2}>
         {ownerOptions.map((option) => (
           <Checkbox
