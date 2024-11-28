@@ -10,16 +10,20 @@ import { BASE_URL } from '../../config/config';
 import { useNavigate } from 'react-router-dom';
 import { useSearch } from '../../Hooks/SearchContext';
 
-const fetchCategories = async () => {
-  const response = await axios.get(`${BASE_URL}/api/ad-categories`);
-  
-  return response.data.data;
+const fetchCategories = async (isFromShowroom) => {
+  try {
+    const response = await axios.get(`${BASE_URL}${isFromShowroom ? '/api/find-showroom-categories' : '/api/ad-categories'}`);
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching categories:', error.response ? error.response.data : error.message);
+    throw error; // Rethrow the error to handle it in the component
+  }
 };
 
 function Tabcategory({isFromShowroom}) {
   const { setHasSearched, resetSearch } = useSearch();
   const navigate = useNavigate();
-  const { data, isLoading, isError, error } = useQuery('categories', fetchCategories);
+  const { data, isLoading, isError, error } = useQuery(['categories', isFromShowroom], () => fetchCategories(isFromShowroom));
   const [activeTab, setActiveTab] = useState(null);
 
   if (isError) {

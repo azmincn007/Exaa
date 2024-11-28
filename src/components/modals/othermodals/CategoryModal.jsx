@@ -18,12 +18,7 @@ import { FaChevronRight } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
 const fetchCategories = async () => {
-  const token = localStorage.getItem('UserToken');
-  const response = await axios.get(`${BASE_URL}/api/ad-categories`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const response = await axios.get(`${BASE_URL}/api/ad-categories`);
   return response.data.data;
 };
 
