@@ -24,10 +24,10 @@ export const useTypes = (isOpen, getUserToken, subcategoryId) => {
         endpoint = "ad-p-f-r-h-a-a-f-ts";
       }
       else if (subcategoryIdString === "4") {
-        endpoint = "ad-p-f-r-h-a-a-f-ts";
+        endpoint = "ad-p-f-s-l-a-p-ts";
       }
       else if (subcategoryIdString === "5") {
-        endpoint = "ad-p-f-r-h-a-a-f-ts";
+        endpoint = "ad-p-f-s-l-a-p-ts";
       }
       else if (subcategoryIdString === "8") {
         endpoint = "ad-p-p-g-a-g-h-ts";
