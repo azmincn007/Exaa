@@ -21,7 +21,6 @@ const CategoryBasedGrid = () => {
 
   
   const [selectedCategory, setSelectedCategory] = useState(null);
-  console.log(selectedCategory);
   
   const [sortOption, setSortOption] = useState('relevance');
   const [visibleCount, setVisibleCount] = useState(16);
@@ -104,7 +103,7 @@ const CategoryBasedGrid = () => {
     { 
       enabled: !!selectedCategory?.id,
       onSuccess: (data) => {
-        // Handle success if needed
+        console.log('Fetched ads data:', data);
       },
       onError: (error) => {
         console.error('Error fetching adsData:', error);

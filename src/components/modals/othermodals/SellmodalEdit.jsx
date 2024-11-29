@@ -427,20 +427,37 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
             <Controller
               name={fieldName}
               control={control}
-              defaultValue=""
-              render={({ field: { onChange, value } }) => (
-                <RadioGroup onChange={onChange} value={value}>
-                  <Stack direction="row" spacing={4}>
+              rules={config.rules}
+              render={({ field }) => (
+                <RadioGroup {...field}>
+                  <Flex 
+                    flexWrap="wrap" 
+                    gap={2}
+                    sx={{
+                      '& > *': {
+                        flexBasis: {
+                          base: config.options.length <= 3 ? '100%' : '48%', 
+                          md: config.options.length <= 4 ? 'auto' : '30%', 
+                          lg: config.options.length <= 6 ? 'auto' : '30%' 
+                        }
+                      }
+                    }}
+                  >
                     {config.options.map(option => (
-                      <Radio   className='border-black' key={option} value={option}>
+                      <Radio 
+                        key={option} 
+                        value={option} 
+                        className='border-black'
+                        flex="1 1 auto"
+                      >
                         {option}
                       </Radio>
                     ))}
-                  </Stack>
+                  </Flex>
                 </RadioGroup>
               )}
             />
-            <FormErrorMessage>{errors[fieldName]?.message}</FormErrorMessage>
+            <FormErrorMessage>{errors[fieldName] && errors[fieldName].message}</FormErrorMessage>
           </FormControl>
         );
       case 'select':

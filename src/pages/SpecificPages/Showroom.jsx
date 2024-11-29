@@ -59,7 +59,6 @@ const CategorySkeleton = () => (
 
 const Showroom = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const initialCategory = queryParams.get('category') || 'all';
 

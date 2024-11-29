@@ -106,12 +106,19 @@ const ProfilePictureUpload = () => {
   };
 
   return (
-    <Box borderWidth="2px" borderRadius="lg" p={6} width="100%" maxWidth="800px" borderColor="black">
+    <Box 
+      borderWidth="2px" 
+      borderRadius="lg" 
+      p={[4, 6]} // Reduce padding on smaller screens
+      width="100%" 
+      maxWidth="800px" 
+      borderColor="black"
+    >
       <Text fontSize="xl" fontWeight="bold" mb={4}>
         Profile Picture
       </Text>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <Grid templateColumns="4fr 8fr" gap={6}>
+        <Grid templateColumns={["1fr", "4fr 8fr"]} gap={[3, 6]}>
           <GridItem>
             <Box
               position="relative"
@@ -142,17 +149,17 @@ const ProfilePictureUpload = () => {
                 )}
               </Center>
               <Button
-                size="sm"
+                size={["xs", "sm"]} // Smaller button size on mobile
                 position="absolute"
-                top={2}
-                right={2}
+                top={1} // Reduced top positioning
+                right={1} // Reduced right positioning
                 colorScheme="gray"
                 variant="solid"
                 opacity={0.8}
                 as="label"
                 htmlFor="profileImage"
               >
-                <MdOutlineModeEdit size={16} />
+                <MdOutlineModeEdit size={12} /> {/* Smaller icon */}
               </Button>
               <input
                 id="profileImage"
@@ -176,7 +183,7 @@ const ProfilePictureUpload = () => {
               <Text fontSize="sm" color="gray.600">
                 Click 'Upload' to select a new photo or use your Google account for quick access.
               </Text>
-              <div className="w-[50%] gap-2 flex flex-col">
+              <div className=" w-full md:w-[50%] gap-2 flex flex-col">
                 <Button 
                   colorScheme="blue" 
                   width="100%" 

@@ -355,25 +355,43 @@ console.log(selectedBoostTag);
             <FormErrorMessage>{errors[fieldName]?.message}</FormErrorMessage>
           </FormControl>
         );
-      case 'radio':
-        return (
-          <CommonWrapper>
-            <Controller
-              name={fieldName}
-              control={control}
-              rules={config.rules}
-              render={({ field }) => (
-                <RadioGroup {...field}>
-                  <Stack direction="row">
-                    {config.options.map(option => (
-                      <Radio key={option} value={option}>{option}</Radio>
-                    ))}
-                  </Stack>
-                </RadioGroup>
-              )}
-            />
-          </CommonWrapper>
-        );
+        case 'radio':
+          return (
+            <CommonWrapper>
+              <Controller
+                name={fieldName}
+                control={control}
+                rules={config.rules}
+                render={({ field }) => (
+                  <RadioGroup {...field}>
+                    <Flex 
+                      flexWrap="wrap" 
+                      gap={2}
+                      sx={{
+                        '& > *': {
+                          flexBasis: {
+                            base: config.options.length <= 3 ? '100%' : '48%', 
+                            md: config.options.length <= 4 ? 'auto' : '30%', 
+                            lg: config.options.length <= 6 ? 'auto' : '30%' 
+                          }
+                        }
+                      }}
+                    >
+                      {config.options.map(option => (
+                        <Radio 
+                          key={option} 
+                          value={option} 
+                          flex="1 1 auto"
+                        >
+                          {option}
+                        </Radio>
+                      ))}
+                    </Flex>
+                  </RadioGroup>
+                )}
+              />
+            </CommonWrapper>
+          );
       case 'checkbox':
         return (
           <FormControl key={fieldName}>
