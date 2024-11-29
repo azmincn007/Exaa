@@ -206,7 +206,7 @@ const Profile = () => {
     }
 
     const handleShareProfile = () => {
-      const profileUrl = `${window.location.origin}#/customer-profile/${userData?.id}`;
+      const profileUrl = `${window.location.origin}/customer-profile/${userData?.id}`;
       navigator.clipboard.writeText(profileUrl)
         .then(() => {
           toast({
