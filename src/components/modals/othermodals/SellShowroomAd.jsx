@@ -468,8 +468,8 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
           <Icon
             as={IoClose}
             position="absolute"
-            top="4"
-            right="4"
+            top="2"
+            right="2"
             w={6}
             h={6}
             cursor="pointer"
