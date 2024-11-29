@@ -1,11 +1,24 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import axios from "axios";
-import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, Button, Divider, ModalFooter, useToast, Menu, MenuButton, MenuList, MenuItem, Box, Input, FormErrorMessage } from "@chakra-ui/react";
+import { 
+  Modal, 
+  ModalOverlay, 
+  ModalContent, 
+  ModalHeader, 
+  ModalBody, 
+  Button, 
+  Divider, 
+  ModalFooter, 
+  useToast, 
+  FormControl,
+  FormLabel,
+  Select,
+  FormErrorMessage
+} from "@chakra-ui/react";
 import { IMAGES } from "../../../constants/logoimg";
 import { IoArrowBack } from "react-icons/io5";
 import { Camera } from "lucide-react";
-import { FaChevronDown } from "react-icons/fa";
 
 import CustomInput from "../../forms/Input/signup/CustomInput";
 import MobileNumberInput from "../../forms/Input/signup/MobileNumberInput";
@@ -18,37 +31,40 @@ function SignupModal({ isOpen, onClose }) {
     handleSubmit,
     formState: { errors },
     reset,
-    control
+    control,
+    setValue,
+    trigger,
+    watch
   } = useForm();
+  
   const toast = useToast();
   const [selectedImage, setSelectedImage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const fileInputRef = useRef(null);
 
-  // Location states
   const [districts, setDistricts] = useState([]);
   const [towns, setTowns] = useState([]);
   const [selectedDistrict, setSelectedDistrict] = useState("");
-  const [selectedTown, setSelectedTown] = useState("");
   const [isLoadingDistricts, setIsLoadingDistricts] = useState(false);
   const [isLoadingTowns, setIsLoadingTowns] = useState(false);
 
-  const [townSearchQuery, setTownSearchQuery] = useState('');
+  const selectedTown = watch("locationTown");
 
-  // Fetch districts on component mount
   useEffect(() => {
     fetchDistricts();
   }, []);
 
-  // Fetch towns when district changes
   useEffect(() => {
     if (selectedDistrict) {
       fetchTowns(selectedDistrict);
+      setValue('locationTown', '');
+      trigger('locationTown');
     } else {
       setTowns([]);
-      setSelectedTown("");
+      setValue('locationTown', '');
+      trigger('locationTown');
     }
-  }, [selectedDistrict]);
+  }, [selectedDistrict, setValue, trigger]);
 
   const fetchDistricts = async () => {
     setIsLoadingDistricts(true);
@@ -59,6 +75,13 @@ function SignupModal({ isOpen, onClose }) {
       }
     } catch (error) {
       console.error("Error fetching districts:", error);
+      toast({
+        title: "Error",
+        description: "Could not load districts",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
     } finally {
       setIsLoadingDistricts(false);
     }
@@ -73,6 +96,13 @@ function SignupModal({ isOpen, onClose }) {
       }
     } catch (error) {
       console.error("Error fetching towns:", error);
+      toast({
+        title: "Error",
+        description: "Could not load towns for selected district",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
     } finally {
       setIsLoadingTowns(false);
     }
@@ -106,7 +136,6 @@ function SignupModal({ isOpen, onClose }) {
 
   const onSubmit = async (data) => {
     try {
-      // First, submit registration data
       const formData = new FormData();
       formData.append("name", data.name);
       formData.append("email", data.email);
@@ -122,20 +151,14 @@ function SignupModal({ isOpen, onClose }) {
         },
       });
 
-      console.log("Register Response:", registerResponse);
-
-      // If registration successful, submit location data
       if (registerResponse.data) {
-        const jwtToken = registerResponse.data.data.jwt; // Adjust based on your API response structure
-
-        console.log("District ID being sent:", selectedDistrict);
-        console.log("Town ID being sent:", selectedTown);
+        const jwtToken = registerResponse.data.data.jwt;
 
         const locationResponse = await axios.post(
           `${BASE_URL}/api/user-locations`,
           {
             locationDistrict: selectedDistrict,
-            locationTown: selectedTown,
+            locationTown: data.locationTown,
           },
           {
             headers: {
@@ -144,14 +167,10 @@ function SignupModal({ isOpen, onClose }) {
           }
         );
 
-        console.log("Location Response:", locationResponse);
-
-        // Clear form data and states after successful registration
-        reset(); // Reset form fields
+        reset();
         setSelectedImage(null);
         setPreviewUrl(null);
         setSelectedDistrict("");
-        setSelectedTown("");
 
         toast({
           title: "Registration successful",
@@ -173,6 +192,8 @@ function SignupModal({ isOpen, onClose }) {
     }
   };
 
+  const isSubmitDisabled = !selectedDistrict || !selectedTown;
+
   return (
     <Modal isCentered onClose={onClose} isOpen={isOpen} motionPreset="slideInBottom">
       <ModalOverlay />
@@ -187,7 +208,6 @@ function SignupModal({ isOpen, onClose }) {
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="w-full flex flex-col items-center mt-12 gap-4">
-            {/* Image upload section */}
             <div className="relative group" onClick={handleImageClick}>
               <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 relative cursor-pointer">
                 {previewUrl ? (
@@ -204,7 +224,13 @@ function SignupModal({ isOpen, onClose }) {
               <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
             </div>
 
-            <CustomInput label="Name" name="name" register={register} rules={{ required: "Name is required" }} error={errors.name} />
+            <CustomInput 
+              label="Name" 
+              name="name" 
+              register={register} 
+              rules={{ required: "Name is required" }} 
+              error={errors.name} 
+            />
             <CustomInput
               label="Email"
               name="email"
@@ -229,91 +255,69 @@ function SignupModal({ isOpen, onClose }) {
               }}
               error={errors.phone}
             />
-            <AboutYouInput label="About You" name="aboutYou" register={register} rules={{ maxLength: { value: 120, message: "Max length is 120 characters" } }} error={errors.aboutYou} />
+            <AboutYouInput 
+              label="About You" 
+              name="aboutYou" 
+              register={register} 
+              rules={{ maxLength: { value: 120, message: "Max length is 120 characters" } }} 
+              error={errors.aboutYou} 
+            />
 
-            {/* Location selects */}
-            <div className="w-full space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Select District</label>
-                <select
-                  value={selectedDistrict}
-                  onChange={(e) => setSelectedDistrict(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={isLoadingDistricts}
-                >
-                  <option value="">Select a district</option>
-                  {districts.map((district) => (
-                    <option key={district.id} value={district.id}>
-                      {district.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            <FormControl isInvalid={!!errors.locationDistrict} mb={4}>
+              <FormLabel>Select District</FormLabel>
+              <select
+                value={selectedDistrict}
+                onChange={(e) => setSelectedDistrict(e.target.value)}
+                className="w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={isLoadingDistricts}
+              >
+                <option value="">Select a district</option>
+                {districts.map((district) => (
+                  <option key={district.id} value={district.id}>
+                    {district.name}
+                  </option>
+                ))}
+              </select>
+            </FormControl>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Select Town</label>
-                <Controller
-                 className="border-[1px]"
-                  name="locationTown"
-                  control={control}
-                  rules={{ required: "Town is required" }}
-                  render={({ field }) => (
-                    <Menu matchWidth>
-                      <MenuButton
-                        as={Button}
-                        rightIcon={<FaChevronDown className='h-3 w-3 text-black' />}
-                        w="100%"
-                        textAlign="left"
-                        isDisabled={!selectedDistrict || isLoadingTowns}
-                        className='border-black border-[1px] px-3'
-                        fontWeight="normal"
-                      >
-                        {field.value ? 
-                          towns.find(opt => opt.id.toString() === field.value)?.name || 'Select Town' 
-                          : 'Select Town'
-                        }
-                      </MenuButton>
-                      <MenuList maxH="200px" overflowY="auto">
-                        <Box p={2}>
-                          <Input
-                           
-                            placeholder="Search town..."
-                            value={townSearchQuery}
-                            onChange={(e) => setTownSearchQuery(e.target.value)}
-                            mb={2}
-                          />
-                        </Box>
-                        {towns
-                          .filter(option => 
-                            option.name?.toLowerCase().includes(townSearchQuery.toLowerCase())
-                          )
-                          .map(option => (
-                            <MenuItem
-                              key={option.id}
-                              onClick={() => {
-                                field.onChange(option.id.toString());
-                                setTownSearchQuery('');
-                              }}
-                              fontWeight="normal"
-                            
-                            >
-                              {option.name}
-                            </MenuItem>
-                          ))}
-                        {!towns.filter(option => 
-                          option.name?.toLowerCase().includes(townSearchQuery.toLowerCase())
-                        ).length && (
-                          <MenuItem isDisabled fontWeight="normal">No towns found</MenuItem>
-                        )}
-                      </MenuList>
-                    </Menu>
-                  )}
-                />
-                <FormErrorMessage>{errors.locationTown && errors.locationTown.message}</FormErrorMessage>
-              </div>
-            </div>
+            <FormControl isInvalid={errors.locationTown && !selectedTown} mb={4}>
+  <FormLabel>Select Town</FormLabel>
+  <Controller
+    name="locationTown"
+    control={control}
+    rules={{ 
+      validate: (value) => {
+        // Only require the town if no town is selected
+        return selectedTown ? true : "Town is required"
+      }
+    }}
+    render={({ field }) => (
+      <Select 
+        {...field}
+        placeholder="Select Town"
+        isDisabled={!selectedDistrict || isLoadingTowns}
+      >
+        {towns.map((town) => (
+          <option key={town.id} value={town.id.toString()}>
+            {town.name}
+          </option>
+        ))}
+      </Select>
+    )}
+  />
+  <FormErrorMessage>
+    {errors.locationTown && errors.locationTown.message}
+  </FormErrorMessage>
+</FormControl>
 
-            <Button type="submit" className="w-full py-6 px-12" colorScheme="blue" isFullWidth mt={4} isDisabled={!selectedDistrict || !selectedTown}>
+            <Button 
+              type="submit" 
+              className="w-full py-6 px-12" 
+              colorScheme="blue" 
+              isFullWidth 
+              mt={4} 
+              isDisabled={!selectedDistrict || !selectedTown}
+            >
               Save And Continue
             </Button>
           </form>
