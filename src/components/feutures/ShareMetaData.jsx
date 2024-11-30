@@ -1,52 +1,33 @@
-import React, { useEffect } from 'react';
-import { Helmet } from 'react-helmet-async';
+import React from 'react';
 import { BASE_URL } from '../../config/config';
+import { Helmet } from 'react-helmet-async';
 
-const ShareMetadata = ({ adData }) => {
-  useEffect(() => {
-    // Update page title
-    document.title = adData?.title || 'Ad Details';
-  }, [adData?.title]);
-
-  // If no ad data, return null
-  if (!adData) return null;
-
-  // Determine the first image URL or use a default
-  const imageUrl = adData.images && adData.images.length > 0
-    ? `${BASE_URL}${adData.images[0].url}`
-    : '/default-ad-image.jpg';
-
-  // Create a clean description
-  const description = adData.description
-    ? adData.description.substring(0, 200) + '...'
-    : 'Check out this amazing ad!';
+const ShareMetadata = ({ adData, onWhatsAppShare }) => {
+  const title = adData.title || 'Ad Title';
+  const description = adData.description || 'Check out this ad';
+  const imageUrl = adData.images && adData.images.length > 0 
+    ? `${BASE_URL}${adData.images[0].url}` 
+    : `${BASE_URL}/default-image.jpg`;  // Provide a default image
+  const url = window.location.href;
 
   return (
-    <Helmet>
-      {/* Open Graph / Facebook */}
-      <meta property="og:type" content="website" />
-      <meta property="og:title" content={adData.title} />
-      <meta property="og:description" content={description} />
-      <meta property="og:image" content={imageUrl} />
-      <meta property="og:url" content={window.location.href} />
+    <>
+      <Helmet>
+        <meta property="og:title" content={title} />
+        <meta property="og:description" content={description} />
+        <meta property="og:image" content={imageUrl} />
+        <meta property="og:url" content={url} />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="Your Marketplace" />
 
-      {/* Twitter Card */}
-      <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content={adData.title} />
-      <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={imageUrl} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={title} />
+        <meta name="twitter:description" content={description} />
+        <meta name="twitter:image" content={imageUrl} />
+      </Helmet>
 
-      {/* WhatsApp Card */}
-      <meta property="og:site_name" content="Your Site Name" />
-      <meta name="twitter:site" content="@yourTwitterHandle" />
-      <meta property="og:locale" content="en_US" />
-      <meta name="twitter:creator" content="@yourTwitterHandle" />
-      
-      {/* Additional WhatsApp-specific meta tags */}
-      <meta property="og:app_id" content="your_facebook_app_id" />
-      <meta name="twitter:card" content="summary_large_image" />
-      <meta property="og:type" content="article" />
-    </Helmet>
+     
+    </>
   );
 };
 

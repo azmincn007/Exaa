@@ -349,7 +349,7 @@ function SingleAd() {
 
   return (
     <div>
-       <ShareMetadata adData={adData} />
+       <ShareMetadata adData={adData} onWhatsAppShare={handleWhatsAppShare} />
       <div className="px-4 py-2">
         <DummyBreadcrumb className="w-full md:w-[70%]" title={adData.title} locationDistrict={adData.locationDistrict.name} locationTown={adData.locationTown.name} adCategory={adData.adCategory} adSubCategory={adData.adSubCategory} />
       </div>
