@@ -1,3 +1,4 @@
+
 import React from 'react'
 import { FaFacebookF } from "react-icons/fa";
 import { LuInstagram } from "react-icons/lu";
@@ -19,7 +20,7 @@ function Footer() {
               <li className='footer-content text-xs sm:text-sm'>Vulnerability Disclosure Program</li>
             </ul>
           </div>
-          
+
           <div className="col-span-1 sm:col-span-1 lg:col-span-4">
             <ul className="space-y-2 list-none">
               <li><a href="#" className="text-black font-semibold hover:text-gray-900 text-10 sm:text-12">POPULAR LOCATIONS</a></li>
@@ -29,7 +30,7 @@ function Footer() {
               <li className='footer-content text-xs sm:text-sm'>Calicut</li>
             </ul>
           </div>
-          
+
           <div className="col-span-1 sm:col-span-1 lg:col-span-2">
             <ul className="space-y-2 list-none">
               <li><a href="#" className="text-black font-semibold hover:text-gray-900 text-10 sm:text-12">ABOUT US</a></li>
@@ -37,13 +38,16 @@ function Footer() {
               <li className='footer-content text-xs sm:text-sm'>Tech@exxaa</li>
             </ul>
           </div>
-          
+
           <div className="col-span-1 sm:col-span-1 lg:col-span-2">
             <ul className="space-y-2 list-none">
               <li><a href="#" className="text-black font-semibold hover:text-gray-900 text-10 sm:text-12">FOLLOW US</a></li>
               <li className=''><div className='flex gap-2 text-sm sm:text-base'><FaFacebookF/> <LuInstagram/> <FaTwitter/> <BsPlayCircle/></div></li>
             </ul>
           </div>
+        </div>
+        <div className="text-center mt-8 text-xs md:text-sm text-gray-500">
+          All rights reserved © 2024-2025 Laila Ventures Pvt Ltd
         </div>
       </div>
     </footer>

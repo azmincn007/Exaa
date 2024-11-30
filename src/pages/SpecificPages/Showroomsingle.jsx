@@ -192,9 +192,7 @@ function Showroomsingle() {
                 <option value="lowToHigh">Low to High</option>
               </Select>
             </div>
-            <div>
-              <VscSettings className="h-10 w-10"/> 
-            </div>
+           
           </div>
           <div>
             <button

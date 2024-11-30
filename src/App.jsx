@@ -27,6 +27,7 @@ import HelpAndSupport from './components/ui/HelpAndSupport';
 import Settings from './components/ui/Settings';
 import AdPreviewPage from './components/Specific/Landing/AdPreviewPage';
 import ScrollToTop from './components/common/ScrolltoTOp';
+import { HelmetProvider } from 'react-helmet-async';
 
 export const TownContext = createContext();
 export const UserdataContext = createContext();
@@ -96,6 +97,7 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
+       <HelmetProvider>
       <AuthProvider>
         <SearchProvider>
           <UserdataContext.Provider value={{ userData, setUserData, isLoading }}>
@@ -143,6 +145,7 @@ function App() {
           </UserdataContext.Provider>
         </SearchProvider>
       </AuthProvider>
+      </HelmetProvider>
     </QueryClientProvider>
   );
 }

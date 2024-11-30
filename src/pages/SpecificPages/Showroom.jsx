@@ -69,8 +69,7 @@ const Showroom = () => {
   const [selectedTown] = useContext(TownContext);
   const [selectedDistrict] = useContext(DistrictContext);
 
-  const { searchText } = useSearch();
-  console.log(searchText);
+
 
   // Updated useQuery hook for showrooms
   const { data: showrooms, isLoading: isShowroomsLoading } = useQuery(

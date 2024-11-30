@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useCallback } from 'react';
 import {
   Box, VStack, Text, Grid, GridItem, SimpleGrid, useBreakpointValue, Select, Button, Drawer, 
   DrawerBody, DrawerHeader, DrawerOverlay, DrawerContent, DrawerCloseButton, useDisclosure, 
@@ -12,21 +12,23 @@ import CategoryDropdown from '../Catgorybased/CategoryDropdown';
 import DynamicFilters from '../Catgorybased/DynamicFilterss';
 import CardUser from '../../common/Cards/CardUser';
 import AdsService from '../../../Services/AdsServices';
-import RTOCodeFilter from '../Catgorybased/FiltersSingle/RtoCOdefilter';
+import { useSearch } from '../../../Hooks/SearchContext';
 
 const CategoryBasedGrid = () => {
   const { categoryId, categoryName } = useParams();
   const location = useLocation();
   const { subId } = location.state || {};
+  const { hasSearched, searchText } = useSearch();
 
-  
   const [selectedCategory, setSelectedCategory] = useState(null);
-  
   const [sortOption, setSortOption] = useState('relevance');
   const [visibleCount, setVisibleCount] = useState(16);
   const [selectedTown, selectedDistrict] = useContext(TownContext);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  
+  // Initialize filters with a default state
   const [filters, setFilters] = useState({
+    search: hasSearched ? searchText : '',
     fuel: [],
     yearStart: 2000,
     yearEnd: 2025,
@@ -57,7 +59,6 @@ const CategoryBasedGrid = () => {
     priceEnd: 3000000,
     floorNo:[],
     carParking:[],
-    // rtoCodes: [],
     brand:[],
     types:[],
     model:[],
@@ -72,6 +73,14 @@ const CategoryBasedGrid = () => {
   });
   const [currentPage, setCurrentPage] = useState(1);
 
+  // Update search text in filters whenever it changes
+  useEffect(() => {
+    setFilters(prevFilters => ({
+      ...prevFilters,
+      search: hasSearched ? searchText : '',
+    }));
+  }, [hasSearched, searchText]);
+
   // Fetch subcategories
   const { data: subCategories, isLoading: isLoadingSubCategories } = useQuery(
     ['subCategories', categoryId],
@@ -79,6 +88,7 @@ const CategoryBasedGrid = () => {
     { enabled: !!categoryId }
   );
 
+  // Set initial selected category
   useEffect(() => {
     if (subCategories && subCategories.length > 0) {
       if (subId) {
@@ -90,16 +100,39 @@ const CategoryBasedGrid = () => {
     }
   }, [subCategories, subId]);
 
-  // Fetch ads data
-  const { data: adsData, isLoading: isLoadingAdsData, refetch: refetchAdsData } = useQuery(
+  // Fetch ads data with comprehensive logging
+  const { 
+    data: adsData, 
+    isLoading: isLoadingAdsData, 
+    refetch: refetchAdsData 
+  } = useQuery(
     ['adsData', selectedCategory?.id, selectedTown, selectedDistrict, filters, sortOption],
-    () => AdsService.fetchAdsData({
-      subCategoryId: selectedCategory?.id,
-      selectedTownId: selectedTown || "all",
-      selectedDistrictId: selectedDistrict || "all",
-      filters,
-      sortOption
-    }),
+    () => {
+      // Comprehensive logging of API call parameters
+      console.log('Fetching Ads Data with Parameters:', {
+        subCategoryId: selectedCategory?.id,
+        selectedTownId: selectedTown || "all",
+        selectedDistrictId: selectedDistrict || "all",
+        filters: {
+          ...filters,
+          search: hasSearched ? searchText : ''
+        },
+        sortOption,
+        hasSearched,
+        searchText
+      });
+
+      return AdsService.fetchAdsData({
+        subCategoryId: selectedCategory?.id,
+        selectedTownId: selectedTown || "all",
+        selectedDistrictId: selectedDistrict || "all",
+        filters: {
+          ...filters,
+          search: hasSearched ? searchText : ''
+        },
+        sortOption
+      });
+    },
     { 
       enabled: !!selectedCategory?.id,
       onSuccess: (data) => {
@@ -111,22 +144,26 @@ const CategoryBasedGrid = () => {
     }
   );
 
+  // Handler for category selection
   const handleItemClick = (clickedItem) => {
     setSelectedCategory(clickedItem);
     setVisibleCount(16);
+    setCurrentPage(1); // Reset to first page when category changes
     if (isOpen) onClose();
   };
 
+  // Sort change handler
   const handleSortChange = (e) => {
     setSortOption(e.target.value);
   };
 
-  const filteredAndSortedAdsData = () => {
+  // Sorting function
+  const filteredAndSortedAdsData = useCallback(() => {
     if (!adsData || !adsData.data) {
       return [];
     }
     
-    const sorted = adsData.data.sort((a, b) => {
+    const sorted = [...adsData.data].sort((a, b) => {
       switch (sortOption) {
         case 'priceLowToHigh': return a.price - b.price;
         case 'priceHighToLow': return b.price - a.price;
@@ -137,12 +174,9 @@ const CategoryBasedGrid = () => {
     });
     
     return sorted;
-  };
+  }, [adsData, sortOption]);
 
-  const handleShowMore = () => {
-    setVisibleCount((prevCount) => prevCount + 16);
-  };
-
+  // Filter change handler
   const handleFilterChange = (newFilters) => {
     console.log('Filters changed:', newFilters);
     setFilters((prevFilters) => ({
@@ -150,21 +184,10 @@ const CategoryBasedGrid = () => {
       ...newFilters,
     }));
     
-    // Log the API call details
-    console.log('API Call:', {
-        subCategoryId: selectedCategory?.id,
-        selectedTownId: selectedTown || "all",
-        selectedDistrictId: selectedDistrict || "all",
-        filters: {
-          ...filters,
-          ...newFilters,
-        },
-        sortOption
-    });
-
     refetchAdsData(); // Refetch data when filters change
   };
 
+  // Pagination functions
   const renderPaginatedAds = (ads) => {
     const startIndex = (currentPage - 1) * 16;
     const endIndex = startIndex + 16;
@@ -193,11 +216,12 @@ const CategoryBasedGrid = () => {
     );
   };
 
-  // Updated breakpoint values
+  // Responsive breakpoints
   const columns = useBreakpointValue({ base: "1fr", md: "200px 1fr", lg: "300px 1fr" });
   const cardColumns = useBreakpointValue({ base: 2, sm: 2, md: 3, lg: 4 });
   const isMobile = useBreakpointValue({ base: true, md: false });
 
+  // Filter section component
   const FilterSection = () => (
     <VStack align="stretch" spacing={4}>
       <CategoryDropdown 

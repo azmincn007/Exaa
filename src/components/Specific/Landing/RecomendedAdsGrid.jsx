@@ -9,16 +9,17 @@ import { DistrictContext, TownContext } from '../../../App';
 import 'swiper/css';
 import 'swiper/css/pagination';
 import { Pagination } from 'swiper/modules';
+import { useSearch } from '../../../Hooks/SearchContext.jsx';
 
 const MemoizedCardUser = memo(CardUser);
 
 function RecommendedAdsGrid() {
   const [selectedTown] = useContext(TownContext);
   const [selectedDistrict, setSelectedDistrict] = useContext(DistrictContext);
-  
-  
+  const { hasSearched, searchText, setHasSearched } = useSearch();
+console.log(hasSearched);
+console.log(searchText);
 
-  
   
   const [visibleAds, setVisibleAds] = useState(16);
   const isSmallMobile = useBreakpointValue({ base: true, sm: false });
@@ -66,13 +67,13 @@ function RecommendedAdsGrid() {
   };
 
   const renderCard = (ad) => (
-    <SwiperSlide key={ad.id}>
+    <SwiperSlide key={ad?.id}>
       <MemoizedCardUser
-        id={ad.id}
-        adCategoryId={ad.adCategory.id}
-        adSubCategoryId={ad.adSubCategory.id}
+        id={ad?.id}
+        adCategoryId={ad?.adCategory?.id}
+        adSubCategoryId={ad?.adSubCategory?.id}
         isFeatured={ad.isFeatured}
-        imageUrl={ad.images?.url || ''}
+        imageUrl={ad?.images?.url || ''}
         price={ad.price}
         title={ad.title}
         location={ad.locationTown.name}

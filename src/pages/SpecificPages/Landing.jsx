@@ -103,7 +103,6 @@ function Landing() {
         </Box>
       )}
       
-      <Downlaoddiv/>
     </Box>
   );
 }

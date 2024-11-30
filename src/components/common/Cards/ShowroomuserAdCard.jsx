@@ -6,6 +6,7 @@ import { BASE_URL } from '../../../config/config';
 import DeleteConfirmationDialog from '../../modals/othermodals/DeleteConfirmation';
 import { useQueryClient } from 'react-query';
 import AdBoostBadge from '../buttons/AdBoostBadge';
+import { useNavigate } from 'react-router-dom';
 
 const formatDate = (dateString) => {
   const options = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -34,14 +35,16 @@ const ActionButton = ({ icon: Icon, onClick, backgroundColor }) => (
   <Box
     as="button"
     className={`p-2 rounded-md text-white ${backgroundColor === "red.500" ? "bg-red-500" : "bg-blue-600"}`}
-    onClick={onClick}
+    onClick={(e) => {
+      e.stopPropagation();
+      onClick();
+    }}
   >
     <Icon className="w-4 h-4" />
   </Box>
 );
-
 const ShowroomuserAdCard = ({ data, onEdit, onDelete, showroomId, token }) => {
-  
+  const navigate = useNavigate();
   const toast = useToast();
   const queryClient = useQueryClient();  
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -55,11 +58,15 @@ const ShowroomuserAdCard = ({ data, onEdit, onDelete, showroomId, token }) => {
     setIsDeleteDialogOpen(false);
   };
 
+  const handleCardClick = () => {
+    navigate(`/item?categoryId=${data.adCategory?.id}&adId=${data.id}&subCategoryId=${data.adSubCategory?.id}`);
+  };
+
   const isMobile = useBreakpointValue({ base: true, md: false });
 
   return (
     <>
-      <Box className="border-2 border-black rounded-lg overflow-hidden p-1 mb-4">
+      <Box className="border-2 border-black rounded-lg overflow-hidden p-1 mb-4"   onClick={handleCardClick}>
         {isMobile ? (
           // Mobile view structure
           <Box>
@@ -120,7 +127,7 @@ const ShowroomuserAdCard = ({ data, onEdit, onDelete, showroomId, token }) => {
           </Box>
         ) : (
           // Desktop view structure
-          <Grid className="grid grid-cols-12 gap-4">
+          <Grid className="grid grid-cols-12 gap-4"   onClick={handleCardClick}> 
             <GridItem className="col-span-3 relative">
               <Image 
                 src={`${BASE_URL}${data?.images?.url}`} 

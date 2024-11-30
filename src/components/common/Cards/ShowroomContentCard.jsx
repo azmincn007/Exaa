@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, Image, Text, IconButton, Flex, Button } from "@chakra-ui/react";
-import { FaPencilAlt, FaTrash, FaUserPlus, FaEllipsisH } from "react-icons/fa";
+import { FaPencilAlt, FaTrash, FaUserPlus, FaEllipsisH, FaEye } from "react-icons/fa";
 import { BASE_URL } from "../../../config/config";
 import axios from "axios";
 import { useAuth } from "../../../Hooks/AuthContext";
@@ -23,6 +23,11 @@ const ShowroomContentCard = ({ showroom, isSelected, onClick, onEdit, onDeleteSu
   const handleEdit = (e) => {
     e.stopPropagation();
     onEdit(showroom);
+  };
+  const handlePreview = (e) => {
+    e.stopPropagation();
+    // Navigate to the showroom preview page
+    window.open(`/showroom/${showroom.id}`, '_blank');
   };
 
   const handleDeleteClick = (e) => {
@@ -186,30 +191,41 @@ const ShowroomContentCard = ({ showroom, isSelected, onClick, onEdit, onDeleteSu
         _hover={{ transform: "scale(1.02)" }}
         position="relative"
       >
-        <Flex position="absolute" top={6} right={6} gap={2} zIndex={2}>
-          <IconButton 
-            icon={<FaPencilAlt />} 
-            aria-label="Edit showroom" 
-            size="sm" 
-            colorScheme="blue" 
-            bg="#4F7598" 
-            _hover={{ bg: "#3182CE" }} 
-            onClick={handleEdit} 
-            borderRadius="full" 
-            className="opacity-90 hover:opacity-100" 
-          />
-          <IconButton 
-            icon={<FaTrash />} 
-            aria-label="Delete showroom" 
-            size="sm" 
-            colorScheme="red" 
-            bg="red.500" 
-            _hover={{ bg: "red.600" }} 
-            onClick={handleDeleteClick} 
-            borderRadius="full" 
-            className="opacity-90 hover:opacity-100" 
-          />
-        </Flex>
+       <Flex position="absolute" top={6} right={6} gap={2} zIndex={2}>
+  <IconButton 
+    icon={<FaEye />} 
+    aria-label="Preview showroom" 
+    size="sm" 
+    colorScheme="green" 
+    bg="#38A169" 
+    _hover={{ bg: "#2F855A" }} 
+    onClick={handlePreview} 
+    borderRadius="full" 
+    className="opacity-90 hover:opacity-100" 
+  />
+  <IconButton 
+    icon={<FaPencilAlt />} 
+    aria-label="Edit showroom" 
+    size="sm" 
+    colorScheme="blue" 
+    bg="#4F7598" 
+    _hover={{ bg: "#3182CE" }} 
+    onClick={handleEdit} 
+    borderRadius="full" 
+    className="opacity-90 hover:opacity-100" 
+  />
+  <IconButton 
+    icon={<FaTrash />} 
+    aria-label="Delete showroom" 
+    size="sm" 
+    colorScheme="red" 
+    bg="red.500" 
+    _hover={{ bg: "red.600" }} 
+    onClick={handleDeleteClick} 
+    borderRadius="full" 
+    className="opacity-90 hover:opacity-100" 
+  />
+</Flex>
 
         <Box position="relative">
           <Image 
