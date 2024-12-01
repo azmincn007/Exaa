@@ -9,17 +9,16 @@ import { DistrictContext, TownContext } from '../../../App';
 import 'swiper/css';
 import 'swiper/css/pagination';
 import { Pagination } from 'swiper/modules';
-import { useSearch } from '../../../Hooks/SearchContext.jsx';
 
 const MemoizedCardUser = memo(CardUser);
 
 function RecommendedAdsGrid() {
   const [selectedTown] = useContext(TownContext);
   const [selectedDistrict, setSelectedDistrict] = useContext(DistrictContext);
-  const { hasSearched, searchText, setHasSearched } = useSearch();
-console.log(hasSearched);
-console.log(searchText);
+  
+  
 
+  
   
   const [visibleAds, setVisibleAds] = useState(16);
   const isSmallMobile = useBreakpointValue({ base: true, sm: false });

@@ -27,7 +27,7 @@ function DownloadDiv() {
       </div>
 
       <div className='p-4 flex flex-col justify-center items-center text-white'>
-        <h2 className='text-3xl mb-4 font-Inter'>Try the Exaa App on</h2>
+        <h2 className='text-3xl mb-4 font-Inter'>Try the Exxaa App on</h2>
         <div className='flex flex-col gap-4 sm:flex-row'>
           <div className='flex gap-4 bg-black text-white px-4 py-2 rounded-lg items-center'>
             <img src={apple} alt="" className='h-[30px]' />

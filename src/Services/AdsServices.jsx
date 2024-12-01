@@ -18,7 +18,6 @@ export const AdsService = {
        subCategoryId,
        selectedTownId,
        selectedDistrictId,
-       search,
        filters,
        sortOption = ''
      } = params;

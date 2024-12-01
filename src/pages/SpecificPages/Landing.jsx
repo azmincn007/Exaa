@@ -77,7 +77,7 @@ const Carousel = () => {
 
 function Landing() {
   const [selectedTown] = useContext(TownContext);
-  const { hasSearched, searchText, setHasSearched } = useSearch();
+
 
   useEffect(() => {
     // Reset hasSearched when the component mounts

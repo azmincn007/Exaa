@@ -26,6 +26,7 @@ function Showroomsingle() {
   const [selectedTown] = useContext(TownContext);
   const [selectedDistrict] = useContext(DistrictContext);
   const [isMobile, setIsMobile] = useState(false);
+  log
 
   const navigate = useNavigate();
   const { isLoggedIn, isInitialized } = useAuth();
