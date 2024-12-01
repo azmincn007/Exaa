@@ -27,7 +27,7 @@ import HelpAndSupport from './components/ui/HelpAndSupport';
 import Settings from './components/ui/Settings';
 import AdPreviewPage from './components/Specific/Landing/AdPreviewPage';
 import ScrollToTop from './components/common/ScrolltoTOp';
-import { HelmetProvider } from 'react-helmet-async';
+import { Helmet, HelmetProvider } from 'react-helmet-async';
 
 export const TownContext = createContext();
 export const UserdataContext = createContext();
@@ -94,7 +94,7 @@ function App() {
       localStorage.setItem('selectedDistrictId', selectedDistrict);
     }
   }, [selectedDistrict]);
-  const siteUrl = process.env.REACT_APP_SITE_URL || window.location.origin;
+  const siteUrl =  window.location.origin;
   return (
     <QueryClientProvider client={queryClient}>
                <HelmetProvider>
