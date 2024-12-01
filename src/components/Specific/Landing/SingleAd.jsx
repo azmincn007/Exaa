@@ -23,6 +23,7 @@ import AdBoostBadge from '../../common/buttons/AdBoostBadge';
 import { Phone } from 'lucide-react';
 import ChatWarningModal from '../../modals/othermodals/ChatWarningModal';
 import { ZoomIn, ZoomOut, X } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 
 const fetchAdData = async ({ queryKey }) => {
   const [_, adCategoryId, adId, token] = queryKey;
@@ -347,6 +348,13 @@ console.log(isAdFavourite);
 
   return (
     <div>
+        <Helmet>
+        <title>{adData.title} - Exxaa</title>
+        <meta name="description" content={adData.description} />
+        <meta property="og:title" content={`${adData.title} - Exxaa`} />
+        <meta property="og:description" content={adData.description} />
+        <meta property="og:image" content={adData.image[0]} />
+      </Helmet>
       <div className='px-4 py-2'>
 
       <DummyBreadcrumb className="w-full md:w-[70%]" title={adData.title} locationDistrict={adData.locationDistrict.name} locationTown={adData.locationTown.name} adCategory={adData.adCategory} adSubCategory={adData.adSubCategory} />
