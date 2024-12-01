@@ -94,10 +94,14 @@ function App() {
       localStorage.setItem('selectedDistrictId', selectedDistrict);
     }
   }, [selectedDistrict]);
-
+  const siteUrl = process.env.REACT_APP_SITE_URL || window.location.origin;
   return (
     <QueryClientProvider client={queryClient}>
-       
+               <HelmetProvider>
+            <Helmet>
+                <meta property="og:url" content={siteUrl} />
+            </Helmet>
+
       <AuthProvider>
         <SearchProvider>
           <UserdataContext.Provider value={{ userData, setUserData, isLoading }}>
@@ -145,6 +149,7 @@ function App() {
           </UserdataContext.Provider>
         </SearchProvider>
       </AuthProvider>
+      </HelmetProvider>
     </QueryClientProvider>
   );
 }
