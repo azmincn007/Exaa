@@ -353,7 +353,7 @@ console.log(isAdFavourite);
         <meta name="description" content={adData.description} />
         <meta property="og:title" content={`${adData.title} - Exxaa`} />
         <meta property="og:description" content={adData.description} />
-        <meta property="og:image" content={adData.image[0]} />
+        {/* <meta property="og:image" content={adData.image[0]} /> */}
       </Helmet>
       <div className='px-4 py-2'>
 
