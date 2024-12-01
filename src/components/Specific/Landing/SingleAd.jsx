@@ -348,13 +348,28 @@ console.log(isAdFavourite);
 
   return (
     <div>
-        <Helmet>
-        <title>{adData.title} - Exxaa</title>
-        <meta name="description" content={adData.description} />
-        <meta property="og:title" content={`${adData.title} - Exxaa`} />
-        <meta property="og:description" content={adData.description} />
-        {/* <meta property="og:image" content={adData.image[0]} /> */}
-      </Helmet>
+     <Helmet>
+  <title>{adData?.title || 'Exxaa Ad'} - Exxaa</title>
+  <meta 
+    name="description" 
+    content={adData?.description || 'Check out this amazing ad on Exxaa'} 
+  />
+  <meta 
+    property="og:title" 
+    content={`${adData?.title || 'Exxaa Ad'} - Exxaa`} 
+  />
+  <meta 
+    property="og:description" 
+    content={adData?.description || 'Check out this amazing ad on Exxaa'} 
+  />
+  {images.length > 0 && (
+    <meta 
+      property="og:image" 
+      content={`${BASE_URL}${images[0].url}`} 
+    />
+  )}
+  <meta property="og:type" content="website" />
+</Helmet>
       <div className='px-4 py-2'>
 
       <DummyBreadcrumb className="w-full md:w-[70%]" title={adData.title} locationDistrict={adData.locationDistrict.name} locationTown={adData.locationTown.name} adCategory={adData.adCategory} adSubCategory={adData.adSubCategory} />
