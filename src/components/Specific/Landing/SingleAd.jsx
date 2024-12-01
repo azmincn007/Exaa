@@ -350,24 +350,10 @@ console.log(isAdFavourite);
     <div>
      <Helmet>
   <title>{adData?.title || 'Exxaa Ad'} - Exxaa</title>
-  <meta 
-    name="description" 
-    content={adData?.description || 'Check out this amazing ad on Exxaa'} 
-  />
-  <meta 
-    property="og:title" 
-    content="asdasdasd" 
-  />
-  <meta 
-    property="og:description" 
-    content={adData?.description || 'Check out this amazing ad on Exxaa'} 
-  />
-  {images.length > 0 && (
-    <meta 
-      property="og:image" 
-      content={`${BASE_URL}${images[0].url}`} 
-    />
-  )}
+  <meta property="og:title" content="Your Website Title" />
+  <meta property="og:description" content="A short description of your website." />
+  <meta property="og:image" content="/packages.png" />
+  <meta property="og:url" content="%REACT_APP_SITE_URL%" />
   <meta property="og:type" content="website" />
 </Helmet>
       <div className='px-4 py-2'>
