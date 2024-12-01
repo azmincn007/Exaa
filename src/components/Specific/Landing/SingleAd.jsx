@@ -114,7 +114,54 @@ function SingleAd() {
       enabled: !!adCategoryId && !!adId,
     }
   );
-
+  useEffect(() => {
+    if (adData) {
+      // Dynamically update meta tags
+      document.title = `${adData.title} - Exxaa`;
+      
+      // Update or create meta tags
+      const updateOrCreateMetaTag = (name, content, property) => {
+        let element = document.querySelector(`meta[${property ? 'property' : 'name'}="${name}"]`);
+        if (!element) {
+          element = document.createElement('meta');
+          document.head.appendChild(element);
+        }
+        if (property) {
+          element.setAttribute('property', name);
+        } else {
+          element.setAttribute('name', name);
+        }
+        element.setAttribute('content', content);
+      };
+  
+      // Description
+      updateOrCreateMetaTag('description', adData.description || 'Discover amazing ads on Exxaa', false);
+      
+      // Open Graph tags
+      updateOrCreateMetaTag('og:title', `${adData.title} - Exxaa`, true);
+      updateOrCreateMetaTag('og:description', adData.description || 'Browse, buy, and sell with Exxaa', true);
+      
+      // Add image if available
+      if (adData.images && adData.images.length > 0) {
+        const imageUrl = `${BASE_URL}${adData.images[0].url}`;
+        updateOrCreateMetaTag('og:image', imageUrl, true);
+      }
+  
+      // Additional meta tags for better compatibility
+      updateOrCreateMetaTag('og:url', window.location.href, true);
+      updateOrCreateMetaTag('og:site_name', 'Exxaa', true);
+      
+      // Twitter Card tags
+      updateOrCreateMetaTag('twitter:card', 'summary_large_image', true);
+      updateOrCreateMetaTag('twitter:title', `${adData.title} - Exxaa`, true);
+      updateOrCreateMetaTag('twitter:description', adData.description || 'Discover amazing ads on Exxaa', true);
+      
+      if (adData.images && adData.images.length > 0) {
+        const imageUrl = `${BASE_URL}${adData.images[0].url}`;
+        updateOrCreateMetaTag('twitter:image', imageUrl, true);
+      }
+    }
+  }, [adData]);
   
 // Add these handlers in the SingleAd component
 const handleZoomIn = () => {
@@ -348,27 +395,8 @@ console.log(isAdFavourite);
 
   return (
     <div>
-     <Helmet>
+   <Helmet>
   <title>{adData?.title || 'Exxaa Ad'} - Exxaa</title>
-  <meta 
-    name="description" 
-    content={adData?.description || 'Check out this amazing ad on Exxaa'} 
-  />
-  <meta 
-    property="og:title" 
-    content={`${adData?.title || 'Exxaa Ad'} - Exxaa`} 
-  />
-  <meta 
-    property="og:description" 
-    content={adData?.description || 'Check out this amazing ad on Exxaa'} 
-  />
-  {images.length > 0 && (
-    <meta 
-      property="og:image" 
-      content={`${BASE_URL}${images[0].url}`} 
-    />
-  )}
-  <meta property="og:type" content="website" />
 </Helmet>
       <div className='px-4 py-2'>
 
