@@ -115,7 +115,41 @@ function SingleAd() {
     }
   );
 
-  
+  useEffect(() => {
+    // Manually update meta tags for broader compatibility
+    if (adData) {
+      // Update document title
+      document.title = `${adData.title || 'Exxaa Ad'} - Exxaa`;
+
+      // Update meta tags directly
+      const metaTags = [
+        { name: 'og:title', content: adData.title || 'Exxaa Ad' },
+        { 
+          name: 'og:description', 
+          content: adData.description 
+            ? adData.description.slice(0, 160) 
+            : 'Check out this amazing ad on Exxaa'
+        },
+        { name: 'twitter:title', content: adData.title || 'Exxaa Ad' },
+        { 
+          name: 'twitter:description', 
+          content: adData.description 
+            ? adData.description.slice(0, 160) 
+            : 'Check out this amazing ad on Exxaa'
+        }
+      ];
+
+      metaTags.forEach(tag => {
+        let element = document.querySelector(`meta[property="${tag.name}"], meta[name="${tag.name}"]`);
+        if (!element) {
+          element = document.createElement('meta');
+          element.setAttribute(tag.name.includes('og:') ? 'property' : 'name', tag.name);
+          document.head.appendChild(element);
+        }
+        element.setAttribute('content', tag.content);
+      });
+    }
+  }, [adData]);
 // Add these handlers in the SingleAd component
 const handleZoomIn = () => {
   setZoomLevel(prev => Math.min(prev + 0.5, 3)); // Max zoom 3x
@@ -348,14 +382,34 @@ console.log(isAdFavourite);
   
   return (
     <div>
-     <Helmet>
-  <title>{adData?.title || 'Exxaa Ad'} - Exxaa</title>
-  <meta property="og:title" content="Your Website Title" />
-  <meta property="og:description" content="A short description of your website." />
-  <meta property="og:image" content="/packages.png" />
-  <meta property="og:url" content="%REACT_APP_SITE_URL%" />
-  <meta property="og:type" content="website" />
-</Helmet>
+   <Helmet>
+        {/* Fallback meta tags */}
+        <title>{adData?.title || 'Exxaa Ad'} - Exxaa</title>
+        <meta 
+          property="og:title" 
+          content={adData?.title || 'Exxaa Ad'} 
+        />
+        <meta 
+          property="og:description" 
+          content={
+            adData?.description 
+              ? adData.description.slice(0, 160) 
+              : 'Check out this amazing ad on Exxaa'
+          } 
+        />
+        <meta 
+          name="twitter:title" 
+          content={adData?.title || 'Exxaa Ad'} 
+        />
+        <meta 
+          name="twitter:description" 
+          content={
+            adData?.description 
+              ? adData.description.slice(0, 160) 
+              : 'Check out this amazing ad on Exxaa'
+          } 
+        />
+      </Helmet>
       <div className='px-4 py-2'>
 
       <DummyBreadcrumb className="w-full md:w-[70%]" title={adData.title} locationDistrict={adData.locationDistrict.name} locationTown={adData.locationTown.name} adCategory={adData.adCategory} adSubCategory={adData.adSubCategory} />
