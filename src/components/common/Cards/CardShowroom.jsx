@@ -153,7 +153,7 @@ const CardShowroom = ({ ad }) => {
                     {ad.title}
                   </Text>
                   <Text className="text-base font-bold mt-1">
-                    {ad.price ? `₹${ad.price.toLocaleString()}` : <Text color="green.500">Service</Text>}
+                    {ad.price ? `₹ad.price.toLocaleString()}` : <Text color="green.500">Service</Text>}
                   </Text>
                 </Box>
                 <FavoriteIcon />

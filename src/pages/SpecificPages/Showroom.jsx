@@ -68,6 +68,7 @@ const Showroom = () => {
   const [visibleItems, setVisibleItems] = useState(12);
   const [selectedTown] = useContext(TownContext);
   const [selectedDistrict] = useContext(DistrictContext);
+  const { searchText } = useSearch(); // Correctly destructured
 
 
 

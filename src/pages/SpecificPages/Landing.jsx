@@ -1,3 +1,4 @@
+
 import React, { useContext, useEffect } from 'react';
 import { Box, Image, Skeleton, Text } from '@chakra-ui/react';
 import { useQuery } from 'react-query';
@@ -6,8 +7,8 @@ import { BASE_URL } from '../../config/config';
 import Downlaoddiv from '../../components/Specific/Landing/Downlaoddiv';
 import RecommendedAdsGrid from '../../components/Specific/Landing/RecomendedAdsGrid';
 import { TownContext } from '../../App'; // Make sure this path is correct
-import { useSearch } from '../../Hooks/SearchContext';
 import SearchedAdsGrid from '../../components/Specific/Landing/SearchedAdsGrid';
+import { useSearch } from '../../Hooks/SearchContext';
 
 const fetchBanners = async () => {
   const response = await axios.get(`${BASE_URL}/api/home-page`);
@@ -20,20 +21,17 @@ const Carousel = () => {
 
   React.useEffect(() => {
     if (!images || images.length === 0) return;
-
     const timer = setInterval(() => {
       setCurrentIndex((prevIndex) =>
         prevIndex === images.length - 1 ? 0 : prevIndex + 1
       );
     }, 10000);
-
     return () => clearInterval(timer);
   }, [images]);
 
   if (isLoading) {
     return <Skeleton height="200px" width="100%" />;
   }
-
   if (isError) {
     return <Box>Error loading images</Box>;
   }
@@ -77,7 +75,7 @@ const Carousel = () => {
 
 function Landing() {
   const [selectedTown] = useContext(TownContext);
-
+  const { hasSearched,setHasSearched } = useSearch(); // Correctly destructured
 
   useEffect(() => {
     // Reset hasSearched when the component mounts
@@ -86,10 +84,9 @@ function Landing() {
 
   return (
     <Box className='bg-offwhite py-8 font-Inter'>
-      <Box className='w-[60%]  mx-auto h-[200px]'>
+      <Box className='w-[60%] mx-auto h-[200px]'>
         <Carousel />
       </Box>
-      
       {selectedTown && (
         <Box className='w-[90%] md:w-[80%] mx-auto py-4 sm:py-16'>
           <Box className='font-semibold text-2xl mb-4'>
@@ -102,7 +99,6 @@ function Landing() {
           )}
         </Box>
       )}
-      
     </Box>
   );
 }

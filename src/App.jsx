@@ -97,7 +97,7 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-       <HelmetProvider>
+       
       <AuthProvider>
         <SearchProvider>
           <UserdataContext.Provider value={{ userData, setUserData, isLoading }}>
@@ -145,7 +145,6 @@ function App() {
           </UserdataContext.Provider>
         </SearchProvider>
       </AuthProvider>
-      </HelmetProvider>
     </QueryClientProvider>
   );
 }
