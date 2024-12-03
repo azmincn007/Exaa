@@ -101,7 +101,7 @@ function App() {
         <SEOMetaTags 
           title="Exxaa - Your Platform" 
           description="Discover, Connect, Trade" 
-          imageUrl="/path-to-your-og-image.jpg"
+         
         />
 
        
