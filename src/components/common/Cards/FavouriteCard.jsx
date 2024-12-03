@@ -25,6 +25,14 @@ function FavoriteCard({
     onUnfavorite(id, adCategoryId);
   };
 
+  const renderPriceOrService = () => {
+    if (price) {
+      return <p className='font-bold text-xl'>₹ {price}</p>;
+    } else {
+      return <p className='font-bold text-16 text-green-600'>Service</p>;
+    }
+  };
+
   return (
     <Link 
       to={`/item?categoryId=${adCategoryId}&adId=${id}&subCategoryId=${adSubCategoryId}`} 
@@ -57,7 +65,7 @@ function FavoriteCard({
             </div>
           </div>
           <div className='p-3 font-Roboto'>
-            <p className='font-bold text-xl'>₹ {price}</p>
+          {renderPriceOrService()}
             <p className='text-gray-700 whitespace-nowrap overflow-hidden text-overflow-ellipsis font-[400] font-Roboto text-[#002F34A3] tracking-widest'>{title}</p>
             <div className='mt-2 flex justify-between text-xs text-gray-500'>
               <p className='tracking-wide'>{location}</p>

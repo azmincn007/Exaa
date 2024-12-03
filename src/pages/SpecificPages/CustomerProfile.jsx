@@ -10,16 +10,17 @@ import 'swiper/css/pagination';
 import { BASE_URL } from '../../config/config';
 import CardShowroom from '../../components/common/Cards/CardShowroom';
 import { useQuery } from 'react-query';
+import { useAuth } from '../../Hooks/AuthContext';
 
 function CustomerProfile() {
   const { customerId } = useParams();
-  console.log(customerId);
   
   const [userAds, setUserAds] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [visibleCards, setVisibleCards] = useState(6);
   const [isMobile, setIsMobile] = useState(false);
+  const { isLoggedIn } = useAuth();
 
   const { data: sellerData, isLoading: profileLoading } = useQuery(
     ['userProfile', customerId],
@@ -60,10 +61,23 @@ function CustomerProfile() {
       setIsLoading(false);
       return;
     }
-
+  
     try {
+      const config = {};
+      
+      // Check if user is logged in and add bearer token if available
+      if (isLoggedIn) {
+        const userToken = localStorage.getItem('UserToken');
+        if (userToken) {
+          config.headers = {
+            Authorization: `Bearer ${userToken}`
+          };
+        }
+      }
+  
       const response = await axios.get(
-        `${BASE_URL}/api/find-other-user-ads/${customerId}`
+        `${BASE_URL}/api/find-other-user-ads/${customerId}`,
+        config
       );
       
       console.log('User Ads Response:', response.data);

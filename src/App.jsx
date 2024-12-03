@@ -28,6 +28,7 @@ import Settings from './components/ui/Settings';
 import AdPreviewPage from './components/Specific/Landing/AdPreviewPage';
 import ScrollToTop from './components/common/ScrolltoTOp';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
+import SEOMetaTags from './config/SeoMetaTags';
 
 export const TownContext = createContext();
 export const UserdataContext = createContext();
@@ -94,13 +95,18 @@ function App() {
       localStorage.setItem('selectedDistrictId', selectedDistrict);
     }
   }, [selectedDistrict]);
-  const siteUrl =  window.location.origin;
   return (
     <QueryClientProvider client={queryClient}>
                <HelmetProvider>
-            <Helmet>
-                <meta property="og:url" content={siteUrl} />
-            </Helmet>
+  
+        <SEOMetaTags 
+          title="Exxaa - Your Platform" 
+          description="Discover, Connect, Trade" 
+          imageUrl="/path-to-your-og-image.jpg"
+        />
+
+       
+      
 
       <AuthProvider>
         <SearchProvider>
@@ -121,7 +127,8 @@ function App() {
                       <Route path="/buy-packages/myorders" element={<BuyPackagesAndMyorders />} />
                       <Route path="/category/:categoryId/:categoryName" element={<Layout><CategoryBasedGrid /></Layout>} />
                       <Route path="/category/:categoryId/:categoryName/:subCategoryId" element={<Layout><CategoryBasedGrid /></Layout>} />
-                      <Route path="/item" element={<Layout><SingleAd /></Layout>} />                      <Route path="/profile" element={<Layout><Profile /></Layout>} />
+                      <Route path="/item" element={<Layout><SingleAd /></Layout>} />             
+                               <Route path="/profile" element={<Layout><Profile /></Layout>} />
                       <Route path="/profile/edit-profile" element={<Layout><EditProfile /></Layout>} />
                       <Route path="/showroom" element={<Layout><Showroom /></Layout>} />
                       <Route path="/my-showroom" element={<Layout><MyShowroom /></Layout>} />

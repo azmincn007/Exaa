@@ -23,7 +23,7 @@ import AdBoostBadge from '../../common/buttons/AdBoostBadge';
 import { Phone } from 'lucide-react';
 import ChatWarningModal from '../../modals/othermodals/ChatWarningModal';
 import { ZoomIn, ZoomOut, X } from 'lucide-react';
-import { Helmet } from 'react-helmet-async';
+import ContactModal from '../../modals/othermodals/ContactSellerModal';
 
 const fetchAdData = async ({ queryKey }) => {
   const [_, adCategoryId, adId, token] = queryKey;
@@ -104,6 +104,7 @@ function SingleAd() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
   const [zoomLevel, setZoomLevel] = useState(1);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   const { isLoggedIn, token } = useAuth();
 
@@ -115,41 +116,7 @@ function SingleAd() {
     }
   );
 
-  useEffect(() => {
-    // Manually update meta tags for broader compatibility
-    if (adData) {
-      // Update document title
-      document.title = `${adData.title || 'Exxaa Ad'} - Exxaa`;
-
-      // Update meta tags directly
-      const metaTags = [
-        { name: 'og:title', content: adData.title || 'Exxaa Ad' },
-        { 
-          name: 'og:description', 
-          content: adData.description 
-            ? adData.description.slice(0, 160) 
-            : 'Check out this amazing ad on Exxaa'
-        },
-        { name: 'twitter:title', content: adData.title || 'Exxaa Ad' },
-        { 
-          name: 'twitter:description', 
-          content: adData.description 
-            ? adData.description.slice(0, 160) 
-            : 'Check out this amazing ad on Exxaa'
-        }
-      ];
-
-      metaTags.forEach(tag => {
-        let element = document.querySelector(`meta[property="${tag.name}"], meta[name="${tag.name}"]`);
-        if (!element) {
-          element = document.createElement('meta');
-          element.setAttribute(tag.name.includes('og:') ? 'property' : 'name', tag.name);
-          document.head.appendChild(element);
-        }
-        element.setAttribute('content', tag.content);
-      });
-    }
-  }, [adData]);
+  
 // Add these handlers in the SingleAd component
 const handleZoomIn = () => {
   setZoomLevel(prev => Math.min(prev + 0.5, 3)); // Max zoom 3x
@@ -300,6 +267,14 @@ console.log(isAdFavourite);
     }
   };
 
+  const handleContactSeller = () => {
+    if (!isLoggedIn || !token) {
+      setIsLoginModalOpen(true);
+    } else {
+      setIsContactModalOpen(true);
+    }
+  };
+
   const handleCopyLink = () => {
     const currentUrl = window.location.href;
     navigator.clipboard.writeText(currentUrl).then(() => {
@@ -379,37 +354,9 @@ console.log(isAdFavourite);
   const currentImageUrl = imageCount > 0 ? `${BASE_URL}${images[currentImageIndex].url}` : '';
 
   const isCarCategory = adData.adCategory?.id === 2 && adData.adSubCategory?.id === 11;
-  
+
   return (
     <div>
-   <Helmet>
-        {/* Fallback meta tags */}
-        <title>{adData?.title || 'Exxaa Ad'} - Exxaa</title>
-        <meta 
-          property="og:title" 
-          content={adData?.title || 'Exxaa Ad'} 
-        />
-        <meta 
-          property="og:description" 
-          content={
-            adData?.description 
-              ? adData.description.slice(0, 160) 
-              : 'Check out this amazing ad on Exxaa'
-          } 
-        />
-        <meta 
-          name="twitter:title" 
-          content={adData?.title || 'Exxaa Ad'} 
-        />
-        <meta 
-          name="twitter:description" 
-          content={
-            adData?.description 
-              ? adData.description.slice(0, 160) 
-              : 'Check out this amazing ad on Exxaa'
-          } 
-        />
-      </Helmet>
       <div className='px-4 py-2'>
 
       <DummyBreadcrumb className="w-full md:w-[70%]" title={adData.title} locationDistrict={adData.locationDistrict.name} locationTown={adData.locationTown.name} adCategory={adData.adCategory} adSubCategory={adData.adSubCategory} />
@@ -620,7 +567,7 @@ console.log(isAdFavourite);
     {/* Desktop Contact Link */}
     <div className="hidden md:flex justify-center">
       <button 
-        
+            onClick={handleContactSeller}
         className="text-blue-500 font-semibold hover:underline focus:underline text-sm font-Inter transition-all duration-200"
       >
         Contact Seller
@@ -787,6 +734,11 @@ console.log(isAdFavourite);
         onClose={handleWarningClose}
       />
     </div>
+
+    <ContactModal 
+        isOpen={isContactModalOpen} 
+        onClose={() => setIsContactModalOpen(false)} 
+      />
     </div>
   );
 }

@@ -79,13 +79,15 @@ console.log(subCategoryId);
 
 
   return (
-    <VStack className="max-h-[200px] overflow-scroll" align="start" spacing={4}>
+    <VStack  align="start" spacing={4}>
       <Text className="font-semibold" size="sm">Select Models</Text>
+      <div className="max-h-[200px] overflow-scroll flex flex-col w-full gap-2">
       {models.map((model) => (
-        <Checkbox key={model.id} isChecked={selectedModels.includes(model.id)} onChange={() => handleModelChange(model.id)}>
+        <Checkbox  key={model.id} isChecked={selectedModels.includes(model.id)} onChange={() => handleModelChange(model.id)}>
           {model.name}
         </Checkbox>
       ))}
+      </div>
     </VStack>
   );
 };

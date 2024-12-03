@@ -8,14 +8,14 @@ const BrandFilter = ({ filterValues, handleFilterChange, subCategoryId, getUserT
     if (error) return <Alert status="error"><AlertIcon />{error.message}</Alert>;
   
     return (
-      <Box maxH="200px" className="overflow-y-scroll">
+      <Box >
         <Text className="font-semibold" size="sm" mb={2}>Brand</Text>
         <CheckboxGroup
           colorScheme="blue"
           value={filterValues.brand || []}
           onChange={(values) => handleFilterChange("brand", values)}
         >
-          <Stack spacing={2} direction="column">
+          <Stack spacing={2} direction="column" maxH="200px" className="overflow-y-scroll">
             {brands.map((brand) => (
               <Checkbox key={brand.id} value={brand.id.toString()}>
                 {brand.name}
