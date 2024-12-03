@@ -7,6 +7,7 @@ const SEOMetaTags = ({
   imageUrl = "/og-image.jpg"
 }) => {
   const siteUrl = window.location.origin
+console.log(siteUrl);
 
   return (
     <Helmet>
