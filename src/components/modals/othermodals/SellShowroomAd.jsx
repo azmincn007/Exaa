@@ -314,9 +314,18 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
     if (fieldName === 'locationDistrict' || fieldName === 'locationTown') {
       return null;
     }
+    console.log('Subcategory ID in renderField:', subCategoryId);
 
-    const config = getFieldConfig(fieldName, [], [], brands, models, variants, types);
-    
+    const config = getFieldConfig(
+      fieldName, 
+      [], 
+      [], 
+      brands, 
+      models, 
+      variants, 
+      types, 
+      subCategoryId  // Add this parameter
+    );
     if (!config) return null;
     
     switch(config.type) {

@@ -123,9 +123,9 @@ const specialFields = {
     }
   },
 };
-
 export const getFieldConfig = (fieldName, districts, towns, brands, models, variants, types, selectedSubCategoryId) => {
-  
+ console.log(selectedSubCategoryId);
+ 
   
   const commonRules = { required: `${fieldName} is required` };
   const numberRules = { ...commonRules, min: { value: 0, message: `${fieldName} must be positive` } };
@@ -137,7 +137,17 @@ export const getFieldConfig = (fieldName, districts, towns, brands, models, vari
     const field = specialFields[fieldName];
     if (['brand', 'model', 'variant', 'type'].includes(fieldName)) {
       const options = { brand: brands, model: models, variant: variants, type: types }[fieldName] || [];
-      const fieldRules = ['type', 'brand'].includes(fieldName) ? commonRules : {};
+      
+      // Modify the field rules to exclude brand for subcategory 3
+      const requiredFields = selectedSubCategoryId === '18' || 18
+        ? ['type'] 
+        : ['type', 'brand'];
+
+        console.log(requiredFields);
+        
+      
+      const fieldRules = requiredFields.includes(fieldName) ? commonRules : {};
+      
       return { ...field, options, rules: fieldRules };
     }
     if (fieldName === 'price') {

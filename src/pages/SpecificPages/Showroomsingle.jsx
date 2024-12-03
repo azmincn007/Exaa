@@ -59,7 +59,16 @@ function Showroomsingle() {
   };
 
   const fetchOtherShowroomAds = async () => {
+    const headers = {};
+    // Get token from localStorage or wherever it's stored
+    const token = localStorage.getItem('UserToken');
+    
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+  
     const response = await axios.get(`${BASE_URL}/api/find-other-showroom-ads/${id}`, {
+      headers, // Add headers to the request
       params: {
         adSubCategoryId: showroomData?.adSubCategory?.id,
         locationTownId: selectedTown === "all" ? '"all"' : String(selectedTown),
