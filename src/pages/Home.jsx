@@ -4,6 +4,7 @@ import PackagesAndOrders from './SpecificPages/PackagesandOrders';
 import LocationModal from '../components/modals/othermodals/LocationModal';
 import Layout from './Layout';
 import { useAuth } from '../Hooks/AuthContext';
+import SEOMetaTags from '../config/SeoMetaTags';
 
 function Home() {
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
@@ -36,6 +37,11 @@ function Home() {
 
   return (
     <>
+       <SEOMetaTags 
+          title="Exxaa - Your Platform" 
+          description="Discover, Connect, Trade" 
+          imageUrl="/path-to-your-og-image.jpg"
+        />
         <Landing />
 
       <LocationModal isOpen={isLocationModalOpen} onClose={handleLocationModalClose} />

@@ -97,7 +97,6 @@ function App() {
   }, [selectedDistrict]);
   return (
     <QueryClientProvider client={queryClient}>
-               <HelmetProvider>
   
         <SEOMetaTags 
           title="Exxaa - Your Platform" 
@@ -156,7 +155,6 @@ function App() {
           </UserdataContext.Provider>
         </SearchProvider>
       </AuthProvider>
-      </HelmetProvider>
     </QueryClientProvider>
   );
 }

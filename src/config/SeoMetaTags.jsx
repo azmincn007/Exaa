@@ -1,16 +1,16 @@
-import React from 'react';
-import { Helmet } from 'react-helmet-async';
+import React from 'react'
+import { Helmet } from 'react-helmet-async'
 
-const SEOMetaTags = ({ 
-  title = "Exxaa - Your Platform", 
-  description = "Discover, Connect, Trade", 
-  imageUrl = "/default-og-image.jpg" 
+const SEOMetaTags = ({
+  title = "Exxaa - Your Platform",
+  description = "Discover, Connect, Trade",
+  imageUrl = "/og-image.jpg"
 }) => {
-  const siteUrl = window.location.origin;
+  const siteUrl = window.location.origin
 
   return (
     <Helmet>
-      {/* Primary Meta Tags */}
+      {/* Basic Meta Tags */}
       <title>{title}</title>
       <meta name="description" content={description} />
 
@@ -20,12 +20,10 @@ const SEOMetaTags = ({
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
       <meta property="og:image" content={`${siteUrl}${imageUrl}`} />
-      <meta property="og:image:secure_url" content={`${siteUrl}${imageUrl}`} />
-      <meta property="og:image:type" content="image/jpeg" />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
 
-      {/* Twitter Card */}
+      {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:url" content={siteUrl} />
       <meta name="twitter:title" content={title} />
@@ -35,7 +33,7 @@ const SEOMetaTags = ({
       {/* WhatsApp */}
       <meta property="og:site_name" content="Exxaa" />
     </Helmet>
-  );
-};
+  )
+}
 
-export default SEOMetaTags;
+export default SEOMetaTags
