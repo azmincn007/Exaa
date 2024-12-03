@@ -37,11 +37,7 @@ function Home() {
 
   return (
     <>
-       <SEOMetaTags 
-          title="Exxaa - Your Platform" 
-          description="Discover, Connect, Trade" 
-          imageUrl="/path-to-your-og-image.jpg"
-        />
+  
         <Landing />
 
       <LocationModal isOpen={isLocationModalOpen} onClose={handleLocationModalClose} />
