@@ -27,8 +27,6 @@ import HelpAndSupport from './components/ui/HelpAndSupport';
 import Settings from './components/ui/Settings';
 import AdPreviewPage from './components/Specific/Landing/AdPreviewPage';
 import ScrollToTop from './components/common/ScrolltoTOp';
-import { Helmet, HelmetProvider } from 'react-helmet-async';
-import SEOMetaTags from './config/SeoMetaTags';
 
 export const TownContext = createContext();
 export const UserdataContext = createContext();
