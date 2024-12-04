@@ -59,7 +59,10 @@ const EditShowroomad = ({
   });
 
   // Modify the API hooks to include the required field check
-  const { data: brands } = useBrands(
+  const { 
+    data: brands, 
+    isLoading: areBrandsLoading 
+  } = useBrands(
     isOpen, 
     getUserToken, 
     subCategoryId,
