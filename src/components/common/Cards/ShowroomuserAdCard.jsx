@@ -48,6 +48,7 @@ const ShowroomuserAdCard = ({ data, onEdit, onDelete, showroomId, token }) => {
   const toast = useToast();
   const queryClient = useQueryClient();  
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+console.log(data);
 
   const handleDeleteClick = () => {
     setIsDeleteDialogOpen(true);
@@ -59,9 +60,14 @@ const ShowroomuserAdCard = ({ data, onEdit, onDelete, showroomId, token }) => {
   };
 
   const handleCardClick = () => {
-    navigate(`/item?categoryId=${data.adCategory?.id}&adId=${data?.id}&subCategoryId=${data.adSubCategory?.id}`);
+    navigate('/ad-preview', {
+      state: {
+        adCategoryId: data.adCategory?.id,
+        adId: data?.id,
+        isActive: true
+      }
+    });
   };
-
   
 
   const isMobile = useBreakpointValue({ base: true, md: false });

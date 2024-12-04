@@ -99,14 +99,14 @@ function App() {
 
        
       
-
+  <Router>
       <AuthProvider>
         <SearchProvider>
           <UserdataContext.Provider value={{ userData, setUserData, isLoading }}>
             <UserDataRefetchContext.Provider value={fetchUserData}>
               <DistrictContext.Provider value={[selectedDistrict, setSelectedDistrict]}>
                 <TownContext.Provider value={[selectedTown, setSelectedTown]}>
-                  <Router>
+                
                     <ScrollToTop/>
                     <Routes>
                       <Route path="/" element={<Layout searchType="home"><Home /></Layout>} />
@@ -141,13 +141,14 @@ function App() {
                      
 
                     </Routes>
-                  </Router>
+                 
                 </TownContext.Provider>
               </DistrictContext.Provider>
             </UserDataRefetchContext.Provider>
           </UserdataContext.Provider>
         </SearchProvider>
       </AuthProvider>
+      </Router>
     </QueryClientProvider>
   );
 }

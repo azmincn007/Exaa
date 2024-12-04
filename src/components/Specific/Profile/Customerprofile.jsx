@@ -1,11 +1,21 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Mail, MapPin, Phone, Share2, Copy, User } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 import { Card, CardBody, CardHeader, Collapse, useToast } from '@chakra-ui/react';
 import { UserdataContext } from '../../../App';
 import { BASE_URL } from '../../../config/config';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../Hooks/AuthContext';
 
 const CustomerProfileComponent = ({sellerName, sellerPhone, sellerProfile,sellerLocation}) => {
+  const navigate = useNavigate();
+  const { isLoggedIn, isInitialized, getToken } = useAuth();
+ 
+  useEffect(() => {
+    if (isInitialized && !isLoggedIn) {
+      navigate('/');
+    }
+  }, [isInitialized, isLoggedIn, navigate]);
   console.log(sellerProfile);
   
   const [isShareExpanded, setIsShareExpanded] = useState(false);

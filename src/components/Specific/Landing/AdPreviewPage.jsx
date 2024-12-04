@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useLocation, Navigate } from 'react-router-dom';
 import { FaChevronLeft, FaChevronRight, FaWhatsapp } from 'react-icons/fa';
-import { Copy, Heart, Eye } from 'lucide-react';
+import { Copy, Heart, Eye, Share2, Facebook } from 'lucide-react';
 import { useQuery } from 'react-query';
 import axios from 'axios';
-import { Button, Modal, ModalOverlay, ModalContent, ModalBody, ModalCloseButton, useDisclosure, useToast } from '@chakra-ui/react';
+import { Button, Modal, ModalOverlay, ModalContent, ModalBody, ModalCloseButton, useDisclosure, useToast, Popover, PopoverTrigger, PopoverContent, PopoverBody } from '@chakra-ui/react';
 import { BASE_URL } from '../../../config/config';
 import CarCar from '../AdSingleStructure/CarCar';
 import Rest from '../AdSingleStructure/Rest';
@@ -98,6 +98,12 @@ function AdPreviewPage() {
     if (isExpired) return "This ad has expired. Sharing features are disabled.";
     return null;
   };
+  const handleFacebookShare = () => {
+    const currentUrl = window.location.href;
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`;
+    window.open(facebookUrl, '_blank');
+  };
+
 
   const formatDescription = (description) => {
     if (!description) return 'No description available.';
@@ -129,7 +135,41 @@ function AdPreviewPage() {
               >
                 <FaChevronLeft className="text-white text-xl" />
               </button>
+              <div className="absolute top-4 right-4 z-20 flex gap-3">
+    {isActive && (
+      <Popover placement="bottom-end">
+        <PopoverTrigger>
+          <button 
+            className="p-2 rounded-full bg-black/50 hover:bg-black/70 transition-colors text-white"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Share2 size={20} />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto bg-white rounded-lg shadow-lg p-2">
+          <PopoverBody>
+            <div className="flex gap-3 items-center">
+              <button
+                onClick={handleWhatsAppShare}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                title="Share on WhatsApp"
+              >
+                <FaWhatsapp size={20} className="text-green-600" />
+              </button>
               
+              <button
+                onClick={handleFacebookShare}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                title="Share on Facebook"
+              >
+                <Facebook size={20} className="text-blue-600" />
+              </button>
+            </div>
+          </PopoverBody>
+        </PopoverContent>
+      </Popover>
+    )}
+  </div>
               {imageCount > 0 ? (
                 <div 
                   className="w-full h-full px- bg-black flex justify-center items-center cursor-pointer" 

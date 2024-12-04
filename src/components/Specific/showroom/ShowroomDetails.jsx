@@ -22,7 +22,6 @@ const ShowroomDetails = ({
   websiteLink,
   phone
 }) => {
-  console.log(phone);
   
   const { isLoggedIn } = useAuth();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);

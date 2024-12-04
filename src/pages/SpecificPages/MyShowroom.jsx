@@ -90,10 +90,25 @@ const MyShowroom = () => {
   });
 
   useEffect(() => {
-    if (showrooms && showrooms.length > 0 && !selectedShowroom) {
+    if (showrooms && showrooms.length > 0) {
+      // Try to get the previously selected showroom from local storage
+      const storedShowroomId = localStorage.getItem('selectedShowroomId');
+      
+      if (storedShowroomId) {
+        // Find the showroom that matches the stored ID
+        const persistedShowroom = showrooms.find(showroom => showroom.id === parseInt(storedShowroomId));
+        
+        // If found, set it as the selected showroom
+        if (persistedShowroom) {
+          setSelectedShowroom(persistedShowroom);
+          return;
+        }
+      }
+      
+      // If no persisted showroom or not found, select the first showroom
       setSelectedShowroom(showrooms[0]);
     }
-  }, [showrooms, selectedShowroom]);
+  }, [showrooms]);
 
   const handleOpen = () => setIsOpen(true);
   const handleClose = () => setIsOpen(false);
@@ -117,10 +132,11 @@ const MyShowroom = () => {
     [refetchShowrooms, handleClose, toast]
   );
 
-  const handleShowroomSelect = useCallback((showroom) => {
-    setSelectedShowroom(showroom);
-  }, []);
-
+// When a showroom is selected, update local storage
+const handleShowroomSelect = useCallback((showroom) => {
+  setSelectedShowroom(showroom);
+  localStorage.setItem('selectedShowroomId', showroom.id.toString());
+}, []);
   const handleShowroomDelete = useCallback(
     async (deletedShowroomId) => {
       await refetchShowrooms();

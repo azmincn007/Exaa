@@ -27,7 +27,6 @@ function Showroomsingle() {
   const [selectedDistrict] = useContext(DistrictContext);
   const [isMobile, setIsMobile] = useState(false);
  
-
   const navigate = useNavigate();
   const { isLoggedIn, isInitialized } = useAuth();
 
@@ -44,7 +43,6 @@ function Showroomsingle() {
 
   const fetchShowroomData = async () => {
     const headers = {};
-    // Get token from localStorage or wherever it's stored
     const token = localStorage.getItem('UserToken');
     
     if (token) {
@@ -60,7 +58,6 @@ function Showroomsingle() {
 
   const fetchOtherShowroomAds = async () => {
     const headers = {};
-    // Get token from localStorage or wherever it's stored
     const token = localStorage.getItem('UserToken');
     
     if (token) {
@@ -68,7 +65,7 @@ function Showroomsingle() {
     }
   
     const response = await axios.get(`${BASE_URL}/api/find-other-showroom-ads/${id}`, {
-      headers, // Add headers to the request
+      headers,
       params: {
         adSubCategoryId: showroomData?.adSubCategory?.id,
         locationTownId: selectedTown === "all" ? '"all"' : String(selectedTown),
@@ -86,7 +83,7 @@ function Showroomsingle() {
     fetchShowroomData,
     {
       refetchInterval: 3000,
-      refetchIntervalInBackground: false, // Don't fetch when tab is not active
+      refetchIntervalInBackground: false,
       onError: (error) => {
         console.error("Error fetching showroom data:", error);
       }
@@ -154,7 +151,7 @@ function Showroomsingle() {
 
   const imageUrls = showroomData?.images && showroomData.images.length > 0
     ? showroomData.images.map(image => `${BASE_URL}${image?.url}`)
-    : [Showroomsingleimg]; // Default to an array with a single image
+    : [Showroomsingleimg];
 
   return (
     <div className="w-[80%] mx-auto font-Inter">
@@ -174,92 +171,84 @@ function Showroomsingle() {
         websiteLink={showroomData?.websiteLink}
         phone={showroomData?.phone}
       />
-      <div className="py-2">
-        <h1 className="font-semibold py-2">All Ads</h1>
-        <div className="bg-[#0071BC1A] flex justify-between items-center">
-          <div className="flex gap-4 items-center">
-            <div className="w-24 py-2">
-              <Select 
-                placeholder="Sort by" 
-                className="border-2 border-black text-black rounded-full" 
-                size="sm"
-                onChange={handleSortChange}
-                value={sortOrder}
-              >
-                <option value="aToZ">A to Z</option>
-                <option value="zToA">Z to A</option>
-              </Select>
+      
+      {sortedAndFilteredAds && sortedAndFilteredAds.length > 0 && (
+        <div className="py-2">
+          <h1 className="font-semibold py-2">All Ads</h1>
+          <div className="bg-[#0071BC1A] flex justify-between items-center">
+            <div className="flex gap-4 items-center">
+              <div className="w-24 py-2">
+                <Select 
+                  placeholder="Sort by" 
+                  className="border-2 border-black text-black rounded-full" 
+                  size="sm"
+                  onChange={handleSortChange}
+                  value={sortOrder}
+                >
+                  <option value="aToZ">A to Z</option>
+                  <option value="zToA">Z to A</option>
+                </Select>
+              </div>
+              <div className="w-24 py-2">
+                <Select 
+                  placeholder="Budget" 
+                  className="border-2 border-black text-black rounded-full" 
+                  size="sm"
+                  onChange={handleBudgetChange}
+                  value={budgetFilter}
+                >
+                  <option value="highToLow">High to Low</option>
+                  <option value="lowToHigh">Low to High</option>
+                </Select>
+              </div>
             </div>
-            <div className="w-24 py-2">
-              <Select 
-                placeholder="Budget" 
-                className="border-2 border-black text-black rounded-full" 
-                size="sm"
-                onChange={handleBudgetChange}
-                value={budgetFilter}
+          </div>
+          
+          {isMobile ? (
+            <div className="mt-4">
+              <Swiper
+                spaceBetween={16}
+                slidesPerView={1.6}
+                centeredSlides={false}
+                pagination={{ clickable: true }}
+                className="mySwiper"
+                breakpoints={{
+                  0: {
+                    slidesPerView: 1.2,
+                  },
+                  400: {
+                    slidesPerView: 1.6,
+                  },
+                }}
               >
-                <option value="highToLow">High to Low</option>
-                <option value="lowToHigh">Low to High</option>
-              </Select>
+                {sortedAndFilteredAds.slice(0, visibleCards).map((ad) => (
+                  <SwiperSlide key={ad.id}>
+                    <CardShowroom ad={ad} />
+                  </SwiperSlide>
+                ))}
+              </Swiper>
             </div>
-           
-          </div>
-          <div>
-            <button
-              onClick={handleDateSort}
-              className={`flex items-center justify-center p-2 rounded-full transition-colors ${
-                dateSort ? 'bg-blue-500 text-white' : 'bg-transparent text-black'
-              }`}
-            >
-              <MdDateRange className="h-6 w-6" />
-            </button>
-          </div>
-        </div>
-        
-        {isMobile ? (
-          <div className="mt-4">
-             <Swiper
-      spaceBetween={16}
-      slidesPerView={1.6}
-      centeredSlides={false}
-      pagination={{ clickable: true }}
-      className="mySwiper"
-      breakpoints={{
-        0: {
-          slidesPerView: 1.2, // 1.2 slides per view for devices below 400px
-        },
-        400: {
-          slidesPerView: 1.6, // Default for devices 400px and above
-        },
-      }}
-    >
-      {sortedAndFilteredAds.slice(0, visibleCards).map((ad) => (
-        <SwiperSlide key={ad.id}>
-          <CardShowroom ad={ad} />
-        </SwiperSlide>
-      ))}
-    </Swiper>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-4 mt-4">
-            {sortedAndFilteredAds.slice(0, visibleCards).map((ad) => (
-              <CardShowroom key={ad.id} ad={ad} />
-            ))}
-          </div>
-        )}
+          ) : (
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              {sortedAndFilteredAds.slice(0, visibleCards).map((ad) => (
+                <CardShowroom key={ad.id} ad={ad} />
+              ))}
+            </div>
+          )}
 
-        {visibleCards < sortedAndFilteredAds.length && (
-          <div className="flex justify-end mt-4">
-            <Button
-              onClick={loadMore}
-              className="bg-[#0071BC] text-white px-4 flex gap-4 font-Inter font-400 rounded-lg"
-              size="sm"
-            >
-              <span className="text-12">Load More</span> <FaChevronRight />
-            </Button>
-          </div>
-        )}
-      </div>
+          {visibleCards < sortedAndFilteredAds.length && (
+            <div className="flex justify-end mt-4">
+              <Button
+                onClick={loadMore}
+                className="bg-[#0071BC] text-white px-4 flex gap-4 font-Inter font-400 rounded-lg"
+                size="sm"
+              >
+                <span className="text-12">Load More</span> <FaChevronRight />
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

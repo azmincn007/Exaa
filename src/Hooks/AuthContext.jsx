@@ -1,8 +1,10 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { useNavigate, Navigate } from 'react-router-dom';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
+  const navigate = useNavigate(); // This must be inside a Router
   const [token, setToken] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -18,7 +20,7 @@ export const AuthProvider = ({ children }) => {
     if (jwtToken) {
       localStorage.setItem('UserToken', jwtToken);
       setToken(jwtToken);
-      console.log('Token stored:', jwtToken);
+      navigate('/'); // Redirect after login
     } else {
       console.error('Invalid token for login');
     }
@@ -27,18 +29,15 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('UserToken');
     setToken(null);
+    navigate('/'); // Redirect to login
   };
 
-  const getToken = () => token;
-
-  const isLoggedIn = Boolean(token);
-
   const value = {
-    isLoggedIn,
+    isInitialized,
+    isLoggedIn: Boolean(token),
     login,
     logout,
-    getToken,
-    isInitialized,
+    getToken: () => token,
     token,
   };
 
@@ -51,4 +50,15 @@ export const useAuth = () => {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
+};
+
+// Separate Protected Route component
+export const ProtectedRoute = ({ children }) => {
+  const { isLoggedIn, isInitialized } = useAuth();
+  
+  if (!isInitialized) {
+    return <div>Loading...</div>; // Or a loading spinner
+  }
+
+  return isLoggedIn ? children : <Navigate to="/" replace />;
 };

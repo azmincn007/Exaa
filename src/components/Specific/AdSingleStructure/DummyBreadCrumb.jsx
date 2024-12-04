@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 const Breadcrumb = ({ locationDistrict, locationTown, adCategory, adSubCategory, title }) => {
     const navigate = useNavigate();
 
-    console.log(title);
     
   const items = [
     { label: 'Home', isLink: true },

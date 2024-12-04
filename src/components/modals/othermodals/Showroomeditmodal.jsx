@@ -593,7 +593,7 @@ const ShowroomEditModal = ({ isOpen, onClose, showroomId, onSuccess }) => {
                     </Text>
                   </ImageUploadBox>
                 )}
-                <input id="imageUpload" type="file" accept="image/*" style={{ display: "none" }} onChange={handleImageUpload} />
+                <input id="imageUpload" type="file" accept="image/*" style={{ display: "none" }} multiple onChange={handleImageUpload} />
               </Flex>
             </FormControl>
 

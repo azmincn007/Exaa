@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Tab, TabList, TabPanel, TabPanels, Tabs, Skeleton, Box, Text, Image, Stack } from "@chakra-ui/react";
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import axios from 'axios';
@@ -6,6 +6,8 @@ import { BASE_URL } from '../../config/config';
 import FavoriteCard from '../../components/common/Cards/FavouriteCard';
 import AdListing from '../../components/common/Cards/AdlistingCard';
 import emptyIllus from '../../assets/empty.png';
+import { useAuth } from '../../Hooks/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 function SkeletonCard() {
   return (
@@ -31,6 +33,14 @@ function EmptyState({ message }) {
 
 function MyAdsPage() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const { isLoggedIn, isInitialized, getToken } = useAuth();
+ 
+  useEffect(() => {
+    if (isInitialized && !isLoggedIn) {
+      navigate('/');
+    }
+  }, [isInitialized, isLoggedIn, navigate]);
 
   // Query for user ads
   const { data: userAds, isLoading: isLoadingUserAds, error: userAdsError } = useQuery('userAds', async () => {

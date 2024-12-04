@@ -107,6 +107,7 @@ function SingleAd() {
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   const { isLoggedIn, token } = useAuth();
+  
 
   const { data: adData, isLoading, error } = useQuery(
     ['adData', adCategoryId, adId, token],

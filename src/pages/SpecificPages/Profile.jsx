@@ -13,14 +13,14 @@ import { useAuth } from "../../Hooks/AuthContext";
 import { ProfileListings } from "../../components/Specific/Profile/ProfileListings";
 
 const Profile = () => {
-  const navigate = useNavigate();
+
   const queryClient = useQueryClient();
   const toast = useToast();
   
   
   
   const { userData, isLoading: isUserDataLoading } = useContext(UserdataContext);
-  
+  const navigate = useNavigate();
   const { isLoggedIn, isInitialized, getToken } = useAuth();
  
   useEffect(() => {
