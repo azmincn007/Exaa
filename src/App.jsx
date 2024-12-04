@@ -98,10 +98,6 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
   
-  <SEOMetaTags 
-  title="Exxaa - Your Platform" 
-  description="Discover, Connect, Trade" 
-/>
 
        
       

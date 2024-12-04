@@ -4,7 +4,6 @@ import PackagesAndOrders from './SpecificPages/PackagesandOrders';
 import LocationModal from '../components/modals/othermodals/LocationModal';
 import Layout from './Layout';
 import { useAuth } from '../Hooks/AuthContext';
-import SEOMetaTags from '../config/SeoMetaTags';
 
 function Home() {
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
