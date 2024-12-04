@@ -5,13 +5,13 @@
   # Build command
   command = "npm run build"
 
-# Redirects and Rewrites
+# Redirects for client-side routing
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
-# Headers for security and performance
+# Headers for SEO and performance
 [[headers]]
   for = "/*"
   [headers.values]
@@ -19,60 +19,12 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
     
-    # Cache control for different file types
-    Cache-Control = '''
-    public,
-    max-age=0,
-    must-revalidate'''
+    # Basic SEO and caching
+    Cache-Control = "public, max-age=0, must-revalidate"
 
-# Performance and caching for static assets
+# Specific headers for static assets
 [[headers]]
   for = "/assets/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
-
-# Compression
-[[plugins]]
-  package = "netlify-plugin-minify-html"
-
-# Pre-rendering for better SEO
-[[plugins]]
-  package = "@netlify/plugin-prerender"
-  
-  [plugins.inputs]
-    # Optional configuration for prerendering
-    # Specify routes to prerender
-    routes = [
-      "/",
-      "/category/*",
-      "/item",
-      "/profile"
-    ]
-
-# Environment-specific builds
-[context.production]
-  command = "npm run build"
-  environment = { NODE_VERSION = "18" }
-
-[context.deploy-preview]
-  command = "npm run build:preview"
-
-[context.branch-deploy]
-  command = "npm run build:staging"
-
-# Serverless functions (if you use them)
-[functions]
-  directory = "netlify/functions"
-
-# Form handling
-[build.environment]
-  # Add any build-time environment variables
-  VITE_SOME_KEY = "some_value"
-
-# Custom domains and HTTPS
-[[headers]]
-  for = "/"
-  [headers.values]
-    X-Robots-Tag = "index, follow"
