@@ -2,8 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter,
   ModalBody, ModalCloseButton, Button, FormControl, FormLabel,
-  Input, NumberInput, NumberInputField, Checkbox, RadioGroup, 
-  Radio, Stack, useToast, VStack, FormErrorMessage, Box, Flex, 
+  Input, NumberInput, NumberInputField, Checkbox, RadioGroup,
+  Radio, Stack, useToast, VStack, FormErrorMessage, Box, Flex,
   Image, Icon, Text, useBreakpointValue, Select, Spinner, Center
 } from '@chakra-ui/react';
 import axios from 'axios';
@@ -20,19 +20,19 @@ import TestModal from './TestModal';
 import { useQueryClient } from 'react-query';
 
 
-const EditShowroomad = ({ 
-  isOpen, 
-  onClose, 
-  ad, 
-  onSuccess, 
-  categoryId, 
-  subCategoryId, 
-  districtId, 
-  townId, 
+const EditShowroomad = ({
+  isOpen,
+  onClose,
+  ad,
+  onSuccess,
+  categoryId,
+  subCategoryId,
+  districtId,
+  townId,
   showroomId,
-  onShowSuccess 
+  onShowSuccess
 }) => {
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [adData, setAdData] = useState(null);
@@ -60,15 +60,15 @@ const EditShowroomad = ({
 
   // Modify the API hooks to include the required field check
   const { data: brands } = useBrands(
-    isOpen, 
-    getUserToken, 
+    isOpen,
+    getUserToken,
     subCategoryId,
     subCategoryId === 18 ? selectedTypeId : null
   );
   const { data: models } = useModels(
-    isOpen, 
-    getUserToken, 
-    selectedBrandId, 
+    isOpen,
+    getUserToken,
+    selectedBrandId,
     subCategoryId,
     subCategoryId === 18 ? selectedTypeId : null
   );
@@ -83,7 +83,7 @@ const EditShowroomad = ({
 
   const [boostTags, setBoostTags] = useState([]);
   const [selectedBoostTag, setSelectedBoostTag] = useState('');
-console.log(selectedBoostTag);
+  console.log(selectedBoostTag);
 
   useEffect(() => {
     const fetchBoostTags = async () => {
@@ -93,11 +93,11 @@ console.log(selectedBoostTag);
         });
         if (response.data.success) {
           setBoostTags(response.data.data);
-          
+
           // If there's an existing boost tag in the ad data, set it
           if (adData?.adBoostTag) {
-            const boostTagId = typeof adData.adBoostTag === 'object' 
-              ? adData.adBoostTag.id 
+            const boostTagId = typeof adData.adBoostTag === 'object'
+              ? adData.adBoostTag.id
               : adData.adBoostTag;
             setSelectedBoostTag(boostTagId);
             setValue('adBoostTag', boostTagId);
@@ -116,10 +116,10 @@ console.log(selectedBoostTag);
   useEffect(() => {
     const fetchData = async () => {
       if (!ad?.id || !token || !subCategoryId) return;
-  
+
       try {
         setIsDataLoaded(false);
-        
+
         // Fetch subcategory and ad data in parallel
         const [subCategoryResponse, adResponse] = await Promise.all([
           axios.get(`${BASE_URL}/api/ad-find-one-sub-category/${subCategoryId}`, {
@@ -129,14 +129,14 @@ console.log(selectedBoostTag);
             headers: { Authorization: `Bearer ${token}` },
           })
         ]);
-  
+
         // Process subcategory data
         if (subCategoryResponse.data.success) {
           const subCategoryData = subCategoryResponse.data.data;
           console.log('Subcategory Data:', subCategoryData);
-          
+
           setSubCategoryDetails(subCategoryData);
-          
+
           // Determine required fields
           const fields = subCategoryData.fields || [];
           setRequiredFields({
@@ -146,12 +146,12 @@ console.log(selectedBoostTag);
             type: fields.includes('type')
           });
         }
-  
+
         // Process ad data
         if (adResponse.data.success) {
           const rawAdData = adResponse.data.data;
           console.log('Raw Ad Data:', rawAdData);
-  
+
           // Handle images
           const processedImages = rawAdData.images?.map(img => ({
             file: null,
@@ -160,36 +160,36 @@ console.log(selectedBoostTag);
             id: img.id
           })) || [];
           setUploadedImages(processedImages);
-  
+
           // Remove unnecessary fields
           const fieldsToRemove = [
             'adCategory', 'adSubCategory', 'locationDistrict', 'locationTown',
-            'adFavouriteCount', 'adViewCount', 'adSeller', 'adBuyer', 
+            'adFavouriteCount', 'adViewCount', 'adSeller', 'adBuyer',
             'createdAt', 'updatedAt', 'isAdFavourite', 'images'
           ];
-          
+
           const filteredData = { ...rawAdData };
           fieldsToRemove.forEach(field => delete filteredData[field]);
-  
+
           // Extract and set IDs with fallback
           const extractId = (field) => field?.id || field;
           const brandId = extractId(rawAdData.brand);
           const modelId = extractId(rawAdData.model);
           const typeId = extractId(rawAdData.type);
           const variantId = extractId(rawAdData.variant);
-  
+
           // Update state with extracted IDs
           setSelectedTypeId(typeId);
           setSelectedBrandId(brandId);
           setSelectedModelId(modelId);
           setSelectedVariantId(variantId);
-  
+
           // Set form values
           setValue('type', typeId || '');
           setValue('brand', brandId || '');
           setValue('model', modelId || '');
           setValue('variant', variantId || '');
-  
+
           // Set other form values
           setAdData(filteredData);
           Object.keys(filteredData).forEach(key => {
@@ -197,7 +197,7 @@ console.log(selectedBoostTag);
               setValue(key, filteredData[key]);
             }
           });
-  
+
           // Additional logging for debugging
           console.log('Processed IDs:', {
             typeId, brandId, modelId, variantId
@@ -205,7 +205,7 @@ console.log(selectedBoostTag);
         }
       } catch (error) {
         console.error('Comprehensive Error Fetching Data:', error);
-        
+
         // More informative error toast
         toast({
           title: 'Data Fetch Error',
@@ -219,7 +219,7 @@ console.log(selectedBoostTag);
         setIsDataLoaded(true);
       }
     };
-  
+
     // Call the fetch data function
     fetchData();
   }, [ad, categoryId, subCategoryId, token, setValue, toast]);
@@ -239,20 +239,20 @@ console.log(selectedBoostTag);
   const handleImageUpload = (event) => {
     const files = Array.from(event.target.files); // Get all selected files
     if (uploadedImages.length + files.length <= 10) { // Check total count
-        const newImages = files.map(file => ({
-            file,
-            preview: URL.createObjectURL(file),
-            isExisting: false
-        }));
-        setUploadedImages(prev => [...prev, ...newImages]); // Append new images
+      const newImages = files.map(file => ({
+        file,
+        preview: URL.createObjectURL(file),
+        isExisting: false
+      }));
+      setUploadedImages(prev => [...prev, ...newImages]); // Append new images
     } else {
-        toast({
-            title: 'Maximum images reached',
-            description: 'You can only upload up to 10 images',
-            status: 'warning',
-            duration: 3000,
-            isClosable: true,
-        });
+      toast({
+        title: 'Maximum images reached',
+        description: 'You can only upload up to 10 images',
+        status: 'warning',
+        duration: 3000,
+        isClosable: true,
+      });
     }
   };
 
@@ -318,14 +318,14 @@ console.log(selectedBoostTag);
         return (
           <FormControl key={fieldName} isInvalid={errors[fieldName]} fontSize={fontSize}>
             <FormLabel>{config.label}</FormLabel>
-            <Select 
+            <Select
               {...register(fieldName, config.rules)}
               onChange={(e) => {
                 const newValue = e.target.value;
                 setValue(fieldName, newValue, { shouldValidate: true });
-                
+
                 // Handle special cases for dependent fields
-                switch(fieldName) {
+                switch (fieldName) {
                   case 'type':
                     setSelectedTypeId(newValue);
                     if (subCategoryId === 18) {
@@ -359,15 +359,15 @@ console.log(selectedBoostTag);
               value={getValues(fieldName) || ''}
               isDisabled={
                 fieldName === 'brand' ? !subCategoryId || (subCategoryId === 18 && !selectedTypeId) :
-                fieldName === 'model' ? (!selectedBrandId && subCategoryId !== 13) :
-                fieldName === 'variant' ? !selectedModelId :
-                false
+                  fieldName === 'model' ? (!selectedBrandId && subCategoryId !== 13) :
+                    fieldName === 'variant' ? !selectedModelId :
+                      false
               }
             >
               <option value="">Select {config.label}</option>
               {config.options?.map(option => (
-                <option 
-                  key={option.id || option} 
+                <option
+                  key={option.id || option}
                   value={option.id || option}
                 >
                   {option.name || option}
@@ -377,43 +377,43 @@ console.log(selectedBoostTag);
             <FormErrorMessage>{errors[fieldName]?.message}</FormErrorMessage>
           </FormControl>
         );
-        case 'radio':
-          return (
-            <CommonWrapper>
-              <Controller
-                name={fieldName}
-                control={control}
-                rules={config.rules}
-                render={({ field }) => (
-                  <RadioGroup {...field}>
-                    <Flex 
-                      flexWrap="wrap" 
-                      gap={2}
-                      sx={{
-                        '& > *': {
-                          flexBasis: {
-                            base: config.options.length <= 3 ? '100%' : '48%', 
-                            md: config.options.length <= 4 ? 'auto' : '30%', 
-                            lg: config.options.length <= 6 ? 'auto' : '30%' 
-                          }
+      case 'radio':
+        return (
+          <CommonWrapper>
+            <Controller
+              name={fieldName}
+              control={control}
+              rules={config.rules}
+              render={({ field }) => (
+                <RadioGroup {...field}>
+                  <Flex
+                    flexWrap="wrap"
+                    gap={2}
+                    sx={{
+                      '& > *': {
+                        flexBasis: {
+                          base: config.options.length <= 3 ? '100%' : '48%',
+                          md: config.options.length <= 4 ? 'auto' : '30%',
+                          lg: config.options.length <= 6 ? 'auto' : '30%'
                         }
-                      }}
-                    >
-                      {config.options.map(option => (
-                        <Radio 
-                          key={option} 
-                          value={option} 
-                          flex="1 1 auto"
-                        >
-                          {option}
-                        </Radio>
-                      ))}
-                    </Flex>
-                  </RadioGroup>
-                )}
-              />
-            </CommonWrapper>
-          );
+                      }
+                    }}
+                  >
+                    {config.options.map(option => (
+                      <Radio
+                        key={option}
+                        value={option}
+                        flex="1 1 auto"
+                      >
+                        {option}
+                      </Radio>
+                    ))}
+                  </Flex>
+                </RadioGroup>
+              )}
+            />
+          </CommonWrapper>
+        );
       case 'checkbox':
         return (
           <FormControl key={fieldName}>
@@ -435,7 +435,7 @@ console.log(selectedBoostTag);
                 setValue('adBoostTag', value);
               }}
             >
-           
+
               {boostTags.map(tag => (
                 <option key={tag.id} value={tag.id}>
                   {tag.name}
@@ -453,7 +453,7 @@ console.log(selectedBoostTag);
   const onSubmit = async (data) => {
     setIsLoading(true);
     const formData = new FormData();
-    
+
     // Add required fixed fields
     formData.append('adShowroom', showroomId);
     formData.append('adCategory', categoryId);
@@ -563,7 +563,7 @@ console.log(selectedBoostTag);
 
         // Filter out any null values and create the callback data
         const validImageFiles = imageFiles.filter(file => file !== null);
-        
+
         // Add getFieldConfig fields to adData
         const fieldsConfig = Object.keys(adData).reduce((acc, fieldName) => {
           const config = getFieldConfig(fieldName, [], [], brands, models, variants, types);
@@ -666,11 +666,11 @@ console.log(selectedBoostTag);
 
   return (
     <>
-      <Modal isOpen={isOpen} onClose={onClose} size={modalSize}  closeOnOverlayClick={false}  closeOnEsc={false}  >
+      <Modal isOpen={isOpen} onClose={onClose} size={modalSize} closeOnOverlayClick={false} closeOnEsc={false}  >
         <ModalOverlay />
-        <ModalContent 
-          bg="#F1F1F1" 
-          color="black" 
+        <ModalContent
+          bg="#F1F1F1"
+          color="black"
           maxWidth={{ base: "80%", md: modalSize }}
           position="relative"
         >
@@ -691,7 +691,7 @@ console.log(selectedBoostTag);
                 <h3 className={`text-${headingSize} font-bold mb-3`}>
                   Edit your showroom ad details
                 </h3>
-                
+
                 <VStack spacing={4} align="stretch">
                   {adData && Object.keys(adData).map((fieldName, index) => (
                     <React.Fragment key={fieldName + index}>
@@ -736,7 +736,7 @@ console.log(selectedBoostTag);
                           <Text className="text-xs text-center mt-1">{image.isExisting ? 'Existing' : 'New'}</Text>
                         </Box>
                       ))}
-                      
+
                       {uploadedImages.length < 10 && (
                         <Box>
                           <Box

@@ -190,9 +190,9 @@ const ProfileEditForm = () => {
 
   // Town selection handler
   const handleTownSelect = (townId) => {
-    // Update form value for town
     setValue('town', townId);
     setIsMenuOpen(false);
+    setTownSearchQuery(''); // Optional: reset search query
   };
   return (
     <Box maxWidth="800px" margin="auto" p={6} borderWidth={2} borderRadius="lg" boxShadow="md" borderColor="black">
@@ -303,66 +303,75 @@ const ProfileEditForm = () => {
               <GridItem colSpan={{ base: 12, md: 7 }} />
               
               <GridItem colSpan={{ base: 12, md: 5 }}>
-              <FormControl>
-                <Menu 
-                  isOpen={isMenuOpen}
-                  onClose={() => setIsMenuOpen(false)}
+  <FormControl>
+    <Controller
+      name="town"
+      control={control}
+      render={({ field }) => (
+        <Menu 
+          isOpen={isMenuOpen}
+          onClose={() => setIsMenuOpen(false)}
+        >
+          <MenuButton
+            as={Button}
+            rightIcon={<FaChevronDown />}
+            width="100%"
+            border="1px"
+            borderColor="black"
+            fontWeight='400'
+            justifyContent="space-between"
+            textAlign="left"
+            bg="transparent"
+            _hover={{ borderColor: 'black' }}
+            onClick={() => setIsMenuOpen(true)}
+            isDisabled={!selectedDistrict}
+          >
+            {field.value 
+              ? towns.find(town => town.id === field.value)?.name || "Select town" 
+              : getDefaultTownName()}
+          </MenuButton>
+          <MenuList 
+            borderColor="black"
+            boxShadow="md"
+          >
+            <Box p={2}>
+              <InputGroup>
+                <Input
+                  placeholder="Search towns"
+                  value={townSearchQuery}
+                  onChange={handleTownSearch}
+                  border="1px"
+                  borderColor="gray.300"
+                  _focus={{ borderColor: 'blue.500' }}
+                />
+                <InputRightElement>
+                  <FaSearch color="gray.500" />
+                </InputRightElement>
+              </InputGroup>
+            </Box>
+            {filteredTowns.length > 0 ? (
+              filteredTowns.map((town) => (
+                <MenuItem 
+                  key={town.id} 
+                  onClick={() => {
+                    field.onChange(town.id);  // Use field.onChange to update form state
+                    setIsMenuOpen(false);
+                  }}
                 >
-                  <MenuButton
-                    as={Button}
-                    rightIcon={<FaChevronDown />}
-                    width="100%"
-                    border="1px"
-                    borderColor="black"
-                    fontWeight='400'
-                     justifyContent="space-between"
-  textAlign="left"
-                    
-                    bg="transparent"
-                    _hover={{ borderColor: 'black' }}
-                    onClick={() => setIsMenuOpen(true)}
-                    isDisabled={!selectedDistrict}
-                  >
-                    {getDefaultTownName()}
-                  </MenuButton>
-                  <MenuList 
-                    borderColor="black"
-                    boxShadow="md"
-                  >
-                    <Box p={2}>
-                      <InputGroup>
-                        <Input
-                          placeholder="Search towns"
-                          value={townSearchQuery}
-                          onChange={handleTownSearch}
-                          border="1px"
-                          borderColor="gray.300"
-                          _focus={{ borderColor: 'blue.500' }}
-                        />
-                        <InputRightElement>
-                          <FaSearch color="gray.500" />
-                        </InputRightElement>
-                      </InputGroup>
-                    </Box>
-                    {filteredTowns.length > 0 ? (
-                      filteredTowns.map((town) => (
-                        <MenuItem 
-                          key={town.id} 
-                          onClick={() => handleTownSelect(town.id)}
-                        >
-                          {town.name}
-                        </MenuItem>
-                      ))
-                    ) : (
-                      <MenuItem isDisabled>
-                        No towns found
-                      </MenuItem>
-                    )}
-                  </MenuList>
-                </Menu>
-              </FormControl>
-            </GridItem>
-            <GridItem colSpan={{ base: 12, md: 7 }} />
+                  {town.name}
+                </MenuItem>
+              ))
+            ) : (
+              <MenuItem isDisabled>
+                No towns found
+              </MenuItem>
+            )}
+          </MenuList>
+        </Menu>
+      )}
+    />
+  </FormControl>
+</GridItem>
           </Grid>
           </Box>
           <Grid templateColumns={{ base: 'repeat(12, 1fr)', md: 'repeat(12, 1fr)' }} gap={2}>
