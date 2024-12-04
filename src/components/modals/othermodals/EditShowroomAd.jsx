@@ -112,12 +112,7 @@ console.log(selectedBoostTag);
       fetchBoostTags();
     }
   }, [isOpen, token, adData, setValue]);
-  useEffect(() => {
-    if (subCategoryId === 18 && selectedTypeId && (!brands || brands.length === 0)) {
-      // Force refetch or handle empty brands scenario
-      // Potentially call brand fetch method manually
-    }
-  }, [subCategoryId, selectedTypeId, brands]);
+
   useEffect(() => {
     const fetchData = async () => {
       if (!ad?.id || !token || !subCategoryId) return;
@@ -363,9 +358,14 @@ console.log(selectedBoostTag);
               }
             }}
             value={getValues(fieldName) || ''}
+            isDisabled={!isDataLoaded || (fieldName === 'brand' && !brands)}
           >
-            <option value="">Select {config.label}</option>
-            {config.options?.map(option => (
+            <option value="">
+              {!isDataLoaded || (fieldName === 'brand' && !brands) 
+                ? 'Loading...' 
+                : `Select ${config.label}`}
+            </option>
+            {isDataLoaded && config.options?.map(option => (
               <option 
                 key={option.id || option} 
                 value={option.id || option}

@@ -124,7 +124,6 @@ const specialFields = {
   },
 };
 export const getFieldConfig = (fieldName, districts, towns, brands, models, variants, types, selectedSubCategoryId) => {
- console.log(selectedSubCategoryId);
  
   
   const commonRules = { required: `${fieldName} is required` };
