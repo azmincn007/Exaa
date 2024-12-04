@@ -318,17 +318,17 @@ const EditShowroomad = ({
         return (
           <FormControl key={fieldName} isInvalid={errors[fieldName]} fontSize={fontSize}>
             <FormLabel>{config.label}</FormLabel>
-            <Select
+            <Select 
               {...register(fieldName, config.rules)}
               onChange={(e) => {
                 const newValue = e.target.value;
                 setValue(fieldName, newValue, { shouldValidate: true });
-
+                
                 // Handle special cases for dependent fields
-                switch (fieldName) {
+                switch(fieldName) {
                   case 'type':
                     setSelectedTypeId(newValue);
-                    if (subCategoryId === 18) {
+                    if (selectedSubCategoryId === 18) {
                       setValue('brand', '');
                       setValue('model', '');
                       setValue('variant', '');
@@ -357,17 +357,11 @@ const EditShowroomad = ({
                 }
               }}
               value={getValues(fieldName) || ''}
-              isDisabled={
-                fieldName === 'brand' ? !subCategoryId || (subCategoryId === 18 && !selectedTypeId) :
-                  fieldName === 'model' ? (!selectedBrandId && subCategoryId !== 13) :
-                    fieldName === 'variant' ? !selectedModelId :
-                      false
-              }
             >
               <option value="">Select {config.label}</option>
               {config.options?.map(option => (
-                <option
-                  key={option.id || option}
+                <option 
+                  key={option.id || option} 
                   value={option.id || option}
                 >
                   {option.name || option}
