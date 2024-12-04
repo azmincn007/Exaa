@@ -59,10 +59,7 @@ const EditShowroomad = ({
   });
 
   // Modify the API hooks to include the required field check
-  const { 
-    data: brands, 
-    isLoading: areBrandsLoading 
-  } = useBrands(
+  const { data: brands } = useBrands(
     isOpen, 
     getUserToken, 
     subCategoryId,
@@ -119,9 +116,11 @@ console.log(selectedBoostTag);
   useEffect(() => {
     const fetchData = async () => {
       if (!ad?.id || !token || !subCategoryId) return;
-
+  
       try {
         setIsDataLoaded(false);
+        
+        // Fetch subcategory and ad data in parallel
         const [subCategoryResponse, adResponse] = await Promise.all([
           axios.get(`${BASE_URL}/api/ad-find-one-sub-category/${subCategoryId}`, {
             headers: { Authorization: `Bearer ${token}` },
@@ -130,16 +129,16 @@ console.log(selectedBoostTag);
             headers: { Authorization: `Bearer ${token}` },
           })
         ]);
-
+  
+        // Process subcategory data
         if (subCategoryResponse.data.success) {
           const subCategoryData = subCategoryResponse.data.data;
-          console.log(subCategoryData);
+          console.log('Subcategory Data:', subCategoryData);
           
           setSubCategoryDetails(subCategoryData);
           
-          // Check which fields are required based on the subcategory
+          // Determine required fields
           const fields = subCategoryData.fields || [];
-          
           setRequiredFields({
             brand: fields.includes('brand'),
             model: fields.includes('model'),
@@ -147,63 +146,83 @@ console.log(selectedBoostTag);
             type: fields.includes('type')
           });
         }
-
+  
+        // Process ad data
         if (adResponse.data.success) {
-          const filteredData = { ...adResponse.data.data };
-          console.log('Fetched ad data:', filteredData);
-          
-          setUploadedImages(filteredData.images?.map(img => ({
+          const rawAdData = adResponse.data.data;
+          console.log('Raw Ad Data:', rawAdData);
+  
+          // Handle images
+          const processedImages = rawAdData.images?.map(img => ({
             file: null,
             preview: `${BASE_URL}${img.url}`,
             isExisting: true,
             id: img.id
-          })) || []);
+          })) || [];
+          setUploadedImages(processedImages);
+  
+          // Remove unnecessary fields
+          const fieldsToRemove = [
+            'adCategory', 'adSubCategory', 'locationDistrict', 'locationTown',
+            'adFavouriteCount', 'adViewCount', 'adSeller', 'adBuyer', 
+            'createdAt', 'updatedAt', 'isAdFavourite', 'images'
+          ];
           
-          const fieldsToRemove = ['adCategory', 'adSubCategory', 'locationDistrict', 'locationTown', 
-            'adFavouriteCount', 'adViewCount', 'adSeller', 'adBuyer', 'createdAt', 
-            'updatedAt', 'isAdFavourite', 'images'];
+          const filteredData = { ...rawAdData };
           fieldsToRemove.forEach(field => delete filteredData[field]);
-          
-          setAdData(filteredData);
-          Object.keys(filteredData).forEach(key => setValue(key, filteredData[key]));
-          
-          const brandId = filteredData.brand?.id || filteredData.brand;
-          const modelId = filteredData.model?.id || filteredData.model;
-          const typeId = filteredData.type?.id || filteredData.type;
-          const variantId = filteredData.variant?.id || filteredData.variant;
-
+  
+          // Extract and set IDs with fallback
+          const extractId = (field) => field?.id || field;
+          const brandId = extractId(rawAdData.brand);
+          const modelId = extractId(rawAdData.model);
+          const typeId = extractId(rawAdData.type);
+          const variantId = extractId(rawAdData.variant);
+  
+          // Update state with extracted IDs
+          setSelectedTypeId(typeId);
           setSelectedBrandId(brandId);
           setSelectedModelId(modelId);
-          setSelectedTypeId(typeId);
           setSelectedVariantId(variantId);
-
-          setValue('brand', brandId);
-          setValue('model', modelId);
-          setValue('type', typeId);
-          setValue('variant', variantId);
-
+  
+          // Set form values
+          setValue('type', typeId || '');
+          setValue('brand', brandId || '');
+          setValue('model', modelId || '');
+          setValue('variant', variantId || '');
+  
+          // Set other form values
+          setAdData(filteredData);
           Object.keys(filteredData).forEach(key => {
-            if (key !== 'brand' && key !== 'model' && key !== 'type' && key !== 'variant') {
+            if (!['type', 'brand', 'model', 'variant'].includes(key)) {
               setValue(key, filteredData[key]);
             }
           });
+  
+          // Additional logging for debugging
+          console.log('Processed IDs:', {
+            typeId, brandId, modelId, variantId
+          });
         }
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Comprehensive Error Fetching Data:', error);
+        
+        // More informative error toast
         toast({
-          title: 'Error',
-          description: 'Failed to fetch data',
+          title: 'Data Fetch Error',
+          description: error.response?.data?.message || 'Failed to load ad details',
           status: 'error',
-          duration: 3000,
+          duration: 4000,
           isClosable: true,
         });
       } finally {
+        // Ensure data loaded state is set
         setIsDataLoaded(true);
       }
     };
-
+  
+    // Call the fetch data function
     fetchData();
-  }, [ad, categoryId, subCategoryId, token, setValue]);
+  }, [ad, categoryId, subCategoryId, token, setValue, toast]);
 
   useEffect(() => {
     console.log('Brands:', brands);
