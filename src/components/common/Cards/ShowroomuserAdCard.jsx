@@ -59,14 +59,10 @@ const ShowroomuserAdCard = ({ data, onEdit, onDelete, showroomId, token }) => {
   };
 
   const handleCardClick = () => {
-    navigate('/ad-preview', { 
-      state: { 
-        adCategoryId: data.adCategory?.id,
-        adId: data?.id,
-    
-      } 
-    });
+    navigate(`/item?categoryId=${data.adCategory?.id}&adId=${data?.id}&subCategoryId=${data.adSubCategory?.id}`);
   };
+
+  
 
   const isMobile = useBreakpointValue({ base: true, md: false });
 

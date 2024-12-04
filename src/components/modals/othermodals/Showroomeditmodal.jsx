@@ -171,23 +171,19 @@ const ShowroomEditModal = ({ isOpen, onClose, showroomId, onSuccess }) => {
       setSelectedTownId(showroom.locationTown?.id);
       
       if (showroom.images) {
-        console.log(showroom.images);
-        
         const imageFiles = showroom.images.map((image, index) => {
           const imageUrl = `${BASE_URL}${image.url}`;
-          fetch(imageUrl)
+          return fetch(imageUrl)
             .then((res) => res.blob())
             .then((blob) => {
               const file = new File([blob], `existing_image_${index}.jpg`, { type: "image/jpeg" });
-              if (!uploadedImage.some(img => img.preview === imageUrl)) {
-                setImageFile((prevFiles) => [...prevFiles, file]);
-              }
+              return { file, preview: imageUrl };
             });
-          return { preview: imageUrl };
         });
-        setUploadedImage(prevImages => {
-          const newImages = imageFiles.filter(img => !prevImages.some(prevImg => prevImg.preview === img.preview));
-          return [...prevImages, ...newImages];
+  
+        Promise.all(imageFiles).then((processedImages) => {
+          setUploadedImage(processedImages);
+          setImageFile(processedImages.map(img => img.file));
         });
       }
       if (showroom.logo) {
@@ -263,17 +259,19 @@ const ShowroomEditModal = ({ isOpen, onClose, showroomId, onSuccess }) => {
 
   const handleImageUpload = (event) => {
     const files = Array.from(event.target.files);
-    if (files.length + uploadedImage.length <= 10) {
-      const newImages = files.map((file) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setUploadedImage((prevImages) => [...prevImages, { preview: reader.result }]);
-          setImageFile((prevFiles) => [...prevFiles, file]);
-        };
-        reader.readAsDataURL(file);
-        return { file, preview: URL.createObjectURL(file) };
+    const newFiles = files.filter(file => 
+      !uploadedImage.some(img => img.file && img.file.name === file.name)
+    );
+  
+    if (uploadedImage.length + newFiles.length <= 10) {
+      const newImages = newFiles.map((file) => {
+        const preview = URL.createObjectURL(file);
+        return { file, preview };
       });
+  
+      // Change this line to add new images to the end
       setUploadedImage((prevImages) => [...prevImages, ...newImages]);
+      setImageFile((prevFiles) => [...prevFiles, ...newFiles]);
     } else {
       toast({
         title: "Limit Reached",
@@ -284,12 +282,10 @@ const ShowroomEditModal = ({ isOpen, onClose, showroomId, onSuccess }) => {
       });
     }
   };
-
   const removeImage = (index) => {
     setUploadedImage((prevImages) => prevImages.filter((_, i) => i !== index));
     setImageFile((prevFiles) => prevFiles.filter((_, i) => i !== index));
   };
-
   const handleLogoUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -584,8 +580,8 @@ const ShowroomEditModal = ({ isOpen, onClose, showroomId, onSuccess }) => {
                       />
                     </ImageUploadBox>
                     <Text as="a" fontSize="xs" textAlign="center" mt={1}>
-                      {imageFile[index] ? imageFile[index].name : "Existing Image"}
-                    </Text>
+  Uploaded
+</Text>
                   </Box>
                 ))}
                 {/* Show the upload more button only if less than 10 images are uploaded */}

@@ -13,9 +13,15 @@ import {
   useToast, 
   FormControl,
   FormLabel,
-  Select,
-  FormErrorMessage
+  FormErrorMessage,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  Input,
+  Box
 } from "@chakra-ui/react";
+import { FaChevronDown } from "react-icons/fa";
 import { IMAGES } from "../../../constants/logoimg";
 import { IoArrowBack } from "react-icons/io5";
 import { Camera } from "lucide-react";
@@ -47,6 +53,7 @@ function SignupModal({ isOpen, onClose }) {
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [isLoadingDistricts, setIsLoadingDistricts] = useState(false);
   const [isLoadingTowns, setIsLoadingTowns] = useState(false);
+  const [townSearchQuery, setTownSearchQuery] = useState('');
 
   const selectedTown = watch("locationTown");
 
@@ -59,6 +66,7 @@ function SignupModal({ isOpen, onClose }) {
       fetchTowns(selectedDistrict);
       setValue('locationTown', '');
       trigger('locationTown');
+      setTownSearchQuery('');
     } else {
       setTowns([]);
       setValue('locationTown', '');
@@ -192,8 +200,6 @@ function SignupModal({ isOpen, onClose }) {
     }
   };
 
-  const isSubmitDisabled = !selectedDistrict || !selectedTown;
-
   return (
     <Modal isCentered onClose={onClose} isOpen={isOpen} motionPreset="slideInBottom">
       <ModalOverlay />
@@ -263,7 +269,7 @@ function SignupModal({ isOpen, onClose }) {
               error={errors.aboutYou} 
             />
 
-            <FormControl isInvalid={!!errors.locationDistrict} mb={4}>
+            <FormControl isInvalid={!!errors.locationDistrict} mb={2}>
               <FormLabel>Select District</FormLabel>
               <select
                 value={selectedDistrict}
@@ -280,35 +286,73 @@ function SignupModal({ isOpen, onClose }) {
               </select>
             </FormControl>
 
-            <FormControl isInvalid={errors.locationTown && !selectedTown} mb={4}>
-  <FormLabel>Select Town</FormLabel>
-  <Controller
-    name="locationTown"
-    control={control}
-    rules={{ 
-      validate: (value) => {
-        // Only require the town if no town is selected
-        return selectedTown ? true : "Town is required"
-      }
-    }}
-    render={({ field }) => (
-      <Select 
-        {...field}
-        placeholder="Select Town"
-        isDisabled={!selectedDistrict || isLoadingTowns}
-      >
-        {towns.map((town) => (
-          <option key={town.id} value={town.id.toString()}>
-            {town.name}
-          </option>
-        ))}
-      </Select>
-    )}
-  />
-  <FormErrorMessage>
-    {errors.locationTown && errors.locationTown.message}
-  </FormErrorMessage>
-</FormControl>
+            <FormControl isInvalid={errors.locationTown} mb={4} className="z-50">
+              <FormLabel>Select Town</FormLabel>
+              <Controller
+                name="locationTown"
+                control={control}
+                rules={{ 
+                  validate: (value) => {
+                    return selectedTown ? true : "Town is required"
+                  }
+                }}
+                render={({ field }) => (
+                  <Menu matchWidth>
+                    <MenuButton
+                      as={Button}
+                      rightIcon={<FaChevronDown className='h-3 w-3 text-black' />}
+                      w="100%"
+                      textAlign="left"
+                      isDisabled={!selectedDistrict || isLoadingTowns}
+                      className='border-black border-[1px] px-3'
+                      fontWeight="normal"
+                    >
+                      {field.value 
+                        ? towns.find(town => town.id.toString() === field.value)?.name 
+                        : 'Select Town'}
+                    </MenuButton>
+                    <MenuList className="z-50" maxH="300px" overflowY="auto">
+                      <Box p={2} >
+                        <Input
+                        
+                          placeholder="Search town..."
+                          value={townSearchQuery}
+                          onChange={(e) => setTownSearchQuery(e.target.value)}
+                          mb={2}
+                        />
+                      </Box>
+                      {towns
+                        .filter(town => 
+                          town.name.toLowerCase().includes(townSearchQuery.toLowerCase())
+                        )
+                        .map((town) => (
+                          <MenuItem
+                            key={town.id}
+                            onClick={() => {
+                              field.onChange(town.id.toString());
+                              setTownSearchQuery('');
+                            }}
+                            fontWeight="normal"
+                          >
+                            {town.name}
+                          </MenuItem>
+                        ))
+                      }
+                      {towns.filter(town => 
+                        town.name.toLowerCase().includes(townSearchQuery.toLowerCase())
+                      ).length === 0 && (
+                        <MenuItem isDisabled fontWeight="normal">
+                          No towns found
+                        </MenuItem>
+                      )}
+                    </MenuList>
+                  </Menu>
+                )}
+              />
+              <FormErrorMessage>
+                {errors.locationTown && errors.locationTown.message}
+              </FormErrorMessage>
+            </FormControl>
 
             <Button 
               type="submit" 

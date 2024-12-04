@@ -17,13 +17,14 @@ import {
   MenuList,
   MenuItem,
   FormErrorMessage,
+  InputRightElement,
 } from '@chakra-ui/react';
 import { useForm, Controller } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { BASE_URL } from '../../../config/config';
 import { UserdataContext } from '../../../App';
 import axios from 'axios';
-import { FaChevronDown } from 'react-icons/fa';
+import { FaChevronDown, FaSearch } from 'react-icons/fa';
 
 const ProfileEditForm = () => {
   const { userData, setUserData } = useContext(UserdataContext);
@@ -36,14 +37,17 @@ const ProfileEditForm = () => {
       town: userData?.userLocation?.locationTown?.id || '',
     }
   });
+  
   const navigate = useNavigate();
   const toast = useToast();
-  const userToken = localStorage.getItem('UserToken'); // Retrieve token once
+  const userToken = localStorage.getItem('UserToken');
 
   const [districts, setDistricts] = useState([]);
   const [towns, setTowns] = useState([]);
+  const [filteredTowns, setFilteredTowns] = useState([]);
   const [selectedDistrict, setSelectedDistrict] = useState(userData?.userLocation?.locationDistrict?.id || '');
   const [townSearchQuery, setTownSearchQuery] = useState('');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     const fetchDistricts = async () => {
@@ -67,6 +71,7 @@ const ProfileEditForm = () => {
             headers: { Authorization: `Bearer ${userToken}` },
           });
           setTowns(response.data.data);
+          setFilteredTowns(response.data.data);
         } catch (error) {
           console.error('Error fetching towns:', error);
         }
@@ -75,12 +80,14 @@ const ProfileEditForm = () => {
     fetchTowns();
   }, [selectedDistrict, userToken]);
 
+
+
   const fetchUserData = async () => {
     try {
       const response = await axios.get(`${BASE_URL}/api/users/me`, {
         headers: { Authorization: `Bearer ${userToken}` },
       });
-      setUserData(response.data.data); // Update context with the latest user data
+      setUserData(response.data.data);
     } catch (error) {
       console.error('Error fetching user data:', error);
     }
@@ -88,7 +95,6 @@ const ProfileEditForm = () => {
 
   const onSubmit = async (data) => {
     try {
-      // First API call - Update profile
       const formData = new FormData();
       formData.append('name', data.name);
       formData.append('email', data.email);
@@ -107,7 +113,6 @@ const ProfileEditForm = () => {
         throw new Error(profileData?.message || 'Failed to update profile');
       }
 
-      // Second API call - Update location
       if (data.district || data.town) {
         const locationResponse = await fetch(`${BASE_URL}/api/update-user-location`, {
           method: 'PUT',
@@ -127,7 +132,6 @@ const ProfileEditForm = () => {
         }
       }
 
-      // If both updates are successful
       toast({
         title: "Profile updated successfully",
         status: "success",
@@ -135,7 +139,7 @@ const ProfileEditForm = () => {
         isClosable: true,
       });
       
-      await fetchUserData(); // Fetch latest user data
+      await fetchUserData();
       navigate('/');
       
     } catch (error) {
@@ -166,10 +170,30 @@ const ProfileEditForm = () => {
     return defaultTown?.name || "Select town";
   };
 
-  const handleDistrictChange = (e) => {
-    setSelectedDistrict(e.target.value);
+  const handleTownSearch = (e) => {
+    const query = e.target.value.toLowerCase();
+    setTownSearchQuery(query);
+    
+    const filtered = towns.filter(town => 
+      town.name.toLowerCase().includes(query)
+    );
+    
+    setFilteredTowns(filtered);
   };
 
+  // Modify handleDistrictChange
+  const handleDistrictChange = (e) => {
+    setSelectedDistrict(e.target.value);
+    setTownSearchQuery(''); // Reset town search when district changes
+    setFilteredTowns(towns); // Reset filtered towns
+  };
+
+  // Town selection handler
+  const handleTownSelect = (townId) => {
+    // Update form value for town
+    setValue('town', townId);
+    setIsMenuOpen(false);
+  };
   return (
     <Box maxWidth="800px" margin="auto" p={6} borderWidth={2} borderRadius="lg" boxShadow="md" borderColor="black">
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -279,66 +303,67 @@ const ProfileEditForm = () => {
               <GridItem colSpan={{ base: 12, md: 7 }} />
               
               <GridItem colSpan={{ base: 12, md: 5 }}>
-                <FormControl>
-                  <Controller
-                    name="town"
-                    control={control}
-                    rules={{ required: "Town is required" }}
-                    render={({ field }) => (
-                      <Menu matchWidth>
-                        <MenuButton
-                          as={Button}
-                          rightIcon={<FaChevronDown className='h-3 w-3 text-black' />}
-                          w="100%"
-                          textAlign="left"
-                          isDisabled={!selectedDistrict}
-                          className='border-black border-[1px] px-3'
-                          fontWeight="normal"
+              <FormControl>
+                <Menu 
+                  isOpen={isMenuOpen}
+                  onClose={() => setIsMenuOpen(false)}
+                >
+                  <MenuButton
+                    as={Button}
+                    rightIcon={<FaChevronDown />}
+                    width="100%"
+                    border="1px"
+                    borderColor="black"
+                    fontWeight='400'
+                     justifyContent="space-between"
+  textAlign="left"
+                    
+                    bg="transparent"
+                    _hover={{ borderColor: 'black' }}
+                    onClick={() => setIsMenuOpen(true)}
+                    isDisabled={!selectedDistrict}
+                  >
+                    {getDefaultTownName()}
+                  </MenuButton>
+                  <MenuList 
+                    borderColor="black"
+                    boxShadow="md"
+                  >
+                    <Box p={2}>
+                      <InputGroup>
+                        <Input
+                          placeholder="Search towns"
+                          value={townSearchQuery}
+                          onChange={handleTownSearch}
+                          border="1px"
+                          borderColor="gray.300"
+                          _focus={{ borderColor: 'blue.500' }}
+                        />
+                        <InputRightElement>
+                          <FaSearch color="gray.500" />
+                        </InputRightElement>
+                      </InputGroup>
+                    </Box>
+                    {filteredTowns.length > 0 ? (
+                      filteredTowns.map((town) => (
+                        <MenuItem 
+                          key={town.id} 
+                          onClick={() => handleTownSelect(town.id)}
                         >
-                          {field.value ? 
-                            towns.find(opt => opt.id.toString() === field.value)?.name || 'Select Town' 
-                            : 'Select Town'
-                          }
-                        </MenuButton>
-                        <MenuList maxH="200px" overflowY="auto">
-                          <Box p={2}>
-                            <Input
-                              placeholder="Search town..."
-                              value={townSearchQuery}
-                              onChange={(e) => setTownSearchQuery(e.target.value)}
-                              mb={2}
-                            />
-                          </Box>
-                          {towns
-                            .filter(option => 
-                              option.name?.toLowerCase().includes(townSearchQuery.toLowerCase())
-                            )
-                            .map(option => (
-                              <MenuItem
-                                key={option.id}
-                                onClick={() => {
-                                  field.onChange(option.id.toString());
-                                  setTownSearchQuery('');
-                                }}
-                                fontWeight="normal"
-                              >
-                                {option.name}
-                              </MenuItem>
-                            ))}
-                          {!towns.filter(option => 
-                            option.name?.toLowerCase().includes(townSearchQuery.toLowerCase())
-                          ).length && (
-                            <MenuItem isDisabled fontWeight="normal">No towns found</MenuItem>
-                          )}
-                        </MenuList>
-                      </Menu>
+                          {town.name}
+                        </MenuItem>
+                      ))
+                    ) : (
+                      <MenuItem isDisabled>
+                        No towns found
+                      </MenuItem>
                     )}
-                  />
-                  <FormErrorMessage>{errors.town && errors.town.message}</FormErrorMessage>
-                </FormControl>
-              </GridItem>
-              <GridItem colSpan={{ base: 12, md: 7 }} />
-            </Grid>
+                  </MenuList>
+                </Menu>
+              </FormControl>
+            </GridItem>
+            <GridItem colSpan={{ base: 12, md: 7 }} />
+          </Grid>
           </Box>
           <Grid templateColumns={{ base: 'repeat(12, 1fr)', md: 'repeat(12, 1fr)' }} gap={2}>
             <GridItem colSpan={{ base: 12, md: 6 }}>
