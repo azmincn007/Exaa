@@ -14,7 +14,6 @@ import SellShowroomAd from "../../components/modals/othermodals/SellShowroomAd";
 import ShowroomUserdata from "../../components/common/Cards/ShowroomuserAdCard";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../Hooks/AuthContext";
-import ShowroomSkeleton from "../../components/Skelton/ShowroomSkleton";
 import ShowroomContentCard from "../../components/common/Cards/ShowroomContentCard";
 import ShowroomEditModal from "../../components/modals/othermodals/Showroomeditmodal";
 import CarListingCard from "../../components/common/Cards/ShowroomuserAdCard";
@@ -273,9 +272,9 @@ const handleShowroomSelect = useCallback((showroom) => {
     [queryClient, selectedShowroom?.id, token, toast, refetchShowroomAds]
   );
 
-  if (showroomsLoading || !isInitialized || adsLoading) {
-    return <ShowroomSkeleton />;
-  }
+  // if (showroomsLoading || !isInitialized || adsLoading) {
+  //   return <ShowroomSkeleton />;
+  // }
 
   if (showroomsError || adsError) {
     return (

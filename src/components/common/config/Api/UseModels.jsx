@@ -3,6 +3,8 @@ import axios from "axios";
 import { BASE_URL } from "../../../../config/config";
 
 export const useModels = (isOpen, getUserToken, brandId, subcategoryId, selectedTypeId) => {
+  console.log(selectedTypeId);
+  
   return useQuery(
     ["models", brandId, subcategoryId, selectedTypeId], // Include selectedTypeId in query key
     async () => {

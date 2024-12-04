@@ -31,9 +31,7 @@ console.log(subCategoryId);
         case 15:
           endpoint = "ad-motorcycle-scooter-brands-models";
           break;
-        case 15:
-          endpoint = "ad-motorcycle-scooter-brands-models";
-          break;
+   
         case 21:
           endpoint = "ad-mobile-brands-models";
           break;
