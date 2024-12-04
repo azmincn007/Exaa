@@ -112,7 +112,12 @@ console.log(selectedBoostTag);
       fetchBoostTags();
     }
   }, [isOpen, token, adData, setValue]);
-
+  useEffect(() => {
+    if (subCategoryId === 18 && selectedTypeId && (!brands || brands.length === 0)) {
+      // Force refetch or handle empty brands scenario
+      // Potentially call brand fetch method manually
+    }
+  }, [subCategoryId, selectedTypeId, brands]);
   useEffect(() => {
     const fetchData = async () => {
       if (!ad?.id || !token || !subCategoryId) return;
@@ -173,6 +178,7 @@ console.log(selectedBoostTag);
   
           // Extract and set IDs with fallback
           const extractId = (field) => field?.id || field;
+          
           const brandId = extractId(rawAdData.brand);
           const modelId = extractId(rawAdData.model);
           const typeId = extractId(rawAdData.type);
