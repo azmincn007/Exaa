@@ -51,10 +51,7 @@ const SellsuccessmodalShowroom = ({
             },
           }
         );
-        console.log("hi");
-        
-        console.log(response);
-        
+      
         return response.data;
       } catch (error) {
         console.error('Boost mutation error:', error);

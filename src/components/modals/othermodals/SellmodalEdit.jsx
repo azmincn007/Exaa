@@ -106,7 +106,6 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
     const { data } = await axios.get(`${BASE_URL}/api/find-one-ad/${adCategoryId}/${adId}`, {
       headers: { 'Authorization': `Bearer ${userToken}` },
     });
-    console.log(data.data);
     
     return data.data;
   };

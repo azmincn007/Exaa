@@ -132,7 +132,6 @@ const ShowroomEditModal = ({ isOpen, onClose, showroomId, onSuccess }) => {
         const response = await axios.get(`${BASE_URL}/api/ad-showrooms/${showroomId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        console.log(response.data.data);
         
         setShowroom(response.data.data);
       } catch (error) {
@@ -329,7 +328,6 @@ const ShowroomEditModal = ({ isOpen, onClose, showroomId, onSuccess }) => {
         },
       });
 
-      console.log("Showroom updated successfully:", response.data);
       onSuccess(response.data);
     } catch (error) {
       console.error("Error updating showroom:", error);

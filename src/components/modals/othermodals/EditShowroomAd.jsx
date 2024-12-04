@@ -83,7 +83,6 @@ const EditShowroomad = ({
 
   const [boostTags, setBoostTags] = useState([]);
   const [selectedBoostTag, setSelectedBoostTag] = useState('');
-console.log(selectedBoostTag);
 
   useEffect(() => {
     const fetchBoostTags = async () => {
@@ -133,7 +132,6 @@ console.log(selectedBoostTag);
         // Process subcategory data
         if (subCategoryResponse.data.success) {
           const subCategoryData = subCategoryResponse.data.data;
-          console.log('Subcategory Data:', subCategoryData);
           
           setSubCategoryDetails(subCategoryData);
           
@@ -150,7 +148,6 @@ console.log(selectedBoostTag);
         // Process ad data
         if (adResponse.data.success) {
           const rawAdData = adResponse.data.data;
-          console.log('Raw Ad Data:', rawAdData);
   
           // Handle images
           const processedImages = rawAdData.images?.map(img => ({
@@ -199,10 +196,7 @@ console.log(selectedBoostTag);
             }
           });
   
-          // Additional logging for debugging
-          console.log('Processed IDs:', {
-            typeId, brandId, modelId, variantId
-          });
+      
         }
       } catch (error) {
         console.error('Comprehensive Error Fetching Data:', error);
@@ -224,12 +218,6 @@ console.log(selectedBoostTag);
     // Call the fetch data function
     fetchData();
   }, [ad, categoryId, subCategoryId, token, setValue, toast]);
-
-  useEffect(() => {
-    console.log('Brands:', brands);
-    console.log('Selected Brand ID:', selectedBrandId);
-    console.log('Brand Form Value:', getValues('brand'));
-  }, [brands, selectedBrandId, getValues]);
 
   useEffect(() => {
     if (selectedBrandId) {
@@ -262,6 +250,9 @@ console.log(selectedBoostTag);
   };
 
   const renderField = (fieldName) => {
+    if (subCategoryId === 18 && ['type',  'variant', 'model'].includes(fieldName)) {
+      return null;
+    }
     if (fieldName === 'locationDistrict' || fieldName === 'locationTown' || fieldName === 'adBoostTag') {
       return null;
     }
@@ -503,15 +494,7 @@ console.log(selectedBoostTag);
       }
     });
 
-    // Log the form data for debugging
-    console.log('Form Data being sent to API:');
-    for (let pair of formData.entries()) {
-      if (pair[0] === 'images') {
-        console.log(pair[0], 'File:', pair[1].name);
-      } else {
-        console.log(pair[0], pair[1]);
-      }
-    }
+ 
 
     try {
       const response = await axios.put(
@@ -585,7 +568,6 @@ console.log(selectedBoostTag);
           images: validImageFiles // Add images array to callback data
         };
 
-        console.log('Data being passed to parent via onShowSuccess:', callbackData);
         queryClient.invalidateQueries("showroomAds");
 
         queryClient.invalidateQueries("userAds");

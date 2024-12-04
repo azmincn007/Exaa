@@ -48,7 +48,6 @@ const ShowroomuserAdCard = ({ data, onEdit, onDelete, showroomId, token }) => {
   const toast = useToast();
   const queryClient = useQueryClient();  
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-console.log(data);
 
   const handleDeleteClick = () => {
     setIsDeleteDialogOpen(true);

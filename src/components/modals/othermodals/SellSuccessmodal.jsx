@@ -22,8 +22,6 @@ const CongratulationsModal = ({
   isTagCreationPossible, 
   images 
 }) => {
-  console.log(formData);
-  console.log(apiUrl);
   const navigate = useNavigate();
   const [showTagSelect, setShowTagSelect] = useState(false);
   const [selectedTag, setSelectedTag] = useState('');
@@ -53,7 +51,6 @@ const CongratulationsModal = ({
         );
         console.log("hi");
         
-        console.log(response);
         
         return response.data;
       } catch (error) {
@@ -63,7 +60,6 @@ const CongratulationsModal = ({
     },
     {
       onSuccess: (data) => {
-        console.log('Boost mutation response:', data);
         // Modify the invalidation strategy
         
         const queriesToInvalidate = [

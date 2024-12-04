@@ -28,7 +28,6 @@ const styles = `
 
 const CardShowroom = ({ ad }) => {
 
-  console.log(ad);
   
   const [isAdFavourite, setIsAdFavourite] = useState(ad.isAdFavourite);
   const [isAnimating, setIsAnimating] = useState(false);

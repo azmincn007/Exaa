@@ -78,7 +78,6 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
       }),
     {
       onSuccess: (response) => {
-        console.log("Showroom created:", response.data.data);
         onSuccess(response.data.data);
         setIsSubmitting(false);
       },

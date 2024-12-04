@@ -142,7 +142,6 @@ export const getFieldConfig = (fieldName, districts, towns, brands, models, vari
         ? ['type'] 
         : ['type', 'brand'];
 
-        console.log(requiredFields);
         
       
       const fieldRules = requiredFields.includes(fieldName) ? commonRules : {};

@@ -1,5 +1,4 @@
 const ChatInfo = ({ chat }) => {
-  console.log('Chat info:', chat);
   
   return (
     <div className='bg-white p-2 flex justify-between text-[#1F1F1F99]'>
