@@ -181,7 +181,7 @@ const ShowroomContentCard = ({ showroom, isSelected, onClick, onEdit, onDeleteSu
       <Box
         borderRadius="xl"
         overflow="hidden"
-        bg={isSelected ? "#4F7598" : "#23496C"}
+        bg={isSelected ? "green.400" : "#23496C"}
         color="white"
         className="p-4"
         height="100%"

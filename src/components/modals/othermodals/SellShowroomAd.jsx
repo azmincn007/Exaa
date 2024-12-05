@@ -37,7 +37,7 @@ import { useVariants } from '../../common/config/Api/UseVarient.jsx';
 import { useTypes } from '../../common/config/Api/UseTypes.jsx';
 import { useNavigate } from 'react-router-dom';
 
-const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId, townId, showroomid, onAdCreated, onEditSuccess }) => {
+const SellShowroomAd = ({ isOpen, onClose, categoryId, showroomCategoryId, subCategoryId, districtId, townId, showroomid, onAdCreated, onEditSuccess }) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [uploadedImages, setUploadedImages] = useState([]);
@@ -57,33 +57,37 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [boostTags, setBoostTags] = useState([]);
   const [selectedBoostTag, setSelectedBoostTag] = useState(null);
+  const [availableSubCategories, setAvailableSubCategories] = useState([]);
+  const [selectedSubCategoryId, setSelectedSubCategoryId] = useState(null);
 
   const modalSize = useBreakpointValue({ base: "full", md: "xl" });
   const fontSize = useBreakpointValue({ base: "sm", md: "md" });
   const headingSize = useBreakpointValue({ base: "xl", md: "2xl" });
   const imageBoxSize = useBreakpointValue({ base: "100px", md: "150px" });
+console.log(subCategoryId);
 
   const { data: brands } = useBrands(
     isOpen, 
     getUserToken, 
-    subCategoryId,
-    subCategoryId === 18 ? selectedTypeId : null
+    selectedSubCategoryId,
+    selectedSubCategoryId === 18 ? selectedTypeId : null
   );
   const { data: models } = useModels(
     isOpen, 
     getUserToken, 
     selectedBrandId, 
-    subCategoryId,
-    subCategoryId === 18 ? selectedTypeId : null
+    selectedSubCategoryId,
+    selectedSubCategoryId === 18 ? selectedTypeId : null
   );
-  const { data: variants } = useVariants(isOpen, getUserToken, selectedModelId, subCategoryId);
-  const { data: types } = useTypes(isOpen, getUserToken, subCategoryId);
+  const { data: variants } = useVariants(isOpen, getUserToken, selectedModelId, selectedSubCategoryId);
+  const { data: types } = useTypes(isOpen, getUserToken, selectedSubCategoryId);
 
   useEffect(() => {
-    if (subCategoryId) {
-      fetchSubCategoryDetails(getUserToken(), subCategoryId)
+    if (selectedSubCategoryId) {
+      fetchSubCategoryDetails(getUserToken(), selectedSubCategoryId)
         .then(data => {
           setSubCategoryDetails(data);
+          reset();
         })
         .catch(error => {
           console.error('Error fetching subcategory details:', error);
@@ -94,14 +98,11 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
             isClosable: true,
           });
         });
-    }
-  }, [subCategoryId, getUserToken, toast]);
-
-  useEffect(() => {
-    if (subCategoryId) {
+    } else {
+      setSubCategoryDetails(null);
       reset();
     }
-  }, [subCategoryId, reset]);
+  }, [selectedSubCategoryId, getUserToken, toast, reset]);
 
   useEffect(() => {
     const fetchBoostTags = async () => {
@@ -130,6 +131,48 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
       fetchBoostTags();
     }
   }, [isOpen, getUserToken, toast]);
+
+  useEffect(() => {
+    const fetchSubCategories = async () => {
+      if (!selectedSubCategoryId  && isOpen) {
+        try {
+          const token = getUserToken();
+          const response = await axios.get(
+            `${BASE_URL}/api/ad-find-showroom-category-sub-categories-without-all-of-the-above/${showroomCategoryId}`,
+            {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+              },
+            }
+          );
+          console.log(response.data.data);
+          
+          setAvailableSubCategories(response.data.data);
+        } catch (error) {
+          console.error('Error fetching subcategories:', error);
+          toast({
+            title: "Error fetching subcategories",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
+        }
+      }
+    };
+
+    fetchSubCategories();
+  }, [showroomCategoryId, selectedSubCategoryId, isOpen, getUserToken, toast]);
+
+  useEffect(() => {
+    setSelectedSubCategoryId(subCategoryId || null);
+  }, [subCategoryId]);
+
+  const handleSubcategorySelect = (selectedId) => {
+    setSelectedSubCategoryId(selectedId);
+    const searchParams = new URLSearchParams(window.location.search);
+    searchParams.set('subcategoryId', selectedId);
+    navigate(`${window.location.pathname}?${searchParams.toString()}`);
+  };
 
   const onSubmit = async (data) => {
     if (uploadedImages.length === 0) {
@@ -174,7 +217,7 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
     
       filteredData.adShowroom = showroomid ? showroomid : '';
       filteredData.adCategory = categoryId;
-      filteredData.adSubCategory = subCategoryId;
+      filteredData.adSubCategory = selectedSubCategoryId;
       filteredData.locationDistrict = districtId;
       filteredData.locationTown = townId;
       filteredData.adBoostTag = selectedBoostTag;
@@ -314,7 +357,7 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
     if (fieldName === 'locationDistrict' || fieldName === 'locationTown') {
       return null;
     }
-    console.log('Subcategory ID in renderField:', subCategoryId);
+    console.log('Subcategory ID in renderField:', selectedSubCategoryId);
 
     const config = getFieldConfig(
       fieldName, 
@@ -324,7 +367,7 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
       models, 
       variants, 
       types, 
-      subCategoryId  // Add this parameter
+      selectedSubCategoryId  // Add this parameter
     );
     if (!config) return null;
     
@@ -342,8 +385,8 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
                   {...field}
                   className='border-black'
                   isDisabled={
-                    fieldName === 'brand' ? !subCategoryId || (subCategoryId === 18 && !selectedTypeId) :
-                    fieldName === 'model' ? (!selectedBrandId && subCategoryId !== 13) :
+                    fieldName === 'brand' ? !selectedSubCategoryId || (selectedSubCategoryId === 18 && !selectedTypeId) :
+                    fieldName === 'model' ? (!selectedBrandId && selectedSubCategoryId !== 13) :
                     fieldName === 'variant' ? !selectedModelId :
                     false
                   }
@@ -352,7 +395,7 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
                     if (fieldName === 'type') {
                       setSelectedTypeId(e.target.value);
                       // Reset dependent fields when type changes for subcategory 18
-                      if (subCategoryId === 18) {
+                      if (selectedSubCategoryId === 18) {
                         setValue('brand', '');
                         setValue('model', '');
                         setValue('variant', '');
@@ -466,7 +509,7 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
 
   return (
     <>
-      <Modal isOpen={isOpen} onClose={onClose} size={modalSize}    closeOnOverlayClick={false} >
+      <Modal isOpen={isOpen} onClose={onClose} size={modalSize} closeOnOverlayClick={false}>
         <ModalOverlay />
         <ModalContent 
           bg="#F1F1F1" 
@@ -486,80 +529,135 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
             zIndex="1"
           />
           <ModalBody>
-            <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-3 py-3'>
-              <h3 className={`text-${headingSize} font-bold mb-3`}>Add your showroom ad details</h3>
-              
-              {subCategoryDetails && subCategoryDetails.requiredFields?.map(fieldName => renderField(fieldName))}
-              <FormControl isInvalid={errors?.boostTags}>
-                <FormLabel fontSize={fontSize}>
-                  Boost Tags
-                </FormLabel>
-                <Controller
-                  name="boostTags"
-                  control={control}
-                  render={({ field }) => (
-                    <Select 
-                      {...field} 
-                      placeholder="Select a boost tag" 
-                      onChange={(e) => {
-                        field.onChange(e);
-                        setSelectedBoostTag(e.target.value);
-                      }}
-                    >
-                      {boostTags.map((tag) => (
-                        <option key={tag.id} value={tag.id}>
-                          {tag.name}
-                        </option>
-                      ))}
-                    </Select>
-                  )}
+            {!selectedSubCategoryId ? (
+              <Box 
+                py={8} 
+                textAlign="center"
+                maxWidth="600px"
+                mx="auto"
+              >
+                <Icon 
+                  as={IoAddOutline} 
+                  w={12} 
+                  h={12} 
+                  color="#4F7598" 
+                  mb={4}
                 />
-                <FormErrorMessage>{errors?.boostTags && errors.boostTags.message}</FormErrorMessage>
-              </FormControl>
-              <FormControl fontSize={fontSize} isInvalid={errors.images} isRequired>
-                <FormLabel>Upload Images (Max 10) </FormLabel>
-                <Flex gap={3} flexWrap="wrap" justifyContent="center">
-                  {uploadedImages.map((image, index) => (
-                    <Box key={index} position="relative">
-                      <ImageUploadBox>
-                        <Image src={image.preview} alt={`Uploaded ${index + 1}`} objectFit="cover" w="100%" h="100%" />
-                        <IoClose 
-                          className='absolute top-1 right-1 bg-[#4F7598] rounded-full h-[20px] w-[20px]' 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeImage(index);
-                          }}
-                        />
-                      </ImageUploadBox>
-                      <Text as="a" fontSize="xs" textAlign="center" mt={1}>
-                        Uploaded
-                      </Text>
-                    </Box>
-                  ))}
-                  {uploadedImages.length < 10 && (
-                    <ImageUploadBox onClick={() => document.getElementById('imageUpload').click()}>
-                      <Icon as={IoAddOutline} w={5} h={5} />
-                      <Text fontSize="xs" textAlign="center" mt={1}>
-                        {uploadedImages.length === 0 ? 'Add image' : 'Upload more'}
-                      </Text>
-                    </ImageUploadBox>
-                  )}
-                  <input
-                    id="imageUpload"
-                    type="file"
-                    accept="image/*"
-                    multiple // Allow multiple file selection
-                    style={{ display: 'none' }}
-                    onChange={handleImageUpload}
+                <Text 
+                  fontSize={headingSize} 
+                  fontWeight="bold" 
+                  mb={4} 
+                  color="#4F7598"
+                >
+                  Select a Subcategory
+                </Text>
+                <Text 
+                  fontSize={fontSize} 
+                  color="gray.600" 
+                  mb={6}
+                >
+                  Please select a subcategory for your showroom ad to continue
+                </Text>
+                <FormControl 
+                  bg="white" 
+                  p={5} 
+                  borderRadius="xl" 
+                  boxShadow="lg"
+                  border="1px"
+                  borderColor="gray.200"
+                >
+                  <Select
+                    placeholder="Choose a subcategory"
+                    onChange={(e) => handleSubcategorySelect(e.target.value)}
+                    size="lg"
+                    borderColor="#4F7598"
+                    _hover={{ borderColor: "#2D3748" }}
+                    _focus={{ borderColor: "#2D3748", boxShadow: "0 0 0 1px #2D3748" }}
+                  >
+                    {availableSubCategories.map((subCat) => (
+                      <option key={subCat.id} value={subCat.id}>
+                        {subCat.name}
+                      </option>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
+            ) : (
+              <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-3 py-3'>
+                <h3 className={`text-${headingSize} font-bold mb-3`}>Add your showroom ad details</h3>
+                
+                {subCategoryDetails && subCategoryDetails.requiredFields?.map(fieldName => renderField(fieldName))}
+                <FormControl isInvalid={errors?.boostTags}>
+                  <FormLabel fontSize={fontSize}>
+                    Boost Tags
+                  </FormLabel>
+                  <Controller
+                    name="boostTags"
+                    control={control}
+                    render={({ field }) => (
+                      <Select 
+                        {...field} 
+                        placeholder="Select a boost tag" 
+                        onChange={(e) => {
+                          field.onChange(e);
+                          setSelectedBoostTag(e.target.value);
+                        }}
+                      >
+                        {boostTags.map((tag) => (
+                          <option key={tag.id} value={tag.id}>
+                            {tag.name}
+                          </option>
+                        ))}
+                      </Select>
+                    )}
                   />
-                </Flex>
-                {errors.images && (
-                  <FormErrorMessage>{errors.images.message}</FormErrorMessage>
-                )}
-              </FormControl>
-              
-              <Button type="submit" colorScheme="blue" mt={3} fontSize={fontSize}>Submit</Button>
-            </form>
+                  <FormErrorMessage>{errors?.boostTags && errors.boostTags.message}</FormErrorMessage>
+                </FormControl>
+                <FormControl fontSize={fontSize} isInvalid={errors.images} isRequired>
+                  <FormLabel>Upload Images (Max 10) </FormLabel>
+                  <Flex gap={3} flexWrap="wrap" justifyContent="center">
+                    {uploadedImages.map((image, index) => (
+                      <Box key={index} position="relative">
+                        <ImageUploadBox>
+                          <Image src={image.preview} alt={`Uploaded ${index + 1}`} objectFit="cover" w="100%" h="100%" />
+                          <IoClose 
+                            className='absolute top-1 right-1 bg-[#4F7598] rounded-full h-[20px] w-[20px]' 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeImage(index);
+                            }}
+                          />
+                        </ImageUploadBox>
+                        <Text as="a" fontSize="xs" textAlign="center" mt={1}>
+                          Uploaded
+                        </Text>
+                      </Box>
+                    ))}
+                    {uploadedImages.length < 10 && (
+                      <ImageUploadBox onClick={() => document.getElementById('imageUpload').click()}>
+                        <Icon as={IoAddOutline} w={5} h={5} />
+                        <Text fontSize="xs" textAlign="center" mt={1}>
+                          {uploadedImages.length === 0 ? 'Add image' : 'Upload more'}
+                        </Text>
+                      </ImageUploadBox>
+                    )}
+                    <input
+                      id="imageUpload"
+                      type="file"
+                      accept="image/*"
+                      multiple // Allow multiple file selection
+                      style={{ display: 'none' }}
+                      onChange={handleImageUpload}
+                    />
+                  </Flex>
+                  {errors.images && (
+                    <FormErrorMessage>{errors.images.message}</FormErrorMessage>
+                  )}
+                </FormControl>
+                
+                <Button type="submit" colorScheme="blue" mt={3} fontSize={fontSize}>Submit</Button>
+              </form>
+            )}
           </ModalBody>
         </ModalContent>
       </Modal>
@@ -568,3 +666,4 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, subCategoryId, districtId
 };
 
 export default SellShowroomAd;
+

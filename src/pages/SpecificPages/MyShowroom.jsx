@@ -411,6 +411,7 @@ const handleShowroomSelect = useCallback((showroom) => {
           onClose={handleSellModalClose}
           categoryId={selectedShowroom.adCategory?.id}
           subCategoryId={selectedShowroom.adSubCategory?.id}
+          showroomCategoryId={selectedShowroom.adShowroomCategory?.id}
           districtId={selectedShowroom.locationDistrict?.id}
           townId={selectedShowroom.locationTown?.id}
           showroomid={selectedShowroom.id}
@@ -428,6 +429,7 @@ const handleShowroomSelect = useCallback((showroom) => {
           onSuccess={handleEditAdSuccess}
           categoryId={selectedShowroom.adCategory?.id}
           subCategoryId={selectedShowroom.adSubCategory?.id}
+          showroomCategoryId={selectedShowroom.adShowroomCategory?.id}
           districtId={selectedShowroom.locationDistrict?.id}
           townId={selectedShowroom.locationTown?.id}
           showroomId={selectedShowroom.id}

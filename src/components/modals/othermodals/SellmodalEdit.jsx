@@ -450,69 +450,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
           </FormControl>
         );
       case 'select':
-        if (fieldName === 'locationTown') {
-          const filteredTowns = config.options.filter(option => 
-            option.name?.toLowerCase().includes(townSearchQuery.toLowerCase())
-          );
-
-          return (
-            <FormControl key={fieldName} isInvalid={errors[fieldName]} fontSize={fontSize}>
-              <FormLabel>{config.label}</FormLabel>
-              <Controller
-                name={fieldName}
-                control={control}
-                rules={config.rules}
-                render={({ field }) => (
-                  <Menu matchWidth>
-                    <MenuButton
-                      as={Button}
-                      rightIcon={<FaChevronDown  className='h-3 w-3 text-black ' />}
-                      w="100%"
-                      textAlign="left"
-                      isDisabled={isTownsLoading || !selectedDistrictId}
-                      className='border-black'
-                      fontWeight="normal"
-                    >
-                      {field.value ? 
-                        config.options.find(opt => opt.id === field.value)?.name || 'Select Town' 
-                        : 'Select Town'
-                      }
-                    </MenuButton>
-                    <MenuList maxH="200px" overflowY="auto">
-                      <Box p={2}>
-                        <Input
-                          placeholder="Search town..."
-                          value={townSearchQuery}
-                          onChange={(e) => setTownSearchQuery(e.target.value)}
-                          mb={2}
-                        />
-                      </Box>
-                      {filteredTowns.map(option => (
-                        <MenuItem
-                          key={option.id}
-                          value={option.id}
-                          onClick={() => {
-                            field.onChange(option.id);
-                            setTownSearchQuery('');
-                          }}
-                          fontWeight="normal"
-                        >
-                          {option.name}
-                        </MenuItem>
-                      ))}
-                      {filteredTowns.length === 0 && (
-                        <MenuItem isDisabled fontWeight="normal">No towns found</MenuItem>
-                      )}
-                    </MenuList>
-                  </Menu>
-                )}
-              />
-              <FormErrorMessage>
-                {errors[fieldName] && errors[fieldName].message}
-              </FormErrorMessage>
-            </FormControl>
-          );
-        }
+        
         return (
           <FormControl key={fieldName} isInvalid={errors[fieldName]} fontSize={fontSize}>
             <FormLabel>{config.label}</FormLabel>
@@ -559,10 +497,10 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
               <option value="">Select {config.label}</option>
               {config.options?.map(option => (
                 <option 
-                  key={option.id || option} 
-                  value={option.id || option}
+                  key={option?.id || option} 
+                  value={option?.id || option}
                 >
-                  {option.name || option}
+                  {option?.name || option}
                 </option>
               ))}
             </Select>
@@ -591,15 +529,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
     }
   };
 
-  useEffect(() => {
-    if (selectedDistrictId && towns?.length > 0) {
-      const currentTown = getValues('locationTown');
-      const isTownValid = towns.some(town => town.id.toString() === currentTown);
-      if (!isTownValid) {
-        setValue('locationTown', '');
-      }
-    }
-  }, [selectedDistrictId, towns, setValue, getValues]);
+
 
   const clearForm = () => {
     reset(); // Reset form values

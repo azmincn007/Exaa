@@ -68,6 +68,7 @@ const EditShowroomad = ({ isOpen, onClose, ad, onSuccess, categoryId, subCategor
   const imageBoxSize = useBreakpointValue({ base: "100px", md: "150px" });
   const token = localStorage.getItem("UserToken");
   const getUserToken = useCallback(() => localStorage.getItem("UserToken"), []);
+console.log(ad);
 
   // Add new state to track if these fields are needed
   const [requiredFields, setRequiredFields] = useState({
@@ -120,14 +121,17 @@ const EditShowroomad = ({ isOpen, onClose, ad, onSuccess, categoryId, subCategor
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!ad?.id || !token || !subCategoryId) return;
+      // Check if subCategoryId is null or undefined
+      const effectiveSubCategoryId = subCategoryId || (ad?.adSubCategory?.id || null);
+      
+      if (!ad?.id || !token || !effectiveSubCategoryId) return;
 
       try {
         setIsDataLoaded(false);
 
         // Fetch subcategory and ad data in parallel
         const [subCategoryResponse, adResponse] = await Promise.all([
-          axios.get(`${BASE_URL}/api/ad-find-one-sub-category/${subCategoryId}`, {
+          axios.get(`${BASE_URL}/api/ad-find-one-sub-category/${effectiveSubCategoryId}`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
           axios.get(`${BASE_URL}/api/find-one-ad/${categoryId}/${ad.id}`, {
@@ -648,6 +652,15 @@ const EditShowroomad = ({ isOpen, onClose, ad, onSuccess, categoryId, subCategor
                 <h3 className={`text-${headingSize} font-bold mb-3`}>Edit your showroom ad details</h3>
 
                 <VStack spacing={4} align="stretch">
+                  <FormControl>
+                    <FormLabel fontSize={fontSize}>Sub Category</FormLabel>
+                    <Input
+                      value={ad?.adSubCategory?.name || ""} // Assuming adSubCategory has a name property
+                      isReadOnly // Prevent editing
+                      fontSize={fontSize}
+                    />
+                  </FormControl>
+
                   {adData && Object.keys(adData).map((fieldName, index) => <React.Fragment key={fieldName + index}>{renderField(fieldName)}</React.Fragment>)}
 
                   <FormControl isInvalid={errors.adBoostTag}>

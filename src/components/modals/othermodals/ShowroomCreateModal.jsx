@@ -25,7 +25,7 @@ const fetchSubCategories = async (userToken, categoryId) => {
 };
 
 const fetchShowroomCategories = async (userToken, subCategoryId) => {
-  const { data } = await axios.get(`${BASE_URL}/api/ad-find-showroom-category-sub-categories/${subCategoryId}`, {
+  const { data } = await axios.get(`${BASE_URL}/api/ad-find-showroom-category-sub-categories-web/${subCategoryId}`, {
     headers: { Authorization: `Bearer ${userToken}` },
   });
   return data.data;
@@ -69,13 +69,28 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
   const toast = useToast();
 
   const createShowroomMutation = useMutation(
-    (formData) =>
-      axios.post(`${BASE_URL}/api/ad-showrooms`, formData, {
+    (formData) => {
+      // Check if adSubCategory is 'all' and replace with empty string
+      if (formData.get('adSubCategory') === 'all') {
+        formData.delete('adSubCategory');
+        formData.append('adSubCategory', '');
+      }
+  
+      // Log the entire formData before sending
+      console.log('Showroom Form Data:', formData);
+      
+      // Optional: Log individual form fields for detailed inspection
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
+      }
+  
+      return axios.post(`${BASE_URL}/api/ad-showrooms`, formData, {
         headers: {
           Authorization: `Bearer ${userToken}`,
           "Content-Type": "multipart/form-data",
         },
-      }),
+      });
+    },
     {
       onSuccess: (response) => {
         onSuccess(response.data.data);
