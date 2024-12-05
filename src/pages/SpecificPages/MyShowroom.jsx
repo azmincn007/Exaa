@@ -21,6 +21,7 @@ import ShowroomuserAdCard from "../../components/common/Cards/ShowroomuserAdCard
 import EditShowroomModal from "../../components/modals/othermodals/EditShowroomAd";
 import EditShowroomad from "../../components/modals/othermodals/EditShowroomAd";
 import CongratulationsModal from "../../components/modals/othermodals/SellSuccessmodal";
+import ShowroomSingleSkeleton from "../../components/Skelton/Showroomskelton";
 
 const fetchShowrooms = async (token) => {
   const response = await axios.get(`${BASE_URL}/api/find-user-ad-showrooms`, {
@@ -272,9 +273,9 @@ const handleShowroomSelect = useCallback((showroom) => {
     [queryClient, selectedShowroom?.id, token, toast, refetchShowroomAds]
   );
 
-  // if (showroomsLoading || !isInitialized || adsLoading) {
-  //   return <ShowroomSkeleton />;
-  // }
+  if (showroomsLoading || !isInitialized ) {
+    return <ShowroomSingleSkeleton />;
+  }
 
   if (showroomsError || adsError) {
     return (

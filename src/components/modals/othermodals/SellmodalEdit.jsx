@@ -143,13 +143,11 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
       const districtId = completeAdData.locationDistrict?.id;
       setSelectedDistrictId(districtId);
       setValue('locationDistrict', districtId);
-
-      setTimeout(() => {
-        const townId = completeAdData.locationTown?.id;
-        if (townId) {
-          setValue('locationTown', townId);
+      const townId = completeAdData.locationTown?.id;
+      if (townId) {
+      setValue('locationTown', townId);
         }
-      }, 100);
+     
 
       setInitialCategoryId(completeAdData.adCategory?.id);
       setSelectedCategoryId(completeAdData.adCategory?.id);
@@ -188,15 +186,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
     }
   }, [isDataLoaded, completeAdData, setValue]);
 
-  useEffect(() => {
-    if (towns?.length > 0 && completeAdData?.locationTown?.id) {
-      const townId = completeAdData.locationTown.id.toString();
-      const isTownValid = towns.some(town => town.id.toString() === townId);
-      if (isTownValid) {
-        setValue('locationTown', townId);
-      }
-    }
-  }, [towns, completeAdData, setValue]);
+
 
   useEffect(() => {
     if (selectedSubCategoryId) {

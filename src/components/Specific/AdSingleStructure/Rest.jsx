@@ -24,7 +24,7 @@ const Rest = ({ adData }) => {
     
     // Create a key-value pair data structure for specific fields
     const keyValuePairs = [
-        { label: 'Location', value: adData?.locationDistrict?.name || adData?.locationTown?.name || 'Location not available' },
+        { label: 'Location', value:  adData?.locationTown?.name || 'Location not available' },
         { label: 'Posting Date', value: adData?.createdAt ? formatDate(adData.createdAt) : undefined },
         // { label: 'Category', value: adData?.adCategory?.name },
         // { label: 'Sub Category', value: adData?.adSubCategory?.name },

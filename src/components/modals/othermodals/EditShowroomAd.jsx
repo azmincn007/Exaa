@@ -322,47 +322,30 @@ const EditShowroomad = ({ isOpen, onClose, ad, onSuccess, categoryId, subCategor
       case "select":
         return (
           <FormControl key={fieldName} isInvalid={errors[fieldName]} fontSize={fontSize}>
-            <FormLabel>{config.label}</FormLabel>
+          <FormLabel>{config.label}</FormLabel>
+          {/* Conditionally render based on the field */}
+          {(fieldName === 'town' || fieldName === 'locationTown') ? (
+            <SearchableSelect 
+              options={config.options || []}
+              value={getValues(fieldName) || ""}
+              onChange={(value) => {
+                setValue(fieldName, value, { shouldValidate: true });
+                // Add any additional onChange logic if needed
+              }}
+              placeholder={`Select ${config.label}`}
+              isDisabled={config.options?.length === 0}
+            />
+          ) : (
             <Select
               {...register(fieldName, config.rules)}
               onChange={(e) => {
                 const newValue = e.target.value;
                 setValue(fieldName, newValue, { shouldValidate: true });
 
-                // Handle special cases for dependent fields
-                switch (fieldName) {
-                  case "type":
-                    setSelectedTypeId(newValue);
-                    if (subCategoryId === 18) {
-                      setValue("brand", "");
-                      setValue("model", "");
-                      setValue("variant", "");
-                      setSelectedBrandId(null);
-                      setSelectedModelId(null);
-                      setSelectedVariantId(null);
-                    }
-                    break;
-                  case "brand":
-                    setSelectedBrandId(newValue);
-                    setValue("model", "");
-                    setValue("variant", "");
-                    setSelectedModelId(null);
-                    setSelectedVariantId(null);
-                    break;
-                  case "model":
-                    setSelectedModelId(newValue);
-                    setValue("variant", "");
-                    setSelectedVariantId(null);
-                    break;
-                  case "variant":
-                    setSelectedVariantId(newValue);
-                    break;
-                  default:
-                    break;
-                }
+        
               }}
               value={getValues(fieldName) || ""}
-              isDisabled={fieldName === "brand" ? !subCategoryId || (subCategoryId === 18 && !selectedTypeId) : fieldName === "model" ? !selectedBrandId && subCategoryId !== 13 : fieldName === "variant" ? !selectedModelId : false}
+           
             >
               <option value="">Select {config.label}</option>
               {config.options?.map((option) => (
@@ -371,8 +354,9 @@ const EditShowroomad = ({ isOpen, onClose, ad, onSuccess, categoryId, subCategor
                 </option>
               ))}
             </Select>
-            <FormErrorMessage>{errors[fieldName]?.message}</FormErrorMessage>
-          </FormControl>
+          )}
+          <FormErrorMessage>{errors[fieldName]?.message}</FormErrorMessage>
+        </FormControl>
         );
       case "radio":
         return (

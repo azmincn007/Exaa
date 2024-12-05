@@ -10,6 +10,7 @@ import { RiGhostLine } from 'react-icons/ri';
 import { FaChevronRight } from 'react-icons/fa6';
 import { DistrictContext, TownContext } from '../../App';
 import { useSearch } from '../../Hooks/SearchContext';
+import ShowroomSingleSkeleton from '../../components/Skelton/Showroomskelton';
 
 // Updated fetchShowrooms function to include token if logged in
 const fetchShowrooms = async ({ selectedDistrict, selectedTown, searchText }) => {
@@ -188,7 +189,7 @@ const Showroom = () => {
       {/* Showrooms Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
         {isShowroomsLoading
-          ? Array.from({ length: 12 }).map((_, idx) => <ShowroomSkeleton key={idx} />)
+          ? Array.from({ length: 12 }).map((_, idx) => <ShowroomSingleSkeleton key={idx} />)
           : currentItems?.length > 0
             ? currentItems.map((item) => (
                 <div
