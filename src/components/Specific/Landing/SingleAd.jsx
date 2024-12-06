@@ -346,6 +346,31 @@ console.log(isAdFavourite);
     ));
   };
 
+  // New function to increment view count
+  const incrementViewCount = async () => {
+    const token = localStorage.getItem('UserToken');
+    const adId = params.get('adId'); // Assuming adId is retrieved from params
+    const adCategoryId = params.get('categoryId'); // Assuming adCategoryId is retrieved from params
+
+    try {
+      await axios.post(`${BASE_URL}/api/ad-views`, {
+        adId,
+        adCategoryId,
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      console.log("View count incremented successfully");
+    } catch (error) {
+      console.error("Error incrementing view count:", error);
+    }
+  };
+
+  useEffect(() => {
+    incrementViewCount(); // Call the function when the component mounts
+  }, []); // Empty dependency array to run only once on mount
+
   if (isLoading) return <SkeletonSingleAdPage />;
   if (error) return <div>An error occurred: {error.message}</div>;
   if (!adData) return <div>No data available for this ad.</div>;

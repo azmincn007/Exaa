@@ -67,7 +67,7 @@ function Showroomsingle() {
     const response = await axios.get(`${BASE_URL}/api/find-other-showroom-ads/${id}`, {
       headers,
       params: {
-        adSubCategoryId: showroomData?.adSubCategory?.id,
+       
         locationTownId: selectedTown === "all" ? '"all"' : String(selectedTown),
         locationDistrictId: selectedDistrict === "all" ? '"all"' : String(selectedDistrict),
         sort:''
@@ -91,10 +91,10 @@ function Showroomsingle() {
   );
 
   const { data: otherAds, isLoading: isLoadingOtherAds, error: otherAdsError } = useQuery(
-    ['otherShowroomAds', id, showroomData?.adSubCategory?.id],
+    ['otherShowroomAds', id],
     fetchOtherShowroomAds,
     {
-      enabled: !!showroomData?.adSubCategory?.id,
+     
       onError: (error) => {
         console.error("Error fetching other showroom ads:", error);
       }
@@ -109,9 +109,7 @@ function Showroomsingle() {
     setBudgetFilter(event.target.value);
   };
 
-  const handleDateSort = () => {
-    setDateSort(!dateSort);
-  };
+
 
   const sortedAndFilteredAds = useMemo(() => {
     if (!otherAds) return [];
