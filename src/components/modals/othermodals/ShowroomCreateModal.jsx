@@ -230,6 +230,7 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
       setSelectedSubCategoryId(null);
       setSelectedDistrictId(null);
       setUploadedImages([]);
+      setUploadedLogo(null);
       setUserToken(localStorage.getItem("UserToken"));
     }
   }, [isOpen, reset]);

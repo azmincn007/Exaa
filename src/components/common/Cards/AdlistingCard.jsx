@@ -10,6 +10,14 @@ const AdListing = ({ isActive, image, title, price, views, likes, location, post
     return firstLine.length > 100 ? `${firstLine.substring(0, 100)}...` : firstLine;
   };
   
+  const renderPriceOrService = () => {
+    if (price) {
+      return <p className='font-bold text-xl'>₹ {price}</p>;
+    } else {
+      return <p className='font-bold text-16 text-green-600'>Service</p>;
+    }
+  };
+  
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden shadow-md mb-4 font-Inter">
       <div className="flex">
@@ -37,9 +45,7 @@ const AdListing = ({ isActive, image, title, price, views, likes, location, post
           <Text className="text-sm text-gray-600 line-clamp-1">
             {formatDescription(description)}
           </Text>
-          <Text className="text-20 font-bold text-blue-500">
-            ₹{price?.toLocaleString()}
-          </Text>
+          {renderPriceOrService()}
           <div className="mt-auto flex flex-col gap-2">
             <div className="flex justify-between items-center">
               <div className="flex items-center">

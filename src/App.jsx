@@ -28,6 +28,7 @@ import Settings from './components/ui/Settings';
 import AdPreviewPage from './components/Specific/Landing/AdPreviewPage';
 import ScrollToTop from './components/common/ScrolltoTOp';
 import { HelmetProvider } from 'react-helmet-async';
+import ImageGallery from './pages/ImageGallery/ImageGallery';
 
 export const TownContext = createContext();
 export const UserdataContext = createContext();
@@ -140,7 +141,11 @@ function App() {
                       <Route path="payment" element={<PaymentButton />} />
                       <Route path="test" element={<LocationSelects />} />
                       <Route path="/ad-preview" element={<Layout><AdPreviewPage /></Layout>} />
-                     
+
+
+
+                      {/* Image Gallery tOUTES */}
+                      <Route path="/image-gallery" element={<ImageGallery />} />
 
                     </Routes>
                  

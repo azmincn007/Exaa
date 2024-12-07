@@ -132,7 +132,7 @@ const ShowroomEditModal = ({ isOpen, onClose, showroomId, onSuccess }) => {
         const response = await axios.get(`${BASE_URL}/api/ad-showrooms/${showroomId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        
+        console.log(response.data.data);
         setShowroom(response.data.data);
       } catch (error) {
         console.error("Error fetching showroom data:", error);
@@ -505,23 +505,7 @@ const ShowroomEditModal = ({ isOpen, onClose, showroomId, onSuccess }) => {
               <FormErrorMessage>{errors.adShowroomCategory && errors.adShowroomCategory.message}</FormErrorMessage>
             </FormControl>
 
-            <FormControl isInvalid={errors.adSubCategory} fontSize={fontSize}>
-              <FormLabel>Sub Category</FormLabel>
-              <Select
-                placeholder="Select Sub Category"
-                isDisabled={true} // This disables the subcategory selection
-                {...register("adSubCategory", { required: "Sub Category is required" })}
-                value={selectedShowroomSubCategoryId || ""}
-              >
-                {showroomCategoriesQuery.data?.map(({ id, name }) => (
-                  <option key={id} value={id}>
-                    {name}
-                  </option>
-                ))}
-              </Select>
-              <FormErrorMessage>{errors.adSubCategory && errors.adSubCategory.message}</FormErrorMessage>
-            </FormControl>
-
+            
             <FormControl isInvalid={errors.locationDistrict} fontSize={fontSize}>
               <FormLabel>District</FormLabel>
               <Select

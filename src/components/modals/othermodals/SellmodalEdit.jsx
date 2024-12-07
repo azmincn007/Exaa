@@ -145,9 +145,8 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
       setValue('locationDistrict', districtId);
       const townId = completeAdData.locationTown?.id;
       if (townId) {
-      setValue('locationTown', townId);
-        }
-     
+        setValue('locationTown', townId);
+      }
 
       setInitialCategoryId(completeAdData.adCategory?.id);
       setSelectedCategoryId(completeAdData.adCategory?.id);
