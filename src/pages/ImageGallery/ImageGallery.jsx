@@ -3,7 +3,7 @@ import { Route, Routes } from 'react-router-dom';
 import Header from './Header'
 import HomeGallery from './HomeGallery'
 import CategoryGallery from './CategoryGallery'
-import SingleImageGallery from './SIngleImageGallery';
+import SingleImageGallery from './SingleImageGallery';
 
 function ImageGallery() {
   const [activeTabIndex, setActiveTabIndex] = useState(0);
