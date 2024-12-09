@@ -144,9 +144,8 @@ function App() {
 
 
 
-                      {/* Image Gallery tOUTES */}
-                      <Route path="/image-gallery" element={<ImageGallery />} />
-
+                      {/* Image Gallery Routes */}
+                      <Route path="/image-gallery/*" element={<ImageGallery />} />
                     </Routes>
                  
                 </TownContext.Provider>
