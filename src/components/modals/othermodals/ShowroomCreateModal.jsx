@@ -45,6 +45,14 @@ const fetchTowns = async (userToken, districtId) => {
   return data.data;
 };
 
+const fetchShowroomCategoryByCategory = async (userToken, categoryId) => {
+  const { data } = await axios.get(`${BASE_URL}/api/find-showroom-category/${categoryId}`, {
+    headers: { Authorization: `Bearer ${userToken}` },
+  });
+  console.log(data);
+  return data.data;
+};
+
 const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [selectedSubCategoryId, setSelectedSubCategoryId] = useState(null);
@@ -135,16 +143,48 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
     enabled: isOpen && !!userToken && !!selectedDistrictId,
   });
 
+  const showroomCategoryQuery = useQuery(
+    ["showroomCategory", userToken, selectedCategoryId],
+    () => fetchShowroomCategoryByCategory(userToken, selectedCategoryId),
+    {
+      enabled: !!selectedCategoryId && !!userToken,
+      onSuccess: (data) => {
+        console.log("Showroom Category Response:", data);
+      },
+    }
+  );
+
   const handleCategoryChange = useCallback(
-    (e) => {
+    async (e) => {
       const newCategoryId = e.target.value;
       setSelectedCategoryId(newCategoryId);
       setValue("adCategory", newCategoryId);
       setValue("adShowroomCategory", "");
       setValue("adSubCategory", "");
       setSelectedSubCategoryId(null);
+
+      // Clear any existing category errors initially
+      clearErrors('adCategory');
+
+      // Wait for the showroom category query to complete
+      try {
+        const response = await queryClient.fetchQuery(
+          ["showroomCategory", userToken, newCategoryId],
+          () => fetchShowroomCategoryByCategory(userToken, newCategoryId)
+        );
+
+        // Check if showroom creation is possible
+        if (!response?.showroomCreationPossible) {
+          setError('adCategory', {
+            type: 'manual',
+            message: 'You have reached the maximum limit for creating showrooms in this category'
+          });
+        }
+      } catch (error) {
+        console.error("Error checking showroom category:", error);
+      }
     },
-    [setValue]
+    [setValue, clearErrors, queryClient, userToken, setError]
   );
 
   const handleSubCategoryChange = useCallback(
@@ -187,6 +227,16 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
     async (data) => {
       if (isSubmitting) return;
 
+      // Check showroom creation possibility
+      const showroomCategory = showroomCategoryQuery.data;
+      if (!showroomCategory?.showroomCreationPossible) {
+        setError('adCategory', {
+          type: 'manual',
+          message: 'You have reached the maximum limit for creating showrooms in this category'
+        });
+        return;
+      }
+
       if (uploadedImages.length === 0) {
         setError('images', {
           type: 'required',
@@ -220,7 +270,7 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
         setIsSubmitting(false);
       }
     },
-    [createShowroomMutation, uploadedImages, uploadedLogo, isSubmitting, setError]
+    [createShowroomMutation, uploadedImages, uploadedLogo, isSubmitting, setError, showroomCategoryQuery.data]
   );
 
   useEffect(() => {
@@ -351,14 +401,22 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
 
             <FormControl isInvalid={errors.adCategory} fontSize={fontSize}>
               <FormLabel>Category</FormLabel>
-              <Select className="border-black" placeholder="Select Category" isDisabled={categoriesQuery.isLoading} {...register("adCategory", { required: "Category is required" })} onChange={handleCategoryChange}>
+              <Select 
+                className="border-black" 
+                placeholder="Select Category" 
+                isDisabled={categoriesQuery.isLoading} 
+                {...register("adCategory", { required: "Category is required" })} 
+                onChange={handleCategoryChange}
+              >
                 {categoriesQuery.data?.map(({ id, name }) => (
                   <option key={id} value={id}>
                     {name}
                   </option>
                 ))}
               </Select>
-              <FormErrorMessage>{errors.adCategory && errors.adCategory.message}</FormErrorMessage>
+              <FormErrorMessage>
+                {errors.adCategory && errors.adCategory.message}
+              </FormErrorMessage>
             </FormControl>
 
             <FormControl isInvalid={errors.adShowroomCategory} fontSize={fontSize}>

@@ -35,6 +35,7 @@ import MonthlyRentRangeFilter from "./FiltersSingle/MonthlyRentFilter";
 import SecurityAmountRangeFilter from "./FiltersSingle/SecurityAmountFilter";
 import PlotAreaRangeFilter from "./FiltersSingle/PlotareaFilter";
 import SalaryFilter from "./FiltersSingle/SalaryFilter";
+import PopularBrandsFilter from "./FiltersSingle/PopularBrandFIlter";
 
 const DynamicFilters = ({ subCategoryId, onFilterChange, filters, setFilters, hideBrandFilter }) => {
   const getUserToken = useCallback(() => localStorage.getItem("UserToken"), []);
@@ -58,7 +59,15 @@ const DynamicFilters = ({ subCategoryId, onFilterChange, filters, setFilters, hi
           throw new Error("Invalid response format from API");
         }
 
-        const { filterKeys } = response.data.data;
+        let { filterKeys } = response.data.data;
+        if (subCategoryId === 11) {
+          filterKeys.push("popularBrands");
+        }
+
+        // Move "popularBrands" to the front if it exists
+        filterKeys = filterKeys.filter(key => key !== "popularBrands");
+        filterKeys.unshift("popularBrands");
+
         setFilterConfig(filterKeys);
 
         if (filterKeys.length > 0) {
@@ -90,6 +99,32 @@ const DynamicFilters = ({ subCategoryId, onFilterChange, filters, setFilters, hi
         setSelectedBrands(value);
       }
 
+      // Synchronize popularBrands and brand selections
+      if (key === 'popularBrands') {
+        const updatedBrands = new Set([...value, ...updatedFilters['brand']]);
+        updatedFilters['brand'] = Array.from(updatedBrands);
+        setSelectedBrands(updatedFilters['brand']);
+      } else if (key === 'brand') {
+        const updatedPopularBrands = new Set([...value, ...updatedFilters['popularBrands']]);
+        updatedFilters['popularBrands'] = Array.from(updatedPopularBrands);
+      }
+
+      // Update popularBrands when a brand is unchecked
+      if (key === 'brand' && value.length < prev[key].length) {
+        const uncheckedBrand = prev[key].find(brand => !value.includes(brand));
+        if (uncheckedBrand) {
+          updatedFilters['popularBrands'] = updatedFilters['popularBrands'].filter(brand => brand !== uncheckedBrand);
+        }
+      }
+
+      // Update brand when a popular brand is unchecked
+      if (key === 'popularBrands' && value.length < prev[key].length) {
+        const uncheckedPopularBrand = prev[key].find(brand => !value.includes(brand));
+        if (uncheckedPopularBrand) {
+          updatedFilters['brand'] = updatedFilters['brand'].filter(brand => brand !== uncheckedPopularBrand);
+        }
+      }
+
       return updatedFilters;
     });
   }, []);
@@ -112,8 +147,13 @@ const DynamicFilters = ({ subCategoryId, onFilterChange, filters, setFilters, hi
   };
 
   const renderFilter = (filterKey) => {
+    // Always render "popular brands" filter for subcategory 11
+    if (subCategoryId === 11 && filterKey === "popularBrands") {
+      return <PopularBrandsFilter filterValues={localFilters} handleFilterChange={handleLocalFilterChange} subCategoryId={subCategoryId} getUserToken={getUserToken}  subCategory={subCategoryId}/>;
+    }
+
     // Skip rendering for 'salary' and 'variant' fields
-    if (filterKey === "salary" || filterKey === "variant" ||  filterKey === "projectName"  ||  filterKey === "length"  ||  filterKey === "breadth") {
+    if (filterKey === "salary" || filterKey === "variant" || filterKey === "projectName" || filterKey === "length" || filterKey === "breadth") {
       return null;
     }
 

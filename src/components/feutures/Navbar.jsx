@@ -166,7 +166,8 @@ const handleCloseLogoutModal = () => {
         />
         <IconButton 
           aria-label="Notifications" 
-          icon={<AiOutlineBell className={`${iconSize} text-white`} />} 
+          icon={<AiOutlineBell className={`${iconSize} text-white`} />}
+          onClick={() => navigate('/notification')}
           className="bg-[#FFFFFF1A] rounded-full" 
           size={buttonSize}
         />

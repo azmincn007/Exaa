@@ -27,6 +27,7 @@ import Boostgrid from "../../components/Specific/Packages/Boostgrid";
 import PackagesSkeleton from "../../components/Skelton/PackageSKelton";
 import { useAuth } from "../../Hooks/AuthContext";
 import { UserdataContext } from "../../App";
+import ShowroomGrid from "../../components/Specific/Packages/ShowroomGrid";
 
 // Define your base URL here
 
@@ -39,7 +40,7 @@ const fetchAdPackages = async () => {
     }
   });
  
-  
+  console.log(data.data);
   return data.data;
 };
 
@@ -49,7 +50,6 @@ export default function Packages() {
   const location = useLocation();
   const { isLoggedIn, isInitialized } = useAuth();
   const { userData } = useContext(UserdataContext);
-  console.log(userData);
   
 
   useEffect(() => {
@@ -61,13 +61,26 @@ export default function Packages() {
   // Using React Query to fetch data
   const { data: adPackages, isLoading, isError, error } = useQuery('adPackages', fetchAdPackages);
 
-  const isPostMoreAdsTab = location.pathname === "/packages/post-more-ads";
+  const getTabIndex = () => {
+    switch (location.pathname) {
+      case "/packages/post-more-ads":
+        return 0;
+      case "/packages/boost-with-tags":
+        return 1;
+      case "/packages/showroom-subscription":
+        return 2;
+      default:
+        return 0;
+    }
+  };
 
   const handleTabChange = (index) => {
     if (index === 0) {
       navigate("/packages/post-more-ads");
-    } else {
+    } else if (index === 1) {
       navigate("/packages/boost-with-tags");
+    } else if (index === 2) { // Added case for the third tab
+      navigate("/packages/showroom-subscription");
     }
   };
 
@@ -104,8 +117,8 @@ export default function Packages() {
       </VStack>
 
       <Box bg="white" color="black" borderRadius="md" p={4}>
-        <Tabs isFitted variant="unstyled" index={isPostMoreAdsTab ? 0 : 1} onChange={handleTabChange}>
-          <TabList mb="1em" className="w-[45%] min-w-[95%] md:min-w-[300px] mx-auto border-b border-gray-200">
+        <Tabs isFitted variant="unstyled" index={getTabIndex()} onChange={handleTabChange}>
+          <TabList mb="1em" className="w-[65%] min-w-[95%] md:min-w-[300px] mx-auto border-b border-gray-200">
             <Tab 
               _selected={{ color: "blue.500", borderBottom: "2px solid currentColor" }}
               className="w-1/2 py-2 text-12 md:text-16 font-[600] text-center text-[#16273C] hover:text-gray-700"
@@ -118,6 +131,12 @@ export default function Packages() {
               className="w-1/2 py-2 text-12 md:text-16 font-[600] text-center text-[#16273C] hover:text-gray-700"
             >
               Boost to Top with Tags
+            </Tab>
+            <Tab 
+              _selected={{ color: "blue.500", borderBottom: "2px solid currentColor" }}
+              className="w-1/2 py-2 text-12 md:text-16 font-[600] text-center text-[#16273C] hover:text-gray-700"
+            >
+              Showroom Subscription
             </Tab>
           </TabList>
           <TabPanels>
@@ -151,7 +170,23 @@ export default function Packages() {
                   <Text className="text-12">Package available for 360 days</Text>
                 </Flex>
               </Box>
-              <Boostgrid packages={adPackages}  id={userData?.id} />
+              <Boostgrid   id={userData?.id} />
+            </TabPanel>
+            <TabPanel>
+            <Box mb={4}>
+                <Heading className="text-16" fontWeight="semibold">
+                  Create more Showroom in Same Category
+                </Heading>
+                <Flex alignItems="center" mt={2}>
+                  <Text color="#2DD43D" mr={2}>✓</Text>
+                  <Text className="text-12">You can post 3 or more Showroom in a particular category</Text>
+                </Flex>
+                <Flex alignItems="center" mt={2}>
+                  <Text color="#2DD43D" mr={2}>✓</Text>
+                  <Text className="text-12">Package available for 360 days</Text>
+                </Flex>
+              </Box>
+              <ShowroomGrid id={userData?.id} />
             </TabPanel>
           </TabPanels>
         </Tabs>

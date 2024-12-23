@@ -29,6 +29,7 @@ import {
   Select,
   Spinner,
   Center,
+  Tooltip,
 } from "@chakra-ui/react";
 import axios from "axios";
 import { BASE_URL } from "../../../config/config";
@@ -42,8 +43,9 @@ import { useTypes } from "../../common/config/Api/UseTypes.jsx";
 import { LogIn } from "lucide-react";
 import TestModal from "./TestModal";
 import { useQueryClient } from "react-query";
+import { FaCircleInfo } from "react-icons/fa6";
 
-const EditShowroomad = ({ isOpen, onClose, ad, onSuccess, categoryId, subCategoryId, districtId, townId, showroomId, onShowSuccess }) => {
+const EditShowroomad = ({ isOpen, onClose, ad, onSuccess, categoryId, subCategoryId, districtId, townId, showroomId, onShowSuccess, AdCreate }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [adData, setAdData] = useState(null);
@@ -640,6 +642,48 @@ console.log(ad);
 
   const headingSize = useBreakpointValue({ base: "xl", md: "2xl" });
 
+  const renderBoostTagField = () => (
+    <FormControl isInvalid={errors.adBoostTag}>
+      <div className='flex items-center'>
+        <FormLabel fontSize={fontSize} className='mb-0'>
+          Boost Tags
+        </FormLabel>
+        {!AdCreate && (
+          <Tooltip 
+            label="Boost tags are only available for users with subscription" 
+            fontSize="sm"
+            placement="top"
+          >
+            <Box display="inline-block">
+              <FaCircleInfo style={{ cursor: 'help' }} />
+            </Box>
+          </Tooltip>
+        )}
+      </div>
+      <Select
+        {...register("adBoostTag")}
+        fontSize={fontSize}
+        placeholder="Select boost tag"
+        value={selectedBoostTag}
+        onChange={(e) => {
+          const value = e.target.value;
+          setSelectedBoostTag(value);
+          setValue("adBoostTag", value);
+        }}
+        isDisabled={!AdCreate}
+        opacity={!AdCreate ? 0.6 : 1}
+        cursor={!AdCreate ? 'not-allowed' : 'pointer'}
+      >
+        {boostTags.map((tag) => (
+          <option key={tag.id} value={tag.id}>
+            {tag.name}
+          </option>
+        ))}
+      </Select>
+      <FormErrorMessage>{errors.adBoostTag?.message}</FormErrorMessage>
+    </FormControl>
+  );
+
   return (
     <>
       <Modal isOpen={isOpen} onClose={onClose} size={modalSize} closeOnOverlayClick={false} closeOnEsc={false}>
@@ -663,27 +707,7 @@ console.log(ad);
 
                   {adData && Object.keys(adData).map((fieldName, index) => <React.Fragment key={fieldName + index}>{renderField(fieldName)}</React.Fragment>)}
 
-                  <FormControl isInvalid={errors.adBoostTag}>
-                    <FormLabel fontSize={fontSize}>Boost Tag</FormLabel>
-                    <Select
-                      {...register("adBoostTag")}
-                      fontSize={fontSize}
-                      placeholder="Select boost tag"
-                      value={selectedBoostTag}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        setSelectedBoostTag(value);
-                        setValue("adBoostTag", value);
-                      }}
-                    >
-                      {boostTags.map((tag) => (
-                        <option key={tag.id} value={tag.id}>
-                          {tag.name}
-                        </option>
-                      ))}
-                    </Select>
-                    <FormErrorMessage>{errors.adBoostTag?.message}</FormErrorMessage>
-                  </FormControl>
+                  {renderBoostTagField()}
 
                   <FormControl>
                     <FormLabel fontSize={fontSize}>Images (Max 10)</FormLabel>

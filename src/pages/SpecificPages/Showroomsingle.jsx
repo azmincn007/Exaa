@@ -12,7 +12,7 @@ import { MdDateRange } from "react-icons/md";
 import { FaChevronRight } from "react-icons/fa";
 import CardShowroom from "../../components/common/Cards/CardShowroom";
 import { BASE_URL } from "../../config/config";
-import { DistrictContext, TownContext } from "../../App";
+import { DistrictContext, TownContext, UserdataContext } from "../../App";
 import ShowroomDetails from "../../components/Specific/showroom/ShowroomDetails";
 import { useAuth } from "../../Hooks/AuthContext";
 import ShowroomSingleSkeleton from "../../components/Skelton/Showroomskelton";
@@ -26,7 +26,7 @@ function Showroomsingle() {
   const [selectedTown] = useContext(TownContext);
   const [selectedDistrict] = useContext(DistrictContext);
   const [isMobile, setIsMobile] = useState(false);
- 
+  const { userData } = useContext(UserdataContext);
   const navigate = useNavigate();
   const { isLoggedIn, isInitialized } = useAuth();
 
@@ -151,6 +151,9 @@ function Showroomsingle() {
     ? showroomData.images.map(image => `${BASE_URL}${image?.url}`)
     : [Showroomsingleimg];
 
+  const isMyShowroom = userData?.id === showroomData?.user?.id;
+
+
   return (
     <div className="w-[80%] mx-auto font-Inter">
       <h1 className="py-2 font-semibold flex justify-center">Showroom</h1>
@@ -168,6 +171,10 @@ function Showroomsingle() {
         facebookPageLink={showroomData?.facebookPageLink}
         websiteLink={showroomData?.websiteLink}
         phone={showroomData?.phone}
+        showroomFollowersCount={showroomData?.showroomFollowersCount}
+        showroomViewsCount={showroomData?.showroomViewsCount}
+        myShowroom={isMyShowroom}
+        isUserFollower={showroomData?.isUserFollower}
       />
       
       {sortedAndFilteredAds && sortedAndFilteredAds.length > 0 && (

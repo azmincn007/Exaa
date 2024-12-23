@@ -53,6 +53,12 @@ const PackagesAndOrders = () => {
   const [expiredBoostError, setExpiredBoostError] = useState(null);
   const [selectedTab, setSelectedTab] = useState(0);
   const isMobile = useBreakpointValue({ base: true, md: false });
+  const [activeShowroomSubs, setActiveShowroomSubs] = useState([]);
+  const [expiredShowroomSubs, setExpiredShowroomSubs] = useState([]);
+  const [activeShowroomLoading, setActiveShowroomLoading] = useState(false);
+  const [expiredShowroomLoading, setExpiredShowroomLoading] = useState(false);
+  const [activeShowroomError, setActiveShowroomError] = useState(null);
+  const [expiredShowroomError, setExpiredShowroomError] = useState(null);
 
   const { isLoggedIn, isInitialized } = useAuth();
 
@@ -165,10 +171,60 @@ const PackagesAndOrders = () => {
       }
     };
 
+    const fetchActiveShowroomSubscriptions = async () => {
+      if (selectedMenuItem !== 'showroom') {
+        setActiveShowroomSubs([]);
+        return;
+      }
+
+      setActiveShowroomLoading(true);
+      try {
+        const response = await fetch(`${BASE_URL}/api/find-user-active-showroom-subscription-orders`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('UserToken')}`,
+          }
+        });
+        if (!response.ok) throw new Error('Failed to fetch active showroom subscriptions');
+        const data = await response.json();
+        setActiveShowroomSubs(data.data || []);
+        setActiveShowroomError(null);
+      } catch (err) {
+        setActiveShowroomError(err.message);
+      } finally {
+        setActiveShowroomLoading(false);
+      }
+    };
+
+    const fetchExpiredShowroomSubscriptions = async () => {
+      if (selectedMenuItem !== 'showroom') {
+        setExpiredShowroomSubs([]);
+        return;
+      }
+
+      setExpiredShowroomLoading(true);
+      try {
+        const response = await fetch(`${BASE_URL}/api/find-user-expired-showroom-subscription-orders`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('UserToken')}`,
+          }
+        });
+        if (!response.ok) throw new Error('Failed to fetch expired showroom subscriptions');
+        const data = await response.json();
+        setExpiredShowroomSubs(data.data || []);
+        setExpiredShowroomError(null);
+      } catch (err) {
+        setExpiredShowroomError(err.message);
+      } finally {
+        setExpiredShowroomLoading(false);
+      }
+    };
+
     fetchActiveSubscriptions();
     fetchExpiredSubscriptions();
     fetchActiveBoosts();
     fetchExpiredBoosts();
+    fetchActiveShowroomSubscriptions();
+    fetchExpiredShowroomSubscriptions();
   }, [selectedMenuItem]);
 
   const handleMenuItemClick = (item) => {
@@ -353,11 +409,101 @@ const PackagesAndOrders = () => {
     );
   };
 
+  const renderShowroomContent = () => {
+    return (
+      <Tabs 
+        isFitted 
+        variant="line"
+        colorScheme="blue"
+      >
+        <TabList mb="1em">
+          <Tab 
+            fontWeight="semibold"
+            _selected={{ 
+              color: 'blue.500',
+              borderBottomWidth: '3px'
+            }}
+          >
+            ACTIVE
+          </Tab>
+          <Tab 
+            fontWeight="semibold"
+            _selected={{ 
+              color: 'blue.500',
+              borderBottomWidth: '3px'
+            }}
+          >
+            EXPIRED
+          </Tab>
+        </TabList>
+        <TabPanels>
+          <TabPanel>
+            {activeShowroomLoading ? (
+              <Center height="64">
+                <Spinner size="xl" color="blue.500" />
+              </Center>
+            ) : activeShowroomError ? (
+              <Alert status="error">
+                <AlertIcon />
+                Error loading active showroom subscriptions: {activeShowroomError}
+              </Alert>
+            ) : activeShowroomSubs.length > 0 ? (
+              <VStack spacing={4} align="stretch">
+                {activeShowroomSubs.map((subscription, index) => (
+                  <SubscriptionCard 
+                    key={index} 
+                    {...subscription} 
+                    isShowroom={true} 
+                  />
+                ))}
+              </VStack>
+            ) : (
+              <EmptyState
+                title="Nothing here..."
+                description="You don't have any active showroom subscriptions"
+              />
+            )}
+          </TabPanel>
+          <TabPanel>
+            {expiredShowroomLoading ? (
+              <Center height="64">
+                <Spinner size="xl" color="blue.500" />
+              </Center>
+            ) : expiredShowroomError ? (
+              <Alert status="error">
+                <AlertIcon />
+                Error loading expired showroom subscriptions: {expiredShowroomError}
+              </Alert>
+            ) : expiredShowroomSubs.length > 0 ? (
+              <VStack spacing={4} align="stretch">
+                {expiredShowroomSubs.map((subscription, index) => (
+                  <SubscriptionCard 
+                    key={index} 
+                    {...subscription} 
+                    isShowroom={true} 
+                    isExpired 
+                  />
+                ))}
+              </VStack>
+            ) : (
+              <EmptyState
+                title="Nothing here..."
+                description="You don't have any expired showroom subscriptions"
+              />
+            )}
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
+    );
+  };
+
   const renderContent = () => {
     if (selectedMenuItem === 'packages') {
       return renderAdPackagesContent();
     } else if (selectedMenuItem === 'boost') {
       return renderBoostPackagesContent();
+    } else if (selectedMenuItem === 'showroom') {
+      return renderShowroomContent();
     }
   };
 
@@ -399,6 +545,19 @@ const PackagesAndOrders = () => {
           >
             Boost Packages
           </Tab>
+          <Tab
+            fontWeight="semibold"
+            onClick={() => handleMenuItemClick('showroom')}
+            isSelected={selectedMenuItem === 'showroom'}
+            _selected={{ 
+              bg: 'blue.500', 
+              color: 'white',
+              boxShadow: 'md'
+            }}
+            borderRadius="md"
+          >
+            Showroom Subscription
+          </Tab>
         </TabList>
       </Tabs>
     );
@@ -428,6 +587,15 @@ const PackagesAndOrders = () => {
                 _hover={{ color: 'blue.400' }}
               >
                 Boost Packages
+              </Text>
+              <Text
+                fontWeight="semibold"
+                cursor="pointer"
+                color={selectedMenuItem === 'showroom' ? 'blue.500' : 'gray.700'}
+                onClick={() => handleMenuItemClick('showroom')}
+                _hover={{ color: 'blue.400' }}
+              >
+                Showroom Subscription
               </Text>
             </VStack>
           </GridItem>

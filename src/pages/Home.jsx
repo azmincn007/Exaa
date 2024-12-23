@@ -8,6 +8,7 @@ function Home() {
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const { getToken, isLoggedIn } = useAuth();
   const token = getToken();
+  console.log(token);
 
   useEffect(() => {
     const selectedTownId = localStorage.getItem('selectedTownId');

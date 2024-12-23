@@ -3,7 +3,6 @@ import { useBrands } from "../../../common/config/Api/UseBrands";
 
 const BrandFilter = ({ filterValues, handleFilterChange, subCategoryId, getUserToken }) => {
     const { data: brands, isLoading, error } = useBrands(true, getUserToken, subCategoryId);
-  
     if (isLoading) return <Skeleton height="20px" />;
     if (error) return <Alert status="error"><AlertIcon />{error.message}</Alert>;
   

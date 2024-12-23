@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useContext } from 'react';
 import {
   Input,
   Button,
@@ -9,13 +9,16 @@ import {
   ListItem,
 } from "@chakra-ui/react";
 import { Search } from 'lucide-react';
+import { SearchImageContext } from './ImageGallery';
 
 function SearchImageGallery() {
-  const [searchTerm, setSearchTerm] = useState('');
+  const { setSearchImage } = useContext(SearchImageContext);
   const inputRef = useRef(null);
 
-  const handleInputChange = (e) => {
-    setSearchTerm(e.target.value);
+  const handleSearch = () => {
+    if (inputRef.current) {
+      setSearchImage(inputRef.current.value);
+    }
   };
 
   return (
@@ -30,22 +33,19 @@ function SearchImageGallery() {
             pr="4.5rem"
             type="text"
             placeholder="Search Images..."
-            className=" bg-[#F1F1F1] rounded-full w-[500px]"
-            value={searchTerm}
-            onChange={handleInputChange}
+            className=" bg-[#F1F1F1] rounded-full w-[100%] max-w-[500px]"
             style={{ flex: 1 }}
           />
           <InputRightElement
             className='bg-blue-500 searchbutton rounded-r-full'
             width="2.5rem"
+            onClick={handleSearch}
+            cursor="pointer"
           >
-         
-              <Search size={16} className='text-white'/>
-            
+            <Search size={16} className='text-white'/>
           </InputRightElement>
         </InputGroup>
       </Box>
-      {/* Suggestions or gallery items can be added here later */}
     </Box>
   );
 }

@@ -24,6 +24,7 @@ import {
   Text,
   useBreakpointValue,
   useToast,
+  Tooltip,
 } from '@chakra-ui/react';
 import { BASE_URL } from '../../../config/config';
 import { IoAddOutline, IoClose } from 'react-icons/io5';
@@ -36,8 +37,11 @@ import { useModels } from '../../common/config/Api/UseModels.jsx';
 import { useVariants } from '../../common/config/Api/UseVarient.jsx';
 import { useTypes } from '../../common/config/Api/UseTypes.jsx';
 import { useNavigate } from 'react-router-dom';
+import { InfoIcon } from 'lucide-react';
+import { ImCoinDollar } from 'react-icons/im';
+import { FaCircleInfo } from 'react-icons/fa6';
 
-const SellShowroomAd = ({ isOpen, onClose, categoryId, showroomCategoryId, subCategoryId, districtId, townId, showroomid, onAdCreated, onEditSuccess }) => {
+const SellShowroomAd = ({ isOpen, onClose, categoryId, showroomCategoryId, subCategoryId, AdCreate, districtId, townId, showroomid, onAdCreated, onEditSuccess }) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [uploadedImages, setUploadedImages] = useState([]);
@@ -64,7 +68,7 @@ const SellShowroomAd = ({ isOpen, onClose, categoryId, showroomCategoryId, subCa
   const fontSize = useBreakpointValue({ base: "sm", md: "md" });
   const headingSize = useBreakpointValue({ base: "xl", md: "2xl" });
   const imageBoxSize = useBreakpointValue({ base: "100px", md: "150px" });
-console.log(subCategoryId);
+  console.log(AdCreate);
 
   const { data: brands } = useBrands(
     isOpen, 
@@ -145,7 +149,6 @@ console.log(subCategoryId);
               },
             }
           );
-          console.log(response.data.data);
           
           setAvailableSubCategories(response.data.data);
         } catch (error) {
@@ -220,13 +223,9 @@ console.log(subCategoryId);
       filteredData.adSubCategory = selectedSubCategoryId;
       filteredData.locationDistrict = districtId;
       filteredData.locationTown = townId;
-      filteredData.adBoostTag = selectedBoostTag;
+      filteredData.adBoostTag = selectedBoostTag || '';
 
-      // Log the data being sent to the API
-      console.log('Data being sent to API:', {
-        ...filteredData,
-        images: uploadedImages.map(image => image.file.name), // Log image names for clarity
-      });
+
 
       const formData = new FormData();
       Object.keys(filteredData).forEach(key => {
@@ -357,7 +356,6 @@ console.log(subCategoryId);
     if (fieldName === 'locationDistrict' || fieldName === 'locationTown') {
       return null;
     }
-    console.log('Subcategory ID in renderField:', selectedSubCategoryId);
 
     const config = getFieldConfig(
       fieldName, 
@@ -507,9 +505,21 @@ console.log(subCategoryId);
     </Box>
   );
 
+  // Add useEffect to reset boost tag when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedBoostTag(null);
+      setValue('boostTags', ''); // Reset the form field
+    }
+  }, [isOpen, setValue]);
+
   return (
     <>
-      <Modal isOpen={isOpen} onClose={onClose} size={modalSize} closeOnOverlayClick={false}>
+      <Modal isOpen={isOpen} onClose={() => {
+        setSelectedBoostTag(null); // Reset state
+        setValue('boostTags', ''); // Reset form field
+        onClose(); // Call the original onClose
+      }} size={modalSize} closeOnOverlayClick={false}>
         <ModalOverlay />
         <ModalContent 
           bg="#F1F1F1" 
@@ -588,9 +598,22 @@ console.log(subCategoryId);
                 
                 {subCategoryDetails && subCategoryDetails.requiredFields?.map(fieldName => renderField(fieldName))}
                 <FormControl isInvalid={errors?.boostTags}>
-                  <FormLabel fontSize={fontSize}>
-                    Boost Tags
-                  </FormLabel>
+                  <div className='flex items-center'>
+                    <FormLabel fontSize={fontSize} className='mb-0'>
+                      Boost Tags
+                    </FormLabel>
+                    {!AdCreate && (
+                      <Tooltip 
+                        label="Boost tags are only available for users with subscription" 
+                        fontSize="sm"
+                        placement="top"
+                      >
+                        <Box display="inline-block">
+                          <FaCircleInfo style={{ cursor: 'help' }} />
+                        </Box>
+                      </Tooltip>
+                    )}
+                  </div>
                   <Controller
                     name="boostTags"
                     control={control}
@@ -602,6 +625,9 @@ console.log(subCategoryId);
                           field.onChange(e);
                           setSelectedBoostTag(e.target.value);
                         }}
+                        isDisabled={!AdCreate}
+                        opacity={!AdCreate ? 0.6 : 1}
+                        cursor={!AdCreate ? 'not-allowed' : 'pointer'}
                       >
                         {boostTags.map((tag) => (
                           <option key={tag.id} value={tag.id}>

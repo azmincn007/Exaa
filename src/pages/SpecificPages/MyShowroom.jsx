@@ -29,7 +29,7 @@ const fetchShowrooms = async (token) => {
       Authorization: `Bearer ${token}`,
     },
   });
-  
+  console.log(response.data.data);
   return response.data.data;
 };
 
@@ -139,26 +139,34 @@ const handleShowroomSelect = useCallback((showroom) => {
 }, []);
   const handleShowroomDelete = useCallback(
     async (deletedShowroomId) => {
+      // Invalidate and refetch both queries
+      queryClient.invalidateQueries(["showrooms"]);
+      queryClient.invalidateQueries(["showroomAds"]);
+      
       await refetchShowrooms();
       if (selectedShowroom?.id === deletedShowroomId) {
         const updatedShowrooms = showrooms.filter((s) => s.id !== deletedShowroomId);
         setSelectedShowroom(updatedShowrooms[0] || null);
       }
     },
-    [refetchShowrooms, selectedShowroom, showrooms, toast]
+    [refetchShowrooms, selectedShowroom, showrooms, queryClient]
   );
 
   const handleAdCreated = useCallback(
     async (newAd) => {
-      // Update the local cache with the new ad
-      queryClient.setQueryData(["showroomAds", selectedShowroom.id], (oldData) => (oldData ? [newAd, ...oldData] : [newAd]));
+      // Invalidate both queries to ensure fresh data
+      queryClient.invalidateQueries(["showrooms"]);
+      queryClient.invalidateQueries(["showroomAds", selectedShowroom.id]);
+      
+      // Optionally update the cache optimistically
+      queryClient.setQueryData(["showroomAds", selectedShowroom.id], (oldData) => 
+        oldData ? [newAd, ...oldData] : [newAd]
+      );
 
-      // Optionally, you can still refetch to ensure consistency with the server
       await refetchShowroomAds();
-
       handleSellModalClose();
     },
-    [queryClient, selectedShowroom, refetchShowroomAds, handleSellModalClose, toast]
+    [queryClient, selectedShowroom, refetchShowroomAds, handleSellModalClose]
   );
 
   const handleShowroomEdit = useCallback((showroom) => {
@@ -226,7 +234,11 @@ const handleShowroomSelect = useCallback((showroom) => {
       }
 
       try {
-        // Optimistically update the UI first
+        // Invalidate queries before deletion
+        queryClient.invalidateQueries(["showrooms"]);
+        queryClient.invalidateQueries(["showroomAds", selectedShowroom.id]);
+
+        // Optimistically update the UI
         queryClient.setQueryData(["showroomAds", selectedShowroom.id], (oldData) => {
           if (!Array.isArray(oldData)) return [];
           return oldData.filter((ad) => ad?.id !== adData?.id);
@@ -252,8 +264,11 @@ const handleShowroomSelect = useCallback((showroom) => {
           isClosable: true,
         });
 
-        // Refetch to ensure data consistency
-        await refetchShowroomAds();
+        // Refetch both queries after successful deletion
+        await Promise.all([
+          refetchShowrooms(),
+          refetchShowroomAds()
+        ]);
       } catch (error) {
         console.error("Error deleting ad:", error);
 
@@ -270,7 +285,7 @@ const handleShowroomSelect = useCallback((showroom) => {
         await refetchShowroomAds();
       }
     },
-    [queryClient, selectedShowroom?.id, token, toast, refetchShowroomAds]
+    [queryClient, selectedShowroom?.id, token, toast, refetchShowroomAds, refetchShowrooms]
   );
 
   if (showroomsLoading || !isInitialized ) {
@@ -367,8 +382,14 @@ const handleShowroomSelect = useCallback((showroom) => {
                     onClick={handleSellModalOpen}
                     alignSelf="center"
                     mt={4}
-                    isDisabled={!selectedShowroom || !selectedShowroom.locationTown?.name}
-                    title={!selectedShowroom.locationTown?.name ? "Please set a location for this showroom first" : ""}
+                    isDisabled={!selectedShowroom || !selectedShowroom.locationTown?.name || !selectedShowroom.isShowroomAdCreationPossible}
+                    title={
+                      !selectedShowroom.locationTown?.name 
+                        ? "Please set a location for this showroom first" 
+                        : !selectedShowroom.isShowroomAdCreationPossible 
+                        ? "Ad creation is not possible for this showroom"
+                        : ""
+                    }
                   >
                     New Post
                   </Button>
@@ -385,8 +406,14 @@ const handleShowroomSelect = useCallback((showroom) => {
                     size="lg"
                     borderRadius="xl"
                     onClick={handleSellModalOpen}
-                    isDisabled={!selectedShowroom || !selectedShowroom.locationTown?.name}
-                    title={!selectedShowroom.locationTown?.name ? "Please set a location for this showroom first" : ""}
+                    isDisabled={!selectedShowroom || !selectedShowroom.locationTown?.name || !selectedShowroom.isShowroomAdCreationPossible}
+                    title={
+                      !selectedShowroom.locationTown?.name 
+                        ? "Please set a location for this showroom first" 
+                        : !selectedShowroom.isShowroomAdCreationPossible 
+                        ? "Ad creation is not possible for this showroom"
+                        : ""
+                    }
                   >
                     New Post
                   </Button>
@@ -414,6 +441,7 @@ const handleShowroomSelect = useCallback((showroom) => {
           showroomCategoryId={selectedShowroom.adShowroomCategory?.id}
           districtId={selectedShowroom.locationDistrict?.id}
           townId={selectedShowroom.locationTown?.id}
+          AdCreate={selectedShowroom.isShowroomTagCreationPossible}
           showroomid={selectedShowroom.id}
           onAdCreated={handleAdCreated}
         />
@@ -432,6 +460,7 @@ const handleShowroomSelect = useCallback((showroom) => {
           showroomCategoryId={selectedShowroom.adShowroomCategory?.id}
           districtId={selectedShowroom.locationDistrict?.id}
           townId={selectedShowroom.locationTown?.id}
+          AdCreate={selectedShowroom.isShowroomTagCreationPossible}
           showroomId={selectedShowroom.id}
           onShowSuccess={(data) => {
             console.log("onShowSuccess callback triggered with data:", data);

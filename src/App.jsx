@@ -29,6 +29,8 @@ import AdPreviewPage from './components/Specific/Landing/AdPreviewPage';
 import ScrollToTop from './components/common/ScrolltoTOp';
 import { HelmetProvider } from 'react-helmet-async';
 import ImageGallery from './pages/ImageGallery/ImageGallery';
+import ShowroomSubscriptionPage from './pages/SpecificPages/ShowroomSubscription';
+import NotificationsPanel from './components/Specific/Landing/NotiifcationPage';
 
 export const TownContext = createContext();
 export const UserdataContext = createContext();
@@ -112,13 +114,17 @@ function App() {
                 
                     <ScrollToTop/>
                     <Routes>
-                      <Route path="/" element={<Layout searchType="home"><Home /></Layout>} />
+                      <Route path="/home" element={<Layout searchType="home"><Home /></Layout>} />
                       <Route path="/packages-and-orders/:section" element={<Layout><PackagesAndOrders /></Layout>} />
                       <Route path="/packages" element={<Layout><Packages /></Layout>}>
                         <Route index element={<Navigate to="/packages/post-more-ads" replace />} />
                         <Route path="post-more-ads" element={<Packages />} />
                         <Route path="boost-with-tags" element={<Packages />} />
+                        <Route path="showroom-subscription" element={<Packages />} />
                       </Route>
+                      <Route path="/notification" element={<Layout><NotificationsPanel /></Layout>}></Route>
+                      <Route path="/showroom-subscription" element={<Layout><ShowroomSubscriptionPage /></Layout>}></Route>
+
                       <Route path="/buy-packages/myorders" element={<BuyPackagesAndMyorders />} />
                       <Route path="/category/:categoryId/:categoryName" element={<Layout><CategoryBasedGrid /></Layout>} />
                       <Route path="/category/:categoryId/:categoryName/:subCategoryId" element={<Layout><CategoryBasedGrid /></Layout>} />
@@ -145,7 +151,7 @@ function App() {
 
 
                       {/* Image Gallery Routes */}
-                      <Route path="/image-gallery/*" element={<ImageGallery />} />
+                      <Route path="/*" element={<ImageGallery />} />
                     </Routes>
                  
                 </TownContext.Provider>

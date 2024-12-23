@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Star, ChevronDown, Edit2, Share2, Copy, ChevronLeft, ChevronRight, MapPin, Tag, Phone } from "lucide-react";
-import { FaWhatsapp, FaFacebook, FaGlobe } from "react-icons/fa";
+import { FaWhatsapp, FaFacebook, FaGlobe, FaUserFriends } from "react-icons/fa";
 import RatingModal from "../../modal/ReviewModal";
 import LoginModal from "../../modals/Authentications/LoginModal";
 import { Button, Card, CardBody, CardHeader, Collapse, useToast } from "@chakra-ui/react";
 import { useAuth } from "../../../Hooks/AuthContext";
 import { BASE_URL } from "../../../config/config";
+import { useQuery } from 'react-query';
 
 const ShowroomDetails = ({ 
   imageUrls,
@@ -20,7 +21,11 @@ const ShowroomDetails = ({
   logo,
   facebookPageLink,
   websiteLink,
-  phone
+  phone,
+  showroomFollowersCount,
+  showroomViewsCount,
+  myShowroom,
+  isUserFollower
 }) => {
   
   const { isLoggedIn } = useAuth();
@@ -30,7 +35,7 @@ const ShowroomDetails = ({
   const [isShareExpanded, setIsShareExpanded] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const toast = useToast();
-
+console.log(myShowroom);
   const handlePrevImage = () => {
     setCurrentImageIndex((prev) => 
       prev === 0 ? imageUrls.length - 1 : prev - 1
@@ -93,6 +98,57 @@ const ShowroomDetails = ({
     }
   };
 
+  const { data: showroomData } = useQuery(['showroomData', showroomId], () => 
+    fetch(`${BASE_URL}/showrooms/${showroomId}`).then(res => res.json())
+  );
+
+  const handleFollowToggle = async () => {
+    if (!isLoggedIn) {
+      toast({
+        title: "Please log in to follow.",
+        status: "warning",
+        duration: 2000,
+        position: "top",
+      });
+      return;
+    }
+
+    const userToken = localStorage.getItem('UserToken');
+    const url = `${BASE_URL}/api/create-or-delete-showroom-follower`;
+    const method = 'POST';
+
+    try {
+      const response = await fetch(url, {
+        method: method,
+        headers: {
+          'Authorization': `Bearer ${userToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ showroomId }),
+      });
+
+      if (response.ok) {
+        const message = isUserFollower ? "Unfollowed!" : "Followed!";
+        toast({
+          title: message,
+          status: "success",
+          duration: 2000,
+          position: "top",
+        });
+      } else {
+        throw new Error("Failed to update follow status");
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        status: "error",
+        duration: 2000,
+        position: "top",
+      });
+    }
+  };
+
   return (
     <div className="w-full p-2 md:p-4 font-Inter">
       <Card className="w-full max-w-md mx-auto shadow-lg overflow-hidden border border-gray-200 rounded-xl">
@@ -103,6 +159,25 @@ const ShowroomDetails = ({
             <div className="absolute top-4 right-4 z-20 rounded-full">
               <img src= {`${BASE_URL}${logo}`} alt={`${name} Logo`} className="h-16 w-16  rounded-full" />
             </div>
+          )}
+          {/* Follow Button */}
+          {!myShowroom && (
+            <button
+              className={`absolute top-6 right-6 z-20 ${isUserFollower ? "bg-green-600" : "bg-blue-500"} text-white text-sm font-semibold py-1 px-3 rounded-full shadow-md ${isUserFollower ? "hover:bg-green-600" : "hover:bg-blue-600"} transition duration-200 flex items-center justify-center`}
+              onClick={handleFollowToggle}
+            >
+              {isUserFollower ? (
+                <>
+                  <FaUserFriends className="mr-1" />
+                  Following
+                </>
+              ) : (
+                <>
+                  <FaUserFriends className="mr-1" />
+                  Follow
+                </>
+              )}
+            </button>
           )}
           <div className="relative w-full pb-[56.25%] mb-3">
             <img
@@ -165,8 +240,8 @@ const ShowroomDetails = ({
               </div>
             </div>
 
-            {/* Location and Ad Count Section */}
-            <div className="flex items-center justify-between text-sm text-gray-600">
+            {/* Adjusted spacing */}
+            <div className="flex items-center justify-between text-sm text-gray-600 mt-2">
               <div className="flex items-center space-x-1">
                 <MapPin className="w-4 h-4" />
                 <span>{locationTown}</span>
@@ -177,6 +252,20 @@ const ShowroomDetails = ({
               </div>
             </div>
           </div>
+
+            {/* Follower and View Counts Section */}
+            <div className="flex justify-between w-full max-w-xs text-gray-600 font-medium mt-3">
+              <span className="flex items-center space-x-1">
+                <FaFacebook className="w-4 h-4 text-gray-600" />
+                <span>{showroomFollowersCount} Followers</span>
+              </span>
+              {myShowroom && (
+                <span className="flex items-center space-x-1">
+                  <FaGlobe className="w-4 h-4 text-gray-600" />
+                  <span>{showroomViewsCount} Views</span>
+                </span>
+              )}
+            </div> 
           
           {/* Share Options Collapse */}
           <Collapse in={isShareExpanded}>

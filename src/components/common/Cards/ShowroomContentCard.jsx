@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, Image, Text, IconButton, Flex, Button } from "@chakra-ui/react";
-import { FaPencilAlt, FaTrash, FaUserPlus, FaEllipsisH, FaEye } from "react-icons/fa";
+import { FaPencilAlt, FaTrash, FaUserPlus, FaEllipsisH, FaEye, FaCrown } from "react-icons/fa";
 import { BASE_URL } from "../../../config/config";
 import axios from "axios";
 import { useAuth } from "../../../Hooks/AuthContext";
@@ -8,6 +8,7 @@ import { useQueryClient } from 'react-query';
 import DeleteConfirmationDialog from "../../modals/othermodals/DeleteConfirmation";
 import AddOperatorModal from "../../modals/othermodals/OperatorModal";
 import { useCustomToast } from "../../../Hooks/ToastHook";
+import { useNavigate } from 'react-router-dom';
 
 const ShowroomContentCard = ({ showroom, isSelected, onClick, onEdit, onDeleteSuccess }) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
@@ -19,6 +20,8 @@ const ShowroomContentCard = ({ showroom, isSelected, onClick, onEdit, onDeleteSu
   const { token } = useAuth();
   const queryClient = useQueryClient();
   const [showAllOperators, setShowAllOperators] = React.useState(false);
+  const navigate = useNavigate();
+  const packageExists = showroom.isShowroomTagCreationPossible;
 
   const handleEdit = (e) => {
     e.stopPropagation();
@@ -191,7 +194,64 @@ const ShowroomContentCard = ({ showroom, isSelected, onClick, onEdit, onDeleteSu
         _hover={{ transform: "scale(1.02)" }}
         position="relative"
       >
-       <Flex position="absolute" top={6} right={6} gap={2} zIndex={2}>
+        {packageExists && (
+          <Box 
+            position="absolute" 
+            top={2} 
+            left={2} 
+            bgGradient="linear(to-r, yellow.400, orange.400, pink.400)"
+            color="white" 
+            borderRadius="sm"
+            py={1}
+            px={2}
+            fontSize="xs"
+            display="flex" 
+            alignItems="center"
+            zIndex='50'
+            boxShadow="0 2px 8px rgba(255, 214, 0, 0.3)"
+            transition="all 0.3s ease"
+            _hover={{ 
+              transform: "translateY(-1px)",
+              boxShadow: "0 3px 12px rgba(255, 214, 0, 0.4)",
+              bgGradient: "linear(to-r, yellow.500, orange.500, pink.500)"
+            }}
+          >
+            <FaCrown 
+              style={{ 
+                marginRight: 3,
+                fontSize: '0.8em',
+                filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.2))'
+              }} 
+            />
+            <Text 
+              fontWeight="bold"
+              letterSpacing="tight"
+              textShadow="0 1px 2px rgba(0,0,0,0.2)"
+            >
+              Package Exists
+            </Text>
+          </Box>
+        )}
+
+        <Flex position="absolute" top={6} right={6} gap={2} zIndex={2}>
+  <IconButton 
+    icon={<FaCrown />}
+    aria-label="Subscription status"
+    size="sm"
+    bgGradient="linear(to-r, yellow.400, orange.400, pink.400)"
+    color="white"
+    _hover={{ 
+      bgGradient: "linear(to-r, yellow.500, orange.500, pink.500)",
+      transform: "translateY(-2px)"
+    }}
+    onClick={(e) => {
+      e.stopPropagation();
+      navigate('/showroom-subscription' , {state: {name: showroom.name , id: showroom.id }});
+    }}
+    borderRadius="full"
+    className="opacity-90 hover:opacity-100"
+    transition="all 0.2s ease"
+  />
   <IconButton 
     icon={<FaEye />} 
     aria-label="Preview showroom" 
