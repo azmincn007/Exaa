@@ -5,7 +5,7 @@ import Header from './Header'
 import HomeGallery from './HomeGallery'
 import CategoryGallery from './CategoryGallery'
 import SubCategoryGallery from './SubCatgoryGallery';
-import SingleImageGallery from './SIngleImageGallery';
+import SingleImageGallery from './SingleImageGallery';
  export const SearchImageContext = createContext();
 const queryClient = new QueryClient();
 function ImageGallery() {
