@@ -1,22 +1,30 @@
-
-import React from 'react';
+import React, { useContext } from 'react';
 import { useQuery } from 'react-query';
 import axios from 'axios';
 import Masonry from 'react-masonry-css';
 import { BASE_URL } from '../../config/config';
-
 import { Link } from 'react-router-dom';
 import MarketplaceLogo from './MarketPlaceLogo';
-
+import { SearchImageContext } from './ImageGallery';
 
 function HomeGallery() {
-  const { data: images = [], error, isLoading } = useQuery('images', async () => {
+  const { searchImage } = useContext(SearchImageContext);
 
-    const response = await axios.get(`${BASE_URL}/api/find-image-gallery-home-images`);
-
-    console.log(response.data);
-    return response.data.data;
-  });
+  const { data: images = [], error, isLoading } = useQuery(
+    ['home-images', searchImage],
+    async () => {
+      const url = new URL(`${BASE_URL}/api/find-image-gallery-home-images`);
+      if (searchImage) {
+        url.searchParams.append('search', searchImage);
+      }
+      const response = await axios.get(url.toString());
+      return response.data.data;
+    },
+    {
+      refetchOnWindowFocus: false,
+      refetchOnMount: true
+    }
+  );
 
   // Breakpoint configuration for responsive columns
   const breakpointColumnsObj = {

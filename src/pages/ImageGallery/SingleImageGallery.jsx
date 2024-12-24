@@ -5,7 +5,7 @@ import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery } from 'react-query';
 import { BASE_URL } from "../../config/config";
 import { BsThreeDotsVertical } from "react-icons/bs";
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import ReportModal from "./Modal/ReportModal";
 import { FaWhatsapp, FaFacebook } from 'react-icons/fa';
 import { MdContentCopy } from 'react-icons/md';
@@ -14,6 +14,8 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import { Navigation } from 'swiper/modules';
+import { ZoomIn, ZoomOut, X } from 'lucide-react';
+import { Modal, ModalOverlay, ModalContent, ModalBody } from '@chakra-ui/react';
 
 export default function SingleImageGallery() {
     const { id } = useParams();
@@ -25,7 +27,11 @@ export default function SingleImageGallery() {
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
     const [showShareMenu, setShowShareMenu] = useState(false);
     const toast = useToast();
-    
+    const [isGalleryView, setIsGalleryView] = useState(false);
+    const [activeIndex, setActiveIndex] = useState(0);
+    const [isFullScreen, setIsFullScreen] = useState(false);
+    const [zoomLevel, setZoomLevel] = useState(1);
+
     const { data: imageData, isLoading, error } = useQuery({
         queryKey: ['gallery-image', id, imageId],
         queryFn: async () => {
@@ -49,6 +55,7 @@ export default function SingleImageGallery() {
                 throw new Error('Failed to fetch related images');
             }
             const data = await response.json();
+            console.log(data.data);
             return data.data;
         },
         enabled: !!imageData?.imageGalleryCategory?.id && !!imageData?.id && !!imageData?.imageGallerySubCategory?.id,
@@ -132,6 +139,24 @@ export default function SingleImageGallery() {
         setShowMenu(false);
     };
 
+    const allImages = useMemo(() => {
+        if (!imageData) return [];
+        return [imageData, ...(relatedImages || [])];
+    }, [imageData, relatedImages]);
+
+    const handleZoomIn = () => {
+        setZoomLevel(prev => Math.min(prev + 0.5, 3)); // Max zoom 3x
+    };
+
+    const handleZoomOut = () => {
+        setZoomLevel(prev => Math.max(prev - 0.5, 1)); // Min zoom 1x
+    };
+
+    const handleModalClose = () => {
+        setIsFullScreen(false);
+        setZoomLevel(1); // Reset zoom when modal closes
+    };
+
     if (isLoading) {
         return (
             <div className="w-full h-screen flex items-center justify-center">
@@ -188,7 +213,10 @@ export default function SingleImageGallery() {
                         )}
                     </div>
 
-                    <div className="flex-grow flex items-center justify-center bg-gray-100 min-h-[50vh]">
+                    <div 
+                        className="flex-grow flex items-center justify-center bg-gray-100  cursor-pointer"
+                        onClick={() => setIsFullScreen(true)}
+                    >
                         <img 
                             src={`${BASE_URL}${imageData.url}`} 
                             alt={imageData.title} 
@@ -216,7 +244,7 @@ export default function SingleImageGallery() {
             spaceBetween={20}
             slidesPerView={3}
             breakpoints={{
-                320: { slidesPerView: 2.5 },
+                320: { slidesPerView: 1.4 },
                 640: { slidesPerView: 3.5 },
                 768: { slidesPerView: 4.5 },
             }}
@@ -226,7 +254,7 @@ export default function SingleImageGallery() {
                 <SwiperSlide key={image.id}>
                     <div 
                         className="cursor-pointer"
-                        onClick={() => handleRelatedImageClick(image.id)}
+                        onClick={() => handleRelatedImageClick(image.imageId)}
                     >
                         <div className="relative pb-[56.25%]">
                             <img
@@ -291,6 +319,55 @@ export default function SingleImageGallery() {
                     </div>
                 </div>
             )}
+
+            {/* Full Screen Image Modal */}
+            <Modal isOpen={isFullScreen} onClose={handleModalClose} size="full">
+                <ModalOverlay />
+                <ModalContent>
+                    <div className="absolute top-4 right-4 flex gap-3 z-50">
+                        <button
+                            onClick={handleZoomIn}
+                            className="p-2 rounded-full bg-black/50 hover:bg-black/70 transition-colors text-white"
+                            title="Zoom In"
+                        >
+                            <ZoomIn size={24} />
+                        </button>
+                        <button
+                            onClick={handleZoomOut}
+                            className="p-2 rounded-full bg-black/50 hover:bg-black/70 transition-colors text-white"
+                            title="Zoom Out"
+                        >
+                            <ZoomOut size={24} />
+                        </button>
+                        <button
+                            onClick={handleModalClose}
+                            className="p-2 rounded-full bg-black/50 hover:bg-black/70 transition-colors text-white"
+                            title="Close"
+                        >
+                            <X size={24} />
+                        </button>
+                    </div>
+                    <ModalBody className="flex justify-center items-center bg-black/90">
+                        <div className="relative w-full h-full overflow-auto">
+                            <img
+                                src={`${BASE_URL}${imageData.url}`}
+                                alt={imageData.title}
+                                className="max-h-[90vh] max-w-[90vw] object-contain transition-transform duration-200 cursor-move"
+                                style={{ 
+                                    transform: `scale(${zoomLevel})`,
+                                    margin: 'auto',
+                                    display: 'block'
+                                }}
+                            />
+                        </div>
+
+                        {/* Zoom Level Indicator */}
+                        <div className="absolute bottom-8 right-8 bg-black/50 px-3 py-1 rounded-full text-white text-sm">
+                            {(zoomLevel * 100).toFixed(0)}%
+                        </div>
+                    </ModalBody>
+                </ModalContent>
+            </Modal>
         </div>
     );
 }

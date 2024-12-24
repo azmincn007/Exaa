@@ -8,7 +8,7 @@ import { SearchImageContext } from './ImageGallery';
 export default function CategorySection() {
   const { searchImage } = useContext(SearchImageContext); // Fix context usage
 
-  const { data: categories = [], isLoading } = useQuery(
+  const { data: categories = [], isLoading, refetch } = useQuery(
     ['categories', searchImage],
     async () => {
       const url = new URL(`${BASE_URL}/api/imag-gall-cates`);
@@ -20,7 +20,9 @@ export default function CategorySection() {
       return data.data;
     },
     {
-      enabled: true
+      enabled: true,
+      refetchOnWindowFocus: false,
+      refetchOnMount: true
     }
   );
 

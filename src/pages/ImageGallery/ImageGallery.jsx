@@ -1,4 +1,4 @@
-import React, { createContext, useState } from 'react'
+import React, { createContext, useState, useEffect } from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import Header from './Header'
@@ -13,6 +13,15 @@ function ImageGallery() {
   const [searchImage, setSearchImage] = useState(''); // New state for search image
   const location = useLocation();
   
+  useEffect(() => {
+    if (location.pathname === '/') {
+      setActiveTabIndex(0);
+    }
+  }, [location.pathname]);
+
+  useEffect(() => {
+    setSearchImage('');
+  }, [location.pathname]);
 
   const isHomeRoute = location.pathname === '/';
 
@@ -25,7 +34,7 @@ function ImageGallery() {
             setActiveTabIndex={setActiveTabIndex} 
             isHomeRoute={isHomeRoute}
           />
-          <div className="flex-1 overflow-auto mt-16">
+          <div className="flex-1 overflow-auto mt-32 md:mt-16">
             <Routes>
               <Route index element={<HomeGallery />} />
               <Route path="image-gallery/category" element={<CategoryGallery />} />
