@@ -10,15 +10,23 @@ import {
 } from "@chakra-ui/react";
 import { Search } from 'lucide-react';
 import { SearchImageContext } from './ImageGallery';
+import { useLocation } from 'react-router-dom';
 
 function SearchImageGallery() {
   const { setSearchImage } = useContext(SearchImageContext);
   const inputRef = useRef(null);
+  const location = useLocation();
 
   const handleSearch = () => {
     if (inputRef.current) {
       setSearchImage(inputRef.current.value);
     }
+  };
+
+  const getPlaceholderText = () => {
+    return location.pathname === '/image-gallery/category' 
+      ? 'Search Categories...'
+      : 'Search Images...';
   };
 
   return (
@@ -32,7 +40,7 @@ function SearchImageGallery() {
             ref={inputRef}
             pr="4.5rem"
             type="text"
-            placeholder="Search Images..."
+            placeholder={getPlaceholderText()}
             className=" bg-[#F1F1F1] rounded-full w-[100%] max-w-[500px]"
             style={{ flex: 1 }}
           />
