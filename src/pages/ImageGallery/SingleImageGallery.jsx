@@ -239,7 +239,7 @@ export default function SingleImageGallery() {
                     </div>
 
                     <div 
-                        className="flex-grow flex items-center justify-center bg-gray-100 min-h-[50vh] cursor-pointer"
+                        className="flex-grow flex items-center justify-center bg-gray-100 py-4 cursor-pointer"
                         onClick={() => setIsFullScreen(true)}
                     >
                         <img 
