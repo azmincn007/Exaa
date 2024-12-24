@@ -31,6 +31,9 @@ export default function SingleImageGallery() {
     const [activeIndex, setActiveIndex] = useState(0);
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [zoomLevel, setZoomLevel] = useState(1);
+    const [position, setPosition] = useState({ x: 0, y: 0 });
+    const [isDragging, setIsDragging] = useState(false);
+    const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
     const { data: imageData, isLoading, error } = useQuery({
         queryKey: ['gallery-image', id, imageId],
@@ -152,9 +155,31 @@ export default function SingleImageGallery() {
         setZoomLevel(prev => Math.max(prev - 0.5, 1)); // Min zoom 1x
     };
 
+    const handleMouseDown = (e) => {
+        setIsDragging(true);
+        setDragStart({
+            x: e.clientX - position.x,
+            y: e.clientY - position.y
+        });
+    };
+
+    const handleMouseMove = (e) => {
+        if (isDragging && zoomLevel > 1) {
+            setPosition({
+                x: e.clientX - dragStart.x,
+                y: e.clientY - dragStart.y
+            });
+        }
+    };
+
+    const handleMouseUp = () => {
+        setIsDragging(false);
+    };
+
     const handleModalClose = () => {
         setIsFullScreen(false);
-        setZoomLevel(1); // Reset zoom when modal closes
+        setZoomLevel(1);
+        setPosition({ x: 0, y: 0 }); // Reset position when modal closes
     };
 
     if (isLoading) {
@@ -214,7 +239,7 @@ export default function SingleImageGallery() {
                     </div>
 
                     <div 
-                        className="flex-grow flex items-center justify-center bg-gray-100  cursor-pointer"
+                        className="flex-grow flex items-center justify-center bg-gray-100 min-h-[50vh] cursor-pointer"
                         onClick={() => setIsFullScreen(true)}
                     >
                         <img 
@@ -244,7 +269,7 @@ export default function SingleImageGallery() {
             spaceBetween={20}
             slidesPerView={3}
             breakpoints={{
-                320: { slidesPerView: 1.4 },
+                320: { slidesPerView: 1. },
                 640: { slidesPerView: 3.5 },
                 768: { slidesPerView: 4.5 },
             }}
@@ -347,21 +372,25 @@ export default function SingleImageGallery() {
                             <X size={24} />
                         </button>
                     </div>
-                    <ModalBody className="flex justify-center items-center bg-black/90">
-                        <div className="relative w-full h-full overflow-auto">
-                            <img
-                                src={`${BASE_URL}${imageData.url}`}
-                                alt={imageData.title}
-                                className="max-h-[90vh] max-w-[90vw] object-contain transition-transform duration-200 cursor-move"
-                                style={{ 
-                                    transform: `scale(${zoomLevel})`,
-                                    margin: 'auto',
-                                    display: 'block'
-                                }}
-                            />
-                        </div>
+                    <ModalBody 
+                        className="flex justify-center items-center bg-black/90 overflow-hidden"
+                        onMouseUp={handleMouseUp}
+                        onMouseLeave={handleMouseUp}
+                        onMouseMove={handleMouseMove}
+                    >
+                        <img
+                            src={`${BASE_URL}${imageData.url}`}
+                            alt={imageData.title}
+                            className="max-h-[90vh] max-w-[90vw] object-contain select-none"
+                            style={{ 
+                                transform: `scale(${zoomLevel}) translate(${position.x}px, ${position.y}px)`,
+                                cursor: zoomLevel > 1 ? 'grab' : 'default',
+                                transition: isDragging ? 'none' : 'transform 0.2s',
+                            }}
+                            onMouseDown={handleMouseDown}
+                            draggable={false}
+                        />
 
-                        {/* Zoom Level Indicator */}
                         <div className="absolute bottom-8 right-8 bg-black/50 px-3 py-1 rounded-full text-white text-sm">
                             {(zoomLevel * 100).toFixed(0)}%
                         </div>
