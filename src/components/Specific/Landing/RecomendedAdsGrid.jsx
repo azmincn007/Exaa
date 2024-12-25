@@ -14,7 +14,7 @@ const MemoizedCardUser = memo(CardUser);
 
 function RecommendedAdsGrid() {
   const [selectedTown] = useContext(TownContext);
-  const [selectedDistrict, setSelectedDistrict] = useContext(DistrictContext);
+  const [selectedDistrict] = useContext(DistrictContext);
   
   
 
@@ -49,15 +49,13 @@ function RecommendedAdsGrid() {
     return response.data.data;
   };
 
-  const { data, error, refetch, isLoading } = useQuery(['recommendedAds', selectedTown], fetchRecommendedAds, {
-    enabled: !!selectedTown,
-  });
-
-  useEffect(() => {
-    if (selectedTown) {
-      refetch();
+  const { data, error, isLoading } = useQuery(
+    ['recommendedAds', selectedTown, selectedDistrict],
+    fetchRecommendedAds,
+    {
+      enabled: !!selectedTown,
     }
-  }, [selectedTown, refetch]);
+  );
 
   const dataLength = data ? data.length : 0;
 

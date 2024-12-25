@@ -61,12 +61,8 @@ const DynamicFilters = ({ subCategoryId, onFilterChange, filters, setFilters, hi
 
         let { filterKeys } = response.data.data;
         if (subCategoryId === 11) {
-          filterKeys.push("popularBrands");
+          filterKeys = ["popularBrands", ...filterKeys.filter(key => key !== "popularBrands")];
         }
-
-        // Move "popularBrands" to the front if it exists
-        filterKeys = filterKeys.filter(key => key !== "popularBrands");
-        filterKeys.unshift("popularBrands");
 
         setFilterConfig(filterKeys);
 
@@ -101,18 +97,24 @@ const DynamicFilters = ({ subCategoryId, onFilterChange, filters, setFilters, hi
 
       // Synchronize popularBrands and brand selections
       if (key === 'popularBrands') {
-        const updatedBrands = new Set([...value, ...updatedFilters['brand']]);
+        const updatedBrands = new Set([
+          ...(value || []), 
+          ...(updatedFilters['brand'] || [])
+        ]);
         updatedFilters['brand'] = Array.from(updatedBrands);
         setSelectedBrands(updatedFilters['brand']);
       } else if (key === 'brand') {
-        const updatedPopularBrands = new Set([...value, ...updatedFilters['popularBrands']]);
+        const updatedPopularBrands = new Set([
+          ...(value || []), 
+          ...(updatedFilters['popularBrands'] || [])
+        ]);
         updatedFilters['popularBrands'] = Array.from(updatedPopularBrands);
       }
 
       // Update popularBrands when a brand is unchecked
       if (key === 'brand' && value.length < prev[key].length) {
         const uncheckedBrand = prev[key].find(brand => !value.includes(brand));
-        if (uncheckedBrand) {
+        if (uncheckedBrand && updatedFilters['popularBrands']) {
           updatedFilters['popularBrands'] = updatedFilters['popularBrands'].filter(brand => brand !== uncheckedBrand);
         }
       }
@@ -120,7 +122,7 @@ const DynamicFilters = ({ subCategoryId, onFilterChange, filters, setFilters, hi
       // Update brand when a popular brand is unchecked
       if (key === 'popularBrands' && value.length < prev[key].length) {
         const uncheckedPopularBrand = prev[key].find(brand => !value.includes(brand));
-        if (uncheckedPopularBrand) {
+        if (uncheckedPopularBrand && updatedFilters['brand']) {
           updatedFilters['brand'] = updatedFilters['brand'].filter(brand => brand !== uncheckedPopularBrand);
         }
       }
@@ -147,9 +149,17 @@ const DynamicFilters = ({ subCategoryId, onFilterChange, filters, setFilters, hi
   };
 
   const renderFilter = (filterKey) => {
-    // Always render "popular brands" filter for subcategory 11
-    if (subCategoryId === 11 && filterKey === "popularBrands") {
-      return <PopularBrandsFilter filterValues={localFilters} handleFilterChange={handleLocalFilterChange} subCategoryId={subCategoryId} getUserToken={getUserToken}  subCategory={subCategoryId}/>;
+    // Only render popular brands filter for subcategory 11
+    if (filterKey === "popularBrands") {
+      return subCategoryId === 11 ? (
+        <PopularBrandsFilter 
+          filterValues={localFilters} 
+          handleFilterChange={handleLocalFilterChange} 
+          subCategoryId={subCategoryId} 
+          getUserToken={getUserToken}  
+          subCategory={subCategoryId}
+        />
+      ) : null;
     }
 
     // Skip rendering for 'salary' and 'variant' fields

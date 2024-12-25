@@ -11,12 +11,10 @@ function HomeGallery() {
   const { searchImage } = useContext(SearchImageContext);
 
   const { data: images = [], error, isLoading } = useQuery(
-    ['home-images', searchImage],
+    ['home-images', searchImage || ''],
     async () => {
       const url = new URL(`${BASE_URL}/api/find-image-gallery-home-images`);
-      if (searchImage) {
-        url.searchParams.append('search', searchImage);
-      }
+      url.searchParams.append('search', searchImage || '');
       const response = await axios.get(url.toString());
       return response.data.data;
     },

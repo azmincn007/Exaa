@@ -6,7 +6,7 @@ import { BASE_URL } from '../../../../config/config';
 
 const PopularBrandsFilter = ({ filterValues, handleFilterChange, subCategoryId, getUserToken }) => {
     const { data: brands, isLoading, error } = useBrands(true, getUserToken, subCategoryId);
-  console.log(brands);
+  console.log(subCategoryId);
   if (isLoading) return <Skeleton height="20px" />;
   if (error) return <Alert status="error"><AlertIcon />{error.message}</Alert>;
 

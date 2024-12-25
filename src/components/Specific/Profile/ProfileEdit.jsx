@@ -100,6 +100,12 @@ const ProfileEditForm = () => {
       formData.append('email', data.email);
       formData.append('phone', `+91${data.phone}`);
 
+      console.log('Profile Update Data:', {
+        name: data.name,
+        email: data.email,
+        phone: `+91${data.phone}`
+      });
+
       const profileResponse = await fetch(`${BASE_URL}/api/auth/changeProfile`, {
         method: 'PUT',
         headers: {
@@ -114,6 +120,11 @@ const ProfileEditForm = () => {
       }
 
       if (data.district || data.town) {
+        console.log('Location Update Data:', {
+          locationDistrict: data.district,
+          locationTown: data.town
+        });
+
         const locationResponse = await fetch(`${BASE_URL}/api/update-user-location`, {
           method: 'PUT',
           headers: {
@@ -311,6 +322,8 @@ const ProfileEditForm = () => {
         <Menu 
           isOpen={isMenuOpen}
           onClose={() => setIsMenuOpen(false)}
+          placement="bottom"
+          strategy="fixed"
         >
           <MenuButton
             as={Button}
@@ -333,6 +346,23 @@ const ProfileEditForm = () => {
           <MenuList 
             borderColor="black"
             boxShadow="md"
+            maxH="300px"
+            overflowY="auto"
+            sx={{
+              '&::-webkit-scrollbar': {
+                width: '8px',
+              },
+              '&::-webkit-scrollbar-track': {
+                background: '#f1f1f1',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                background: '#888',
+                borderRadius: '4px',
+              },
+              '&::-webkit-scrollbar-thumb:hover': {
+                background: '#555',
+              },
+            }}
           >
             <Box p={2}>
               <InputGroup>

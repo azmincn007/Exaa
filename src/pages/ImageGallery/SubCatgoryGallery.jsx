@@ -101,9 +101,9 @@ export default function SubCategoryGallery() {
   return (
     <div className="w-full max-w-[95%] mx-auto p-4 space-y-6 font-Inter">
       <div className="flex items-center gap-2">
-        <span className="text-sm text-gray-500 font-Inter">Home</span>
+        <Link to="/" className="text-sm text-gray-500 font-Inter hover:underline cursor-pointer hover:font-semibold">Home</Link>
         <MdKeyboardArrowRight  className="text-lg text-gray-500" />
-        <span className="text-sm text-gray-500 font-Inter">Category</span>
+        <Link to="/image-gallery/category" className="text-sm text-gray-500 font-Inter hover:underline cursor-pointer hover:font-semibold">Category</Link>
         <MdKeyboardArrowRight  className="text-lg text-gray-500" />
         <span className="font-medium font-Inter">{categories?.name}</span>
       </div> 

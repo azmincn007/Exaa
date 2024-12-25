@@ -51,7 +51,6 @@ function Navbar({ onShowPackagesAndOrders,setSearchResults  }) {
   const { isOpen: isLoginModalOpen, onOpen: onLoginModalOpen, onClose: onLoginModalClose } = useDisclosure();
 
   const handleSellClick = () => {
-    navigate('/'); // Navigate to the home route
     if (!isLoggedIn) {
       onLoginModalOpen();
     } else if (!userData.isProfileCompleted) {
@@ -62,7 +61,7 @@ function Navbar({ onShowPackagesAndOrders,setSearchResults  }) {
   };
   const handleLogoClick = () => {
     resetSearch();
-    navigate('/');
+    navigate('/home');
   };
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -186,7 +185,7 @@ const handleCloseLogoutModal = () => {
         {/* Large screens layout (above 900px) */}
         <div className="hidden lg:grid grid-cols-12 gap-4 items-center">
           <div className="col-span-2 lg:col-span-1">
-          <Link to="/" onClick={handleLogoClick}>
+          <Link to="/home" onClick={handleLogoClick}>
   <img className="h-[40px]" src={IMAGES.ExaLogo} alt="Logo" />
 </Link>
           </div>
