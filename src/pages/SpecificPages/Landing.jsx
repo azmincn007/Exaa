@@ -1,4 +1,3 @@
-
 import React, { useContext, useEffect } from 'react';
 import { Box, Image, Skeleton, Text } from '@chakra-ui/react';
 import { useQuery } from 'react-query';
@@ -9,6 +8,7 @@ import RecommendedAdsGrid from '../../components/Specific/Landing/RecomendedAdsG
 import { TownContext } from '../../App'; // Make sure this path is correct
 import SearchedAdsGrid from '../../components/Specific/Landing/SearchedAdsGrid';
 import { useSearch } from '../../Hooks/SearchContext';
+import ExaImagesLogo from '../../components/Specific/Landing/ExaImagesLogo';
 
 const fetchBanners = async () => {
   const response = await axios.get(`${BASE_URL}/api/home-page`);
@@ -75,7 +75,7 @@ const Carousel = () => {
 
 function Landing() {
   const [selectedTown] = useContext(TownContext);
-  const { hasSearched,setHasSearched } = useSearch(); // Correctly destructured
+  const { hasSearched, setHasSearched } = useSearch(); // Correctly destructured
 
   useEffect(() => {
     // Reset hasSearched when the component mounts
@@ -84,6 +84,7 @@ function Landing() {
 
   return (
     <Box className='bg-offwhite py-8 font-Inter'>
+        <ExaImagesLogo />
       <Box className='w-[60%] mx-auto h-[200px]'>
         <Carousel />
       </Box>

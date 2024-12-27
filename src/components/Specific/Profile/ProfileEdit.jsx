@@ -18,6 +18,7 @@ import {
   MenuItem,
   FormErrorMessage,
   InputRightElement,
+  Spinner,
 } from '@chakra-ui/react';
 import { useForm, Controller } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
@@ -25,9 +26,11 @@ import { BASE_URL } from '../../../config/config';
 import { UserdataContext } from '../../../App';
 import axios from 'axios';
 import { FaChevronDown, FaSearch } from 'react-icons/fa';
+import { useQuery } from 'react-query';
 
 const ProfileEditForm = () => {
   const { userData, setUserData } = useContext(UserdataContext);
+  console.log(userData);
   const { register, handleSubmit, formState: { errors }, control } = useForm({
     defaultValues: {
       name: userData?.name,
@@ -49,38 +52,34 @@ const ProfileEditForm = () => {
   const [townSearchQuery, setTownSearchQuery] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchDistricts = async () => {
-      try {
-        const response = await axios.get(`${BASE_URL}/api/location-districts`, {
-          headers: { Authorization: `Bearer ${userToken}` },
-        });
-        setDistricts(response.data.data);
-      } catch (error) {
-        console.error('Error fetching districts:', error);
-      }
-    };
-    fetchDistricts();
-  }, [userToken]);
+  const { data: districtsData, isLoading: isDistrictsLoading } = useQuery({
+    queryKey: ['districts'],
+    queryFn: async () => {
+      const response = await axios.get(`${BASE_URL}/api/location-districts`, {
+        headers: { Authorization: `Bearer ${userToken}` },
+      });
+      return response.data.data;
+    },
+    onSuccess: (data) => {
+      setDistricts(data);
+    },
+  });
 
-  useEffect(() => {
-    const fetchTowns = async () => {
-      if (selectedDistrict) {
-        try {
-          const response = await axios.get(`${BASE_URL}/api/location-find-district-towns/${selectedDistrict}`, {
-            headers: { Authorization: `Bearer ${userToken}` },
-          });
-          setTowns(response.data.data);
-          setFilteredTowns(response.data.data);
-        } catch (error) {
-          console.error('Error fetching towns:', error);
-        }
-      }
-    };
-    fetchTowns();
-  }, [selectedDistrict, userToken]);
-
-
+  const { data: townsData, isLoading: isTownsLoading } = useQuery({
+    queryKey: ['towns', selectedDistrict],
+    queryFn: async () => {
+      if (!selectedDistrict) return [];
+      const response = await axios.get(`${BASE_URL}/api/location-find-district-towns/${selectedDistrict}`, {
+        headers: { Authorization: `Bearer ${userToken}` },
+      });
+      return response.data.data;
+    },
+    onSuccess: (data) => {
+      setTowns(data || []);
+      setFilteredTowns(data || []);
+    },
+    enabled: !!selectedDistrict,
+  });
 
   const fetchUserData = async () => {
     try {
@@ -185,25 +184,26 @@ const ProfileEditForm = () => {
     const query = e.target.value.toLowerCase();
     setTownSearchQuery(query);
     
-    const filtered = towns.filter(town => 
-      town.name.toLowerCase().includes(query)
-    );
-    
-    setFilteredTowns(filtered);
+    const timeoutId = setTimeout(() => {
+      const filtered = towns.filter(town => 
+        town.name.toLowerCase().includes(query)
+      );
+      setFilteredTowns(filtered);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
   };
 
-  // Modify handleDistrictChange
   const handleDistrictChange = (e) => {
     setSelectedDistrict(e.target.value);
-    setTownSearchQuery(''); // Reset town search when district changes
-    setFilteredTowns(towns); // Reset filtered towns
+    setTownSearchQuery('');
+    setFilteredTowns(towns);
   };
 
-  // Town selection handler
   const handleTownSelect = (townId) => {
     setValue('town', townId);
     setIsMenuOpen(false);
-    setTownSearchQuery(''); // Optional: reset search query
+    setTownSearchQuery('');
   };
   return (
     <Box maxWidth="800px" margin="auto" p={6} borderWidth={2} borderRadius="lg" boxShadow="md" borderColor="black">
@@ -296,113 +296,129 @@ const ProfileEditForm = () => {
                 <FormControl>
                   <Select
                     {...register("district")}
-                    placeholder={getDefaultDistrictName()}
+                    placeholder={isDistrictsLoading ? "Loading..." : getDefaultDistrictName()}
                     border="1px"
                     borderColor="black"
                     _hover={{ borderColor: 'black' }}
                     _focus={{ borderColor: 'blue' }}
                     onChange={handleDistrictChange}
+                    isDisabled={isDistrictsLoading}
                   >
-                    {districts.map((district) => (
-                      <option key={district.id} value={district.id}>
-                        {district.name}
-                      </option>
-                    ))}
+                    {isDistrictsLoading ? (
+                      <option disabled>Loading districts...</option>
+                    ) : (
+                      districts.map((district) => (
+                        <option key={district.id} value={district.id}>
+                          {district.name}
+                        </option>
+                      ))
+                    )}
                   </Select>
                 </FormControl>
               </GridItem>
               <GridItem colSpan={{ base: 12, md: 7 }} />
               
               <GridItem colSpan={{ base: 12, md: 5 }}>
-  <FormControl>
-    <Controller
-      name="town"
-      control={control}
-      render={({ field }) => (
-        <Menu 
-          isOpen={isMenuOpen}
-          onClose={() => setIsMenuOpen(false)}
-          placement="bottom"
-          strategy="fixed"
-        >
-          <MenuButton
-            as={Button}
-            rightIcon={<FaChevronDown />}
-            width="100%"
-            border="1px"
-            borderColor="black"
-            fontWeight='400'
-            justifyContent="space-between"
-            textAlign="left"
-            bg="transparent"
-            _hover={{ borderColor: 'black' }}
-            onClick={() => setIsMenuOpen(true)}
-            isDisabled={!selectedDistrict}
-          >
-            {field.value 
-              ? towns.find(town => town.id === field.value)?.name || "Select town" 
-              : getDefaultTownName()}
-          </MenuButton>
-          <MenuList 
-            borderColor="black"
-            boxShadow="md"
-            maxH="300px"
-            overflowY="auto"
-            sx={{
-              '&::-webkit-scrollbar': {
-                width: '8px',
-              },
-              '&::-webkit-scrollbar-track': {
-                background: '#f1f1f1',
-              },
-              '&::-webkit-scrollbar-thumb': {
-                background: '#888',
-                borderRadius: '4px',
-              },
-              '&::-webkit-scrollbar-thumb:hover': {
-                background: '#555',
-              },
-            }}
-          >
-            <Box p={2}>
-              <InputGroup>
-                <Input
-                  placeholder="Search towns"
-                  value={townSearchQuery}
-                  onChange={handleTownSearch}
-                  border="1px"
-                  borderColor="gray.300"
-                  _focus={{ borderColor: 'blue.500' }}
-                />
-                <InputRightElement>
-                  <FaSearch color="gray.500" />
-                </InputRightElement>
-              </InputGroup>
-            </Box>
-            {filteredTowns.length > 0 ? (
-              filteredTowns.map((town) => (
-                <MenuItem 
-                  key={town.id} 
-                  onClick={() => {
-                    field.onChange(town.id);  // Use field.onChange to update form state
-                    setIsMenuOpen(false);
-                  }}
-                >
-                  {town.name}
-                </MenuItem>
-              ))
-            ) : (
-              <MenuItem isDisabled>
-                No towns found
-              </MenuItem>
-            )}
-          </MenuList>
-        </Menu>
-      )}
-    />
-  </FormControl>
-</GridItem>
-          </Grid>
+                <FormControl>
+                  <Controller
+                    name="town"
+                    control={control}
+                    render={({ field }) => (
+                      <Menu 
+                        isOpen={isMenuOpen}
+                        onClose={() => setIsMenuOpen(false)}
+                        placement="bottom"
+                        strategy="fixed"
+                      >
+                        <MenuButton
+                          as={Button}
+                          rightIcon={isTownsLoading ? <Spinner size="sm" /> : <FaChevronDown />}
+                          width="100%"
+                          border="1px"
+                          borderColor="black"
+                          fontWeight='400'
+                          justifyContent="space-between"
+                          textAlign="left"
+                          bg="transparent"
+                          _hover={{ borderColor: 'black' }}
+                          onClick={() => setIsMenuOpen(true)}
+                          isDisabled={!selectedDistrict || isTownsLoading}
+                        >
+                          {isTownsLoading ? "Loading towns..." : 
+                            (field.value 
+                              ? towns.find(town => town.id === field.value)?.name || "Select town" 
+                              : getDefaultTownName())}
+                        </MenuButton>
+                        <MenuList 
+                          borderColor="black"
+                          boxShadow="md"
+                          maxH="300px"
+                          overflowY="auto"
+                          sx={{
+                            '&::-webkit-scrollbar': {
+                              width: '8px',
+                            },
+                            '&::-webkit-scrollbar-track': {
+                              background: '#f1f1f1',
+                            },
+                            '&::-webkit-scrollbar-thumb': {
+                              background: '#888',
+                              borderRadius: '4px',
+                            },
+                            '&::-webkit-scrollbar-thumb:hover': {
+                              background: '#555',
+                            },
+                          }}
+                        >
+                          <Box p={2}>
+                            <InputGroup>
+                              <Input
+                                placeholder="Search towns"
+                                value={townSearchQuery}
+                                onChange={handleTownSearch}
+                                border="1px"
+                                borderColor="gray.300"
+                                _focus={{ borderColor: 'blue.500' }}
+                                isDisabled={isTownsLoading}
+                              />
+                              <InputRightElement>
+                                {isTownsLoading ? (
+                                  <Spinner size="sm" />
+                                ) : (
+                                  <FaSearch color="gray.500" />
+                                )}
+                              </InputRightElement>
+                            </InputGroup>
+                          </Box>
+                          {isTownsLoading ? (
+                            <Box p={4} textAlign="center">
+                              <Spinner size="sm" mr={2} />
+                              Loading towns...
+                            </Box>
+                          ) : filteredTowns.length > 0 ? (
+                            filteredTowns.map((town) => (
+                              <MenuItem 
+                                key={town.id} 
+                                onClick={() => {
+                                  field.onChange(town.id);
+                                  setIsMenuOpen(false);
+                                }}
+                              >
+                                {town.name}
+                              </MenuItem>
+                            ))
+                          ) : (
+                            <MenuItem isDisabled>
+                              No towns found
+                            </MenuItem>
+                          )}
+                        </MenuList>
+                      </Menu>
+                    )}
+                  />
+                </FormControl>
+              </GridItem>
+            </Grid>
           </Box>
           <Grid templateColumns={{ base: 'repeat(12, 1fr)', md: 'repeat(12, 1fr)' }} gap={2}>
             <GridItem colSpan={{ base: 12, md: 6 }}>

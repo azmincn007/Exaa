@@ -17,15 +17,30 @@ const SubscriptionCard = ({
   remainingTagCount,
   transactionExpiryTime,
   isExpired = false,
-  isBoost = false
+  isBoost = false,
+  isShowroom = false,
+  adShowroom = {}
 }) => {
   const expiryDate = new Date(transactionExpiryTime).toLocaleDateString();
   
   // Calculate values based on package type
-  const total = isBoost ? totalTagCount : totalAdCount;
-  const remaining = isBoost ? remainingTagCount : remainingAdCount;
-  const used = total - remaining;
-  // Update progress calculation to ensure it's 100% when all items are used
+  let total, remaining, used, packageType;
+  
+  if (isBoost) {
+    total = totalTagCount;
+    remaining = remainingTagCount;
+    packageType = 'Boost Package';
+  } else if (isShowroom) {
+    total = totalAdCount;
+    remaining = remainingAdCount;
+    packageType = 'Showroom Package';
+  } else {
+    total = totalAdCount;
+    remaining = remainingAdCount;
+    packageType = 'Ad Package';
+  }
+  
+  used = total - remaining;
   const progress = (used / total) * 100;
 
   // Use color mode values for subtle theming
@@ -51,9 +66,16 @@ const SubscriptionCard = ({
     >
       <VStack spacing={4} align="stretch">
         <Flex justify="space-between" align="center">
-          <Text fontSize="lg" fontWeight="bold">
-            {isBoost ? 'Boost Package' : 'Ad Package'}
-          </Text>
+          <VStack align="start" spacing={1}>
+            <Text fontSize="lg" fontWeight="bold">
+              {packageType}
+            </Text>
+            {isShowroom && adShowroom?.name && (
+              <Text fontSize="sm" color="gray.600">
+                Showroom: {adShowroom.name}
+              </Text>
+            )}
+          </VStack>
           <Badge
             colorScheme={isExpired ? "red" : "green"}
             variant="subtle"

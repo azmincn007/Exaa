@@ -6,12 +6,14 @@ import sellvector from '../../../assets/SellVector.png';
 import { BASE_URL } from '../../../config/config';
 import { useNavigate } from 'react-router-dom';
 
-// Create API instance with authorization header
-const api = axios.create({
-  headers: {
-    'Authorization': `Bearer ${localStorage.getItem('UserToken')}`,
-  },
-});
+// Create a function to get the axios instance with current token
+const getApi = () => {
+  return axios.create({
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('UserToken')}`,
+    },
+  });
+};
 
 const CongratulationsModal = ({ 
   adType, 
@@ -31,6 +33,7 @@ const CongratulationsModal = ({
   const { data: tags, isLoading, isError } = useQuery(
     'boostTags', 
     async () => {
+      const api = getApi();
       const response = await api.get(`${BASE_URL}/api/ad-boost-tags`);
       return response.data.data;
     }
@@ -40,11 +43,13 @@ const CongratulationsModal = ({
   const boostMutation = useMutation(
     async (updatedFormData) => {
       try {
+        const api = getApi();
         const response = await api.put(
           `${BASE_URL}/api/${apiUrl}/${adId}`, 
           updatedFormData,
           {
             headers: {
+              'Authorization': `Bearer ${localStorage.getItem('UserToken')}`,
               'Content-Type': 'multipart/form-data',
             },
           }

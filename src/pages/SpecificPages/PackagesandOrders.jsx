@@ -22,6 +22,7 @@ import { FiSearch } from 'react-icons/fi';
 import SubscriptionCard from '../../components/common/Cards/SubscriptionCard';
 import { BASE_URL } from '../../config/config';
 import { useAuth } from '../../Hooks/AuthContext';
+import { useQuery } from 'react-query';
 
 const EmptyState = ({ title, description }) => {
   return (
@@ -39,28 +40,124 @@ const PackagesAndOrders = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [selectedMenuItem, setSelectedMenuItem] = useState('packages');
-  const [activeSubscriptions, setActiveSubscriptions] = useState([]);
-  const [expiredSubscriptions, setExpiredSubscriptions] = useState([]);
-  const [activeBoosts, setActiveBoosts] = useState([]);
-  const [expiredBoosts, setExpiredBoosts] = useState([]);
-  const [activeLoading, setActiveLoading] = useState(false);
-  const [expiredLoading, setExpiredLoading] = useState(false);
-  const [activeBoostLoading, setActiveBoostLoading] = useState(false);
-  const [expiredBoostLoading, setExpiredBoostLoading] = useState(false);
-  const [activeError, setActiveError] = useState(null);
-  const [expiredError, setExpiredError] = useState(null);
-  const [activeBoostError, setActiveBoostError] = useState(null);
-  const [expiredBoostError, setExpiredBoostError] = useState(null);
   const [selectedTab, setSelectedTab] = useState(0);
   const isMobile = useBreakpointValue({ base: true, md: false });
-  const [activeShowroomSubs, setActiveShowroomSubs] = useState([]);
-  const [expiredShowroomSubs, setExpiredShowroomSubs] = useState([]);
-  const [activeShowroomLoading, setActiveShowroomLoading] = useState(false);
-  const [expiredShowroomLoading, setExpiredShowroomLoading] = useState(false);
-  const [activeShowroomError, setActiveShowroomError] = useState(null);
-  const [expiredShowroomError, setExpiredShowroomError] = useState(null);
-
   const { isLoggedIn, isInitialized } = useAuth();
+
+  // Define queries
+  const {
+    data: activeSubscriptions = [],
+    isLoading: activeLoading,
+    error: activeError
+  } = useQuery({
+    queryKey: ['activeSubscriptions'],
+    queryFn: async () => {
+      const response = await fetch(`${BASE_URL}/api/find-user-active-subscription-orders`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('UserToken')}`,
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch active subscriptions');
+      const data = await response.json();
+      return data.data || [];
+    },
+    enabled: selectedMenuItem === 'packages'
+  });
+
+  const {
+    data: expiredSubscriptions = [],
+    isLoading: expiredLoading,
+    error: expiredError
+  } = useQuery({
+    queryKey: ['expiredSubscriptions'],
+    queryFn: async () => {
+      const response = await fetch(`${BASE_URL}/api/find-user-expired-subscription-orders`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('UserToken')}`,
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch expired subscriptions');
+      const data = await response.json();
+      return data.data || [];
+    },
+    enabled: selectedMenuItem === 'packages'
+  });
+
+  const {
+    data: activeBoosts = [],
+    isLoading: activeBoostLoading,
+    error: activeBoostError
+  } = useQuery({
+    queryKey: ['activeBoosts'],
+    queryFn: async () => {
+      const response = await fetch(`${BASE_URL}/api/find-user-active-boost-orders`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('UserToken')}`,
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch active boosts');
+      const data = await response.json();
+      return data.data || [];
+    },
+    enabled: selectedMenuItem === 'boost'
+  });
+
+  const {
+    data: expiredBoosts = [],
+    isLoading: expiredBoostLoading,
+    error: expiredBoostError
+  } = useQuery({
+    queryKey: ['expiredBoosts'],
+    queryFn: async () => {
+      const response = await fetch(`${BASE_URL}/api/find-user-expired-boost-orders`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('UserToken')}`,
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch expired boosts');
+      const data = await response.json();
+      return data.data || [];
+    },
+    enabled: selectedMenuItem === 'boost'
+  });
+
+  const {
+    data: activeShowroomSubs = [],
+    isLoading: activeShowroomLoading,
+    error: activeShowroomError
+  } = useQuery({
+    queryKey: ['activeShowroomSubs'],
+    queryFn: async () => {
+      const response = await fetch(`${BASE_URL}/api/find-user-active-showrooms-subscription-orders`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('UserToken')}`,
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch active showroom subscriptions');
+      const data = await response.json();
+      return data.data || [];
+    },
+    enabled: selectedMenuItem === 'showroom'
+  });
+
+  const {
+    data: expiredShowroomSubs = [],
+    isLoading: expiredShowroomLoading,
+    error: expiredShowroomError
+  } = useQuery({
+    queryKey: ['expiredShowroomSubs'],
+    queryFn: async () => {
+      const response = await fetch(`${BASE_URL}/api/find-user-expired-showrooms-subscription-orders`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('UserToken')}`,
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch expired showroom subscriptions');
+      const data = await response.json();
+      return data.data || [];
+    },
+    enabled: selectedMenuItem === 'showroom'
+  });
 
   // 3. The useEffect hook that handles the navigation
   useEffect(() => {
@@ -73,159 +170,6 @@ const PackagesAndOrders = () => {
     const path = location.pathname.split('/').pop();
     setSelectedMenuItem(path);
   }, [location]);
-
-  useEffect(() => {
-    const fetchActiveSubscriptions = async () => {
-      if (selectedMenuItem !== 'packages') {
-        setActiveSubscriptions([]);
-        return;
-      }
-
-      setActiveLoading(true);
-      try {
-        const response = await fetch(`${BASE_URL}/api/find-user-active-subscription-orders`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('UserToken')}`,
-          }
-        });
-        if (!response.ok) throw new Error('Failed to fetch active subscriptions');
-        const data = await response.json();
-        setActiveSubscriptions(data.data || []);
-        setActiveError(null);
-      } catch (err) {
-        setActiveError(err.message);
-      } finally {
-        setActiveLoading(false);
-      }
-    };
-
-    const fetchExpiredSubscriptions = async () => {
-      if (selectedMenuItem !== 'packages') {
-        setExpiredSubscriptions([]);
-        return;
-      }
-
-      setExpiredLoading(true);
-      try {
-        const response = await fetch(`${BASE_URL}/api/find-user-expired-subscription-orders`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('UserToken')}`,
-          }
-        });
-        if (!response.ok) throw new Error('Failed to fetch expired subscriptions');
-        const data = await response.json();
-        setExpiredSubscriptions(data.data || []);
-        setExpiredError(null);
-      } catch (err) {
-        setExpiredError(err.message);
-      } finally {
-        setExpiredLoading(false);
-      }
-    };
-
-    const fetchActiveBoosts = async () => {
-      if (selectedMenuItem !== 'boost') {
-        setActiveBoosts([]);
-        return;
-      }
-
-      setActiveBoostLoading(true);
-      try {
-        const response = await fetch(`${BASE_URL}/api/find-user-active-boost-orders`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('UserToken')}`,
-          }
-        });
-        if (!response.ok) throw new Error('Failed to fetch active boosts');
-        const data = await response.json();
-        setActiveBoosts(data.data || []);
-        setActiveBoostError(null);
-      } catch (err) {
-        setActiveBoostError(err.message);
-      } finally {
-        setActiveBoostLoading(false);
-      }
-    };
-
-    const fetchExpiredBoosts = async () => {
-      if (selectedMenuItem !== 'boost') {
-        setExpiredBoosts([]);
-        return;
-      }
-
-      setExpiredBoostLoading(true);
-      try {
-        const response = await fetch(`${BASE_URL}/api/find-user-expired-boost-orders`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('UserToken')}`,
-          }
-        });
-        if (!response.ok) throw new Error('Failed to fetch expired boosts');
-        const data = await response.json();
-        setExpiredBoosts(data.data || []);
-        setExpiredBoostError(null);
-      } catch (err) {
-        setExpiredBoostError(err.message);
-      } finally {
-        setExpiredBoostLoading(false);
-      }
-    };
-
-    const fetchActiveShowroomSubscriptions = async () => {
-      if (selectedMenuItem !== 'showroom') {
-        setActiveShowroomSubs([]);
-        return;
-      }
-
-      setActiveShowroomLoading(true);
-      try {
-        const response = await fetch(`${BASE_URL}/api/find-user-active-showroom-subscription-orders`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('UserToken')}`,
-          }
-        });
-        if (!response.ok) throw new Error('Failed to fetch active showroom subscriptions');
-        const data = await response.json();
-        setActiveShowroomSubs(data.data || []);
-        setActiveShowroomError(null);
-      } catch (err) {
-        setActiveShowroomError(err.message);
-      } finally {
-        setActiveShowroomLoading(false);
-      }
-    };
-
-    const fetchExpiredShowroomSubscriptions = async () => {
-      if (selectedMenuItem !== 'showroom') {
-        setExpiredShowroomSubs([]);
-        return;
-      }
-
-      setExpiredShowroomLoading(true);
-      try {
-        const response = await fetch(`${BASE_URL}/api/find-user-expired-showroom-subscription-orders`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('UserToken')}`,
-          }
-        });
-        if (!response.ok) throw new Error('Failed to fetch expired showroom subscriptions');
-        const data = await response.json();
-        setExpiredShowroomSubs(data.data || []);
-        setExpiredShowroomError(null);
-      } catch (err) {
-        setExpiredShowroomError(err.message);
-      } finally {
-        setExpiredShowroomLoading(false);
-      }
-    };
-
-    fetchActiveSubscriptions();
-    fetchExpiredSubscriptions();
-    fetchActiveBoosts();
-    fetchExpiredBoosts();
-    fetchActiveShowroomSubscriptions();
-    fetchExpiredShowroomSubscriptions();
-  }, [selectedMenuItem]);
 
   const handleMenuItemClick = (item) => {
     setSelectedMenuItem(item);
@@ -270,16 +214,18 @@ const PackagesAndOrders = () => {
             ) : activeError ? (
               <Alert status="error">
                 <AlertIcon />
-                Error loading active subscriptions: {activeError}
+                {activeError.message || 'Error loading active subscriptions'}
               </Alert>
             ) : activeSubscriptions.length > 0 ? (
               <VStack spacing={4} align="stretch">
                 {activeSubscriptions.map((subscription, index) => (
-  <SubscriptionCard 
-  key={index} 
-  {...subscription} 
-  isBoost={false} 
-/>                ))}
+                  <SubscriptionCard 
+                    key={index} 
+                    {...subscription} 
+                    isShowroom={false}
+                    isBoost={false}
+                  />
+                ))}
               </VStack>
             ) : (
               <EmptyState
@@ -304,7 +250,8 @@ const PackagesAndOrders = () => {
                 <SubscriptionCard 
                 key={index} 
                 {...subscription} 
-                isBoost={false} 
+                isShowroom={false}
+                isBoost={false}
                 isExpired 
               />
                 ))}
@@ -365,7 +312,8 @@ const PackagesAndOrders = () => {
                 <SubscriptionCard 
                 key={index} 
                 {...boost} 
-                isBoost={true} 
+                isShowroom={false}
+                isBoost={true}
               />
                 ))}
               </VStack>
@@ -392,7 +340,8 @@ const PackagesAndOrders = () => {
                 <SubscriptionCard 
                 key={index} 
                 {...boost} 
-                isBoost={true} 
+                isShowroom={false}
+                isBoost={true}
                 isExpired 
               />
                 ))}
@@ -453,7 +402,8 @@ const PackagesAndOrders = () => {
                   <SubscriptionCard 
                     key={index} 
                     {...subscription} 
-                    isShowroom={true} 
+                    isShowroom={true}
+                    isBoost={false}
                   />
                 ))}
               </VStack>
@@ -480,7 +430,8 @@ const PackagesAndOrders = () => {
                   <SubscriptionCard 
                     key={index} 
                     {...subscription} 
-                    isShowroom={true} 
+                    isShowroom={true}
+                    isBoost={false}
                     isExpired 
                   />
                 ))}
