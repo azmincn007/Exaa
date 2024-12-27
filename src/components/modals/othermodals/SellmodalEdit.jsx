@@ -405,8 +405,9 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
 
   const renderField = (fieldName) => {
     const config = getFieldConfig(fieldName, districts, towns, brands, models, variants, types, selectedSubCategoryId);
+    
     if (!config) return null;
-
+    
     switch(config.type) {
       case 'radio':
         return (
@@ -449,61 +450,130 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
           </FormControl>
         );
       case 'select':
-        
+        // Special handling for town selection
+        if (fieldName === 'locationTown') {
+          const filteredTowns = config.options.filter(option => 
+            option.name?.toLowerCase().includes(townSearchQuery.toLowerCase())
+          );
+
+          return (
+            <FormControl key={fieldName} isInvalid={errors[fieldName]} fontSize={fontSize} className='z-50'>
+              <FormLabel>{config.label}</FormLabel>
+              <Controller
+                name={fieldName}
+                control={control}
+                rules={config.rules}
+                render={({ field }) => (
+                  <Menu matchWidth>
+                    <MenuButton
+                      as={Button}
+                      rightIcon={<FaChevronDown className='h-3 w-3 text-black' />}
+                      w="100%"
+                      textAlign="left"
+                      isDisabled={isTownsLoading || !selectedDistrictId}
+                      className='border-black border-[1px] px-3'
+                      fontWeight="normal"
+                    >
+                      {isTownsLoading ? 'Loading towns...' : 
+                        field.value ? 
+                          config.options.find(opt => opt.id === field.value)?.name || 'Select Town' 
+                          : 'Select Town'
+                      }
+                    </MenuButton>
+                    <MenuList maxH="200px" overflowY="auto" zIndex={9999}>
+                      <Box p={2}>
+                        <Input
+                          placeholder="Search town..."
+                          value={townSearchQuery}
+                          onChange={(e) => setTownSearchQuery(e.target.value)}
+                          mb={2}
+                          isDisabled={isTownsLoading}
+                        />
+                      </Box>
+                      {isTownsLoading ? (
+                        <MenuItem isDisabled fontWeight="normal">Loading towns...</MenuItem>
+                      ) : (
+                        <>
+                          {filteredTowns.map(option => (
+                            <MenuItem
+                              key={option.id}
+                              value={option.id}
+                              onClick={() => {
+                                field.onChange(option.id);
+                                setTownSearchQuery('');
+                              }}
+                              fontWeight="normal"
+                            >
+                              {option.name}
+                            </MenuItem>
+                          ))}
+                          {filteredTowns.length === 0 && (
+                            <MenuItem isDisabled fontWeight="normal">No towns found</MenuItem>
+                          )}
+                        </>
+                      )}
+                    </MenuList>
+                  </Menu>
+                )}
+              />
+              <FormErrorMessage>
+                {errors[fieldName] && errors[fieldName].message}
+              </FormErrorMessage>
+            </FormControl>
+          );
+        }
+
+        // Default select handling for other fields
         return (
           <FormControl key={fieldName} isInvalid={errors[fieldName]} fontSize={fontSize}>
             <FormLabel>{config.label}</FormLabel>
-            <Select 
-              {...register(fieldName, config.rules)}
-              onChange={(e) => {
-                const newValue = e.target.value;
-                setValue(fieldName, newValue, { shouldValidate: true });
-                
-                // Handle special cases for dependent fields
-                switch(fieldName) {
-                  case 'type':
-                    setSelectedTypeId(newValue);
-                    if (selectedSubCategoryId === 18) {
-                      setValue('brand', '');
+            <Controller
+              name={fieldName}
+              control={control}
+              rules={config.rules}
+              render={({ field }) => (
+                <Select
+                  className='border-black'
+                  {...field}
+                  isDisabled={
+                    fieldName === 'locationDistrict' ? isDistrictsLoading : 
+                    fieldName === 'locationTown' ? isTownsLoading || !selectedDistrictId :
+                    fieldName === 'brand' ? isBrandsLoading :
+                    fieldName === 'model' ? isModelsLoading || (!watchBrand && selectedSubCategoryId !== '13') :
+                    fieldName === 'variant' ? isVariantsLoading || !watchModel :
+                    false
+                  }
+                  onChange={(e) => {
+                    field.onChange(e);
+                    if (fieldName === 'locationDistrict') {
+                      setSelectedDistrictId(e.target.value);
+                      setValue('locationTown', '');
+                    } else if (fieldName === 'type') {
+                      setSelectedTypeId(e.target.value);
+                      if (selectedSubCategoryId === '18') {
+                        setValue('brand', '');
+                        setValue('model', '');
+                      }
+                    } else if (fieldName === 'brand') {
+                      setSelectedBrandId(e.target.value);
                       setValue('model', '');
-                      setValue('variant', '');
-                      setSelectedBrandId(null);
-                      setSelectedModelId(null);
-                      setSelectedVariantId(null);
+                    } else if (fieldName === 'model') {
+                      setSelectedModelId(e.target.value);
                     }
-                    break;
-                  case 'brand':
-                    setSelectedBrandId(newValue);
-                    setValue('model', '');
-                    setValue('variant', '');
-                    setSelectedModelId(null);
-                    setSelectedVariantId(null);
-                    break;
-                  case 'model':
-                    setSelectedModelId(newValue);
-                    setValue('variant', '');
-                    setSelectedVariantId(null);
-                    break;
-                  case 'variant':
-                    setSelectedVariantId(newValue);
-                    break;
-                  default:
-                    break;
-                }
-              }}
-              value={getValues(fieldName) || ''}
-            >
-              <option value="">Select {config.label}</option>
-              {config.options?.map(option => (
-                <option 
-                  key={option?.id || option} 
-                  value={option?.id || option}
+                  }}
                 >
-                  {option?.name || option}
-                </option>
-              ))}
-            </Select>
-            <FormErrorMessage>{errors[fieldName]?.message}</FormErrorMessage>
+                  <option value="">Select {config.label}</option>
+                  {config.options.map(option => (
+                    <option key={option.id || option} value={option.id || option}>
+                      {option.name || option}
+                    </option>
+                  ))}
+                </Select>
+              )}
+            />
+            <FormErrorMessage>
+              {errors[fieldName] && errors[fieldName].message}
+            </FormErrorMessage>
           </FormControl>
         );
       case 'checkbox':
@@ -544,6 +614,13 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
     setSelectedTypeId(null);
     setTownSearchQuery('');
   };
+
+  // Add this useEffect to clear town search when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setTownSearchQuery('');
+    }
+  }, [isOpen]);
 
   return (
     <>

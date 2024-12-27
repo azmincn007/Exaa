@@ -22,7 +22,7 @@ export default function ShowroomSubscriptionPage() {
     const toast = useToast();
     const { userData } = useContext(UserdataContext);
 
-    const [isLoading, setIsLoading] = useState(false);
+    const [loadingPlanId, setLoadingPlanId] = useState(null);
     const [selectedShowroom, setSelectedShowroom] = useState(name)
     
 
@@ -141,13 +141,13 @@ export default function ShowroomSubscriptionPage() {
           isClosable: true,
         });
       } finally {
-        setIsLoading(false);
+        setLoadingPlanId(null);
       }
     };
 
     const handleSubscription = async (tier) => {
       try {
-        setIsLoading(true);
+        setLoadingPlanId(tier.id);
 
         const scriptLoaded = await loadRazorpayScript();
         if (!scriptLoaded) {
@@ -190,7 +190,7 @@ export default function ShowroomSubscriptionPage() {
           },
           modal: {
             ondismiss: function() {
-              setIsLoading(false);
+              setLoadingPlanId(null);
             }
           }
         };
@@ -199,7 +199,7 @@ export default function ShowroomSubscriptionPage() {
         paymentObject.open();
 
       } catch (error) {
-        setIsLoading(false);
+        setLoadingPlanId(null);
         toast({
           title: 'Error',
           description: error.message === 'User not authenticated' 
@@ -344,7 +344,7 @@ export default function ShowroomSubscriptionPage() {
                     <Button 
                       colorScheme="blue" 
                       width="full"
-                      isLoading={isLoading}
+                      isLoading={loadingPlanId === tier.id}
                       onClick={() => handleSubscription(tier)}
                     >
                       Select Plan
