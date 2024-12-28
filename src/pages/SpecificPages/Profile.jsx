@@ -20,6 +20,7 @@ const Profile = () => {
   
   
   const { userData, isLoading: isUserDataLoading } = useContext(UserdataContext);
+  console.log(userData);
   const navigate = useNavigate();
   const { isLoggedIn, isInitialized, getToken } = useAuth();
  
@@ -226,13 +227,23 @@ const Profile = () => {
         });
     };
 
+    const formatMemberSince = (createdAt) => {
+      if (!createdAt) return 'Unknown date';
+      const date = new Date(createdAt);
+      return date.toLocaleDateString('en-US', { 
+        month: 'long',
+        year: 'numeric'
+      });
+    };
+
     return (
       <Box width="100%" px={4}>
         {renderProfileImage()}
         <h2 className={`text-${titleSize} font-semibold mb-2`}>{userData?.name || 'User'}</h2>
         <p className={`text-${textSize} text-gray-600 mb-2`}>{userData?.email || 'No email provided'}</p>
-        <p className={`text-${textSize} text-gray-600 mb-2`}>Member since May 2018</p>
-        <p className={`text-${textSize} text-gray-600 mb-4`}>3346 Followers · 12 Following</p>
+        <p className={`text-${textSize} text-gray-600 mb-4`}>
+          Member since {formatMemberSince(userData?.createdAt)}
+        </p>
         
         <Box mb={4}>
           <p className={`text-${textSize} text-black font-semibold mb-2`}>User verified with</p>

@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }) => {
     if (jwtToken) {
       localStorage.setItem('UserToken', jwtToken);
       setToken(jwtToken);
-      navigate('/'); // Redirect after login
+      navigate('/home'); // Redirect after login
     } else {
       console.error('Invalid token for login');
     }
@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('UserToken');
     setToken(null);
-    navigate('/'); // Redirect to login
+    navigate('/home'); // Redirect to login
   };
 
   const value = {

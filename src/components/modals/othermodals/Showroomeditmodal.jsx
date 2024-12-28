@@ -21,12 +21,18 @@ import {
   useBreakpointValue,
   useToast,
   Textarea,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  Input,
 } from "@chakra-ui/react";
 import { BASE_URL } from "../../../config/config";
 import { IoAddOutline, IoClose } from "react-icons/io5";
 import SellInput from "../../../components/forms/Input/SellInput.jsx";
 import PhoneInputShowroom from "../../../components/forms/Input/MobileInputShowroom.jsx";
 import { useParams } from "react-router-dom";
+import { FaChevronDown } from "react-icons/fa";
 
 const fetchCategories = async (userToken) => {
   const { data } = await axios.get(`${BASE_URL}/api/find-showroom-categories`, {
@@ -63,6 +69,13 @@ const fetchTowns = async (userToken, districtId) => {
   return data.data;
 };
 
+const fetchShowroomTags = async (userToken) => {
+  const { data } = await axios.get(`${BASE_URL}/api/ad-showroom-tags`, {
+    headers: { Authorization: `Bearer ${userToken}` },
+  });
+  return data.data;
+};
+
 const ShowroomEditModal = ({ isOpen, onClose, showroomId, onSuccess }) => {
   
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
@@ -74,6 +87,7 @@ const ShowroomEditModal = ({ isOpen, onClose, showroomId, onSuccess }) => {
   const [imageFile, setImageFile] = useState([]);
   const [showroom, setShowroom] = useState(null);
   const [uploadedLogo, setUploadedLogo] = useState(null);
+  const [townSearchQuery, setTownSearchQuery] = useState('');
 
   const {
     register,
@@ -125,6 +139,14 @@ const ShowroomEditModal = ({ isOpen, onClose, showroomId, onSuccess }) => {
     }
   );
 
+  const showroomTagsQuery = useQuery(
+    ["showroomTags", userToken],
+    () => fetchShowroomTags(userToken),
+    {
+      enabled: isOpen && !!userToken,
+    }
+  );
+
   useEffect(() => {
     const fetchShowroomData = async () => {
       const token = localStorage.getItem("UserToken");
@@ -159,6 +181,8 @@ const ShowroomEditModal = ({ isOpen, onClose, showroomId, onSuccess }) => {
         adSubCategory: showroom.adSubCategory?.id,
         locationDistrict: showroom.locationDistrict?.id,
         locationTown: showroom.locationTown?.id,
+        showroomTag: showroom.adShowroomTag?.id,
+        adShowroomTag: showroom.adShowroomTag?.id || '',
       };
 
       reset(formData);
@@ -202,6 +226,12 @@ const ShowroomEditModal = ({ isOpen, onClose, showroomId, onSuccess }) => {
       }
     }
   }, [isOpen, showroom, reset]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setTownSearchQuery('');
+    }
+  }, [isOpen]);
 
   const handleCategoryChange = useCallback(
     (e) => {
@@ -297,16 +327,21 @@ const ShowroomEditModal = ({ isOpen, onClose, showroomId, onSuccess }) => {
   };
 
   const onSubmit = async (data) => {
-    console.log("Data being sent to API:", {
+    const formDataToSend = {
       ...data,
+      adShowroomTag: data.showroomTag || '',
+    };
+
+    console.log("Data being sent to API:", {
+      ...formDataToSend,
       images: imageFile,
       logo: uploadedLogo ? uploadedLogo.file : showroom.logo ? showroom.logo.file : null,
     });
 
     try {
       const formData = new FormData();
-      Object.keys(data).forEach((key) => {
-        formData.append(key, data[key]);
+      Object.keys(formDataToSend).forEach((key) => {
+        formData.append(key, formDataToSend[key]);
       });
 
       imageFile.forEach((file) => {
@@ -526,21 +561,101 @@ const ShowroomEditModal = ({ isOpen, onClose, showroomId, onSuccess }) => {
 
             <FormControl isInvalid={errors.locationTown} fontSize={fontSize}>
               <FormLabel>Town</FormLabel>
-              <Select
-                placeholder="Select Town"
-                isDisabled={!selectedDistrictId || townsQuery.isLoading}
-                {...register("locationTown", { required: "Town is required" })}
-                onChange={handleTownChange}
-                value={selectedTownId || ""}
-              >
-                {townsQuery.data?.map(({ id, name }) => (
-                  <option key={id} value={id}>
-                    {name}
-                  </option>
-                ))}
-              </Select>
+              <Controller
+                name="locationTown"
+                control={control}
+                rules={{ required: "Town is required" }}
+                render={({ field }) => (
+                  <Menu matchWidth>
+                    <MenuButton
+                      as={Button}
+                      rightIcon={<FaChevronDown className='h-3 w-3 text-black' />}
+                      w="100%"
+                      textAlign="left"
+                      isDisabled={!selectedDistrictId || townsQuery.isLoading}
+                      className='border-black border-[1px] px-3'
+                      fontWeight="normal"
+                    >
+                      {townsQuery.isLoading ? (
+                        'Loading towns...'
+                      ) : (
+                        field.value ? 
+                          townsQuery.data?.find(opt => opt.id.toString() === field.value)?.name || 
+                          showroom?.locationTown?.name ||
+                          'Select Town'
+                          : 'Select Town'
+                      )}
+                    </MenuButton>
+                    <MenuList maxH="200px" overflowY="auto">
+                      <Box p={2}>
+                        <Input
+                          placeholder="Search town..."
+                          value={townSearchQuery}
+                          onChange={(e) => setTownSearchQuery(e.target.value)}
+                          mb={2}
+                          isDisabled={townsQuery.isLoading}
+                        />
+                      </Box>
+                      {townsQuery.isLoading ? (
+                        <MenuItem isDisabled fontWeight="normal">Loading towns...</MenuItem>
+                      ) : (
+                        <>
+                          {townsQuery.data
+                            ?.filter(option => 
+                              option.name?.toLowerCase().includes(townSearchQuery.toLowerCase())
+                            )
+                            .map(option => (
+                              <MenuItem
+                                key={option.id}
+                                value={option.id}
+                                onClick={() => {
+                                  field.onChange(option.id.toString());
+                                  setTownSearchQuery('');
+                                  setSelectedTownId(option.id);
+                                }}
+                                fontWeight="normal"
+                              >
+                                {option.name}
+                              </MenuItem>
+                            ))}
+                          {!townsQuery.data?.filter(option => 
+                            option.name?.toLowerCase().includes(townSearchQuery.toLowerCase())
+                          ).length && (
+                            <MenuItem isDisabled fontWeight="normal">No towns found</MenuItem>
+                          )}
+                        </>
+                      )}
+                    </MenuList>
+                  </Menu>
+                )}
+              />
               <FormErrorMessage>{errors.locationTown && errors.locationTown.message}</FormErrorMessage>
             </FormControl>
+
+            {showroom?.isShowroomTagCreationPossible && (
+              <FormControl isInvalid={errors.showroomTag} fontSize={fontSize}>
+                <FormLabel>Showroom Tag</FormLabel>
+                <Select
+                  placeholder={showroomTagsQuery.isLoading ? "Loading tags..." : "Select Tag"}
+                  {...register("showroomTag", { required: "Showroom Tag is required" })}
+                  defaultValue={showroom?.adShowroomTag?.id}
+                  isDisabled={showroomTagsQuery.isLoading}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setValue("adShowroomTag", value ? value : '');
+                  }}
+                >
+                  {showroomTagsQuery.data?.map(({ id, name }) => (
+                    <option key={id} value={id}>
+                      {name}
+                    </option>
+                  ))}
+                </Select>
+                <FormErrorMessage>
+                  {errors.showroomTag && errors.showroomTag.message}
+                </FormErrorMessage>
+              </FormControl>
+            )}
 
             <FormControl fontSize={fontSize}>
               <FormLabel>Upload Images (Max 10)</FormLabel>

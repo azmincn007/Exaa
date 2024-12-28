@@ -1,6 +1,6 @@
 // MyShowroom.jsx
 import React, { useState, useEffect, useCallback } from "react";
-import { Box, Button, Grid, GridItem, useBreakpointValue, Text, Image, VStack, Center, useToast } from "@chakra-ui/react";
+import { Box, Button, Grid, GridItem, useBreakpointValue, Text, Image, VStack, Center, useToast, Tabs, TabList, TabPanels, Tab, TabPanel } from "@chakra-ui/react";
 import { MdAddCircleOutline } from "react-icons/md";
 import { useQuery, useQueryClient } from "react-query";
 import axios from "axios";
@@ -110,6 +110,16 @@ const MyShowroom = () => {
     }
   }, [showrooms]);
 
+  useEffect(() => {
+    if (showroomAds) {
+      console.log('Current Showroom Ads:', {
+        selectedShowroomId: selectedShowroom?.id,
+        adsCount: showroomAds.length,
+        ads: showroomAds
+      });
+    }
+  }, [showroomAds, selectedShowroom]);
+
   const handleOpen = () => setIsOpen(true);
   const handleClose = () => setIsOpen(false);
 
@@ -138,18 +148,25 @@ const handleShowroomSelect = useCallback((showroom) => {
   localStorage.setItem('selectedShowroomId', showroom.id.toString());
 }, []);
   const handleShowroomDelete = useCallback(
-    async (deletedShowroomId) => {
-      // Invalidate and refetch both queries
+    async (deletedShowroomId, showroom) => {
+      // Make the showroom active before deletion
+      handleShowroomSelect(showroom);
+      
+      // Rest of delete logic
       queryClient.invalidateQueries(["showrooms"]);
       queryClient.invalidateQueries(["showroomAds"]);
       
       await refetchShowrooms();
       if (selectedShowroom?.id === deletedShowroomId) {
         const updatedShowrooms = showrooms.filter((s) => s.id !== deletedShowroomId);
-        setSelectedShowroom(updatedShowrooms[0] || null);
+        if (updatedShowrooms.length > 0) {
+          handleShowroomSelect(updatedShowrooms[0]);
+        } else {
+          setSelectedShowroom(null);
+        }
       }
     },
-    [refetchShowrooms, selectedShowroom, showrooms, queryClient]
+    [refetchShowrooms, selectedShowroom, showrooms, queryClient, handleShowroomSelect]
   );
 
   const handleAdCreated = useCallback(
@@ -172,7 +189,8 @@ const handleShowroomSelect = useCallback((showroom) => {
   const handleShowroomEdit = useCallback((showroom) => {
     setShowroomToEdit(showroom);
     setIsEditModalOpen(true);
-  }, []);
+    handleShowroomSelect(showroom);
+  }, [handleShowroomSelect]);
 
   const handleEditModalClose = useCallback(() => {
     setIsEditModalOpen(false);
@@ -288,6 +306,27 @@ const handleShowroomSelect = useCallback((showroom) => {
     [queryClient, selectedShowroom?.id, token, toast, refetchShowroomAds, refetchShowrooms]
   );
 
+  // Add handlers for view and subscription
+  const handleShowroomView = useCallback((showroom) => {
+    handleShowroomSelect(showroom);
+    // Add any additional view logic here
+  }, [handleShowroomSelect]);
+
+  const handleShowroomSubscription = useCallback((showroom) => {
+    handleShowroomSelect(showroom);
+    // Add any additional subscription logic here
+  }, [handleShowroomSelect]);
+
+  // Add this function to filter ads
+  const filterAds = useCallback((ads) => {
+    if (!ads) return { activeAds: [], expiredAds: [] };
+    
+    return {
+      activeAds: ads.filter(ad => ad.isAdActive && !ad.isAdExpired),
+      expiredAds: ads.filter(ad => ad.isAdExpired)
+    };
+  }, []);
+
   if (showroomsLoading || !isInitialized ) {
     return <ShowroomSingleSkeleton />;
   }
@@ -309,12 +348,13 @@ const handleShowroomSelect = useCallback((showroom) => {
           lg: "repeat(12, 1fr)",
         }}
         gap={6}
+        height="100%"
       >
         <GridItem
           colSpan={{ base: 1, md: 6, lg: 4 }}
           bg="#0071BC1A"
-          height={{ base: "auto", md: "100vh" }}
-          overflowY={{ base: "visible", md: "auto" }}
+          height="100%"
+          overflowY="auto"
           overflowX="hidden"
           position="relative"
           className="rounded-xl"
@@ -337,12 +377,31 @@ const handleShowroomSelect = useCallback((showroom) => {
                 <Swiper className="w-full" spaceBetween={30} slidesPerView={1} onSlideChange={(swiper) => handleShowroomSelect(showrooms[swiper.activeIndex])}>
                   {showrooms.map((showroom) => (
                     <SwiperSlide key={showroom.id}>
-                      <ShowroomContentCard showroom={showroom} isSelected={selectedShowroom?.id === showroom.id} onClick={handleShowroomSelect} onEdit={handleShowroomEdit} onDeleteSuccess={handleShowroomDelete} />
+                      <ShowroomContentCard 
+                        showroom={showroom} 
+                        isSelected={selectedShowroom?.id === showroom.id} 
+                        onClick={handleShowroomSelect}
+                        onEdit={handleShowroomEdit}
+                        onDelete={(id) => handleShowroomDelete(id, showroom)}
+                        onView={handleShowroomView}
+                        onSubscription={handleShowroomSubscription}
+                      />
                     </SwiperSlide>
                   ))}
                 </Swiper>
               ) : (
-                showrooms.map((showroom) => <ShowroomContentCard key={showroom.id} showroom={showroom} isSelected={selectedShowroom?.id === showroom.id} onClick={handleShowroomSelect} onEdit={handleShowroomEdit} onDeleteSuccess={handleShowroomDelete} />)
+                showrooms.map((showroom) => (
+                  <ShowroomContentCard 
+                    key={showroom.id} 
+                    showroom={showroom} 
+                    isSelected={selectedShowroom?.id === showroom.id} 
+                    onClick={handleShowroomSelect}
+                    onEdit={handleShowroomEdit}
+                    onDelete={(id) => handleShowroomDelete(id, showroom)}
+                    onView={handleShowroomView}
+                    onSubscription={handleShowroomSubscription}
+                  />
+                ))
               )
             ) : (
               <Box textAlign="center">
@@ -359,7 +418,15 @@ const handleShowroomSelect = useCallback((showroom) => {
           </VStack>
         </GridItem>
 
-        <GridItem colSpan={{ base: 1, md: 6, lg: 8 }} bg="#0071BC1A" minHeight="300px" borderRadius="xl" boxShadow="md" p={6}>
+        <GridItem 
+          colSpan={{ base: 1, md: 6, lg: 8 }} 
+          bg="#0071BC1A" 
+          height="100%"
+          overflowY="auto"
+          borderRadius="xl" 
+          boxShadow="md" 
+          p={6}
+        >
           {selectedShowroom ? (
             <VStack spacing={4} align="stretch" height="100%">
               <div className=" flex-col md:flex-row items-center md:flex  md:justify-between ">
@@ -370,30 +437,50 @@ const handleShowroomSelect = useCallback((showroom) => {
               </div>
 
               {showroomAds && showroomAds.length > 0 ? (
-                <VStack spacing={4} align="stretch">
-                  {showroomAds.map((ad) => (
-                    <ShowroomuserAdCard key={ad.id} data={ad} onEdit={handleAdEdit} onDelete={handleAdDeleted} showroomId={selectedShowroom?.id} token={token} />
-                  ))}
-                  <Button
-                    leftIcon={<MdAddCircleOutline />}
-                    colorScheme="blue"
-                    size="lg"
-                    borderRadius="xl"
-                    onClick={handleSellModalOpen}
-                    alignSelf="center"
-                    mt={4}
-                    isDisabled={!selectedShowroom || !selectedShowroom.locationTown?.name || !selectedShowroom.isShowroomAdCreationPossible}
-                    title={
-                      !selectedShowroom.locationTown?.name 
-                        ? "Please set a location for this showroom first" 
-                        : !selectedShowroom.isShowroomAdCreationPossible 
-                        ? "Ad creation is not possible for this showroom"
-                        : ""
-                    }
-                  >
-                    New Post
-                  </Button>
-                </VStack>
+                <Tabs variant="soft-rounded" colorScheme="blue">
+                  <TabList mb={4}>
+                    <Tab>Active Ads</Tab>
+                    <Tab>Expired Ads</Tab>
+                  </TabList>
+                  <TabPanels>
+                    <TabPanel p={0}>
+                      <VStack spacing={4} align="stretch">
+                        {filterAds(showroomAds).activeAds.map((ad) => (
+                          <ShowroomuserAdCard 
+                            key={ad.id} 
+                            data={ad} 
+                            onEdit={handleAdEdit} 
+                            onDelete={handleAdDeleted} 
+                            showroomId={selectedShowroom?.id} 
+                            token={token} 
+                          />
+                        ))}
+                        {filterAds(showroomAds).activeAds.length === 0 && (
+                          <Text textAlign="center">No active ads</Text>
+                        )}
+                      </VStack>
+                    </TabPanel>
+                    <TabPanel p={0}>
+                      <VStack spacing={4} align="stretch">
+                        {filterAds(showroomAds).expiredAds.map((ad) => (
+                          <ShowroomuserAdCard 
+                            key={ad.id} 
+                            data={ad} 
+                            onEdit={handleAdEdit} 
+                            onDelete={handleAdDeleted} 
+                            showroomId={selectedShowroom?.id} 
+                            token={token}
+                            opacity={0.6} // Reduced opacity for expired ads
+                            _hover={{ opacity: 0.8 }} // Slightly increase opacity on hover
+                          />
+                        ))}
+                        {filterAds(showroomAds).expiredAds.length === 0 && (
+                          <Text textAlign="center">No expired ads</Text>
+                        )}
+                      </VStack>
+                    </TabPanel>
+                  </TabPanels>
+                </Tabs>
               ) : (
                 <Center flex={1} flexDirection="column">
                   <Image src={emptyillus} alt="No posts" maxWidth="200px" maxHeight="200px" mb={4} />

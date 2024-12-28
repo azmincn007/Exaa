@@ -155,7 +155,15 @@ function Showroomsingle() {
 
 
   return (
-    <div className="w-[80%] mx-auto font-Inter">
+    <div className="w-[80%] mx-auto font-Inter relative">
+      {showroomData?.adShowroomTag?.name && (
+        <div className="absolute top-4 right-4 z-50">
+          <span className="bg-[#0071BC] text-white px-4 py-1 rounded-full text-sm">
+            {showroomData.adShowroomTag.name}
+          </span>
+        </div>
+      )}
+      
       <h1 className="py-2 font-semibold flex justify-center">Showroom</h1>
       <ShowroomDetails
         imageUrls={imageUrls}

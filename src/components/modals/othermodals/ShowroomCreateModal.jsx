@@ -480,17 +480,20 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
                   <Menu matchWidth>
                     <MenuButton
                       as={Button}
-                      rightIcon={<FaChevronDown  className='h-3 w-3 text-black ' />}
+                      rightIcon={<FaChevronDown className='h-3 w-3 text-black' />}
                       w="100%"
                       textAlign="left"
                       isDisabled={!selectedDistrictId || townsQuery.isLoading}
                       className='border-black border-[1px] px-3'
                       fontWeight="normal"
                     >
-                      {field.value ? 
-                        townsQuery.data?.find(opt => opt.id.toString() === field.value)?.name || 'Select Town' 
-                        : 'Select Town'
-                      }
+                      {townsQuery.isLoading ? (
+                        'Loading towns...'
+                      ) : (
+                        field.value ? 
+                          townsQuery.data?.find(opt => opt.id.toString() === field.value)?.name || 'Select Town' 
+                          : 'Select Town'
+                      )}
                     </MenuButton>
                     <MenuList maxH="200px" overflowY="auto">
                       <Box p={2}>
@@ -499,29 +502,36 @@ const ShowroomCreateModal = ({ isOpen, onClose, onSuccess }) => {
                           value={townSearchQuery}
                           onChange={(e) => setTownSearchQuery(e.target.value)}
                           mb={2}
+                          isDisabled={townsQuery.isLoading}
                         />
                       </Box>
-                      {townsQuery.data
-                        ?.filter(option => 
-                          option.name?.toLowerCase().includes(townSearchQuery.toLowerCase())
-                        )
-                        .map(option => (
-                          <MenuItem
-                            key={option.id}
-                            value={option.id}
-                            onClick={() => {
-                              field.onChange(option.id.toString());
-                              setTownSearchQuery('');
-                            }}
-                            fontWeight="normal"
-                          >
-                            {option.name}
-                          </MenuItem>
-                        ))}
-                      {!townsQuery.data?.filter(option => 
-                        option.name?.toLowerCase().includes(townSearchQuery.toLowerCase())
-                      ).length && (
-                        <MenuItem isDisabled fontWeight="normal">No towns found</MenuItem>
+                      {townsQuery.isLoading ? (
+                        <MenuItem isDisabled fontWeight="normal">Loading towns...</MenuItem>
+                      ) : (
+                        <>
+                          {townsQuery.data
+                            ?.filter(option => 
+                              option.name?.toLowerCase().includes(townSearchQuery.toLowerCase())
+                            )
+                            .map(option => (
+                              <MenuItem
+                                key={option.id}
+                                value={option.id}
+                                onClick={() => {
+                                  field.onChange(option.id.toString());
+                                  setTownSearchQuery('');
+                                }}
+                                fontWeight="normal"
+                              >
+                                {option.name}
+                              </MenuItem>
+                            ))}
+                          {!townsQuery.data?.filter(option => 
+                            option.name?.toLowerCase().includes(townSearchQuery.toLowerCase())
+                          ).length && (
+                            <MenuItem isDisabled fontWeight="normal">No towns found</MenuItem>
+                          )}
+                        </>
                       )}
                     </MenuList>
                   </Menu>

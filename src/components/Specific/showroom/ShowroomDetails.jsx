@@ -25,7 +25,8 @@ const ShowroomDetails = ({
   showroomFollowersCount,
   showroomViewsCount,
   myShowroom,
-  isUserFollower
+  isUserFollower,
+  adShowroomTag
 }) => {
   
   const { isLoggedIn } = useAuth();

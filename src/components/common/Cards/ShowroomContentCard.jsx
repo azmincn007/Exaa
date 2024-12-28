@@ -30,7 +30,7 @@ const ShowroomContentCard = ({ showroom, isSelected, onClick, onEdit, onDeleteSu
   const handlePreview = (e) => {
     e.stopPropagation();
     // Navigate to the showroom preview page
-    window.open(`/showroom/${showroom.id}`, '_blank');
+    navigate(`/showroom/${showroom.id}`);
   };
 
   const handleDeleteClick = (e) => {
@@ -286,6 +286,25 @@ const ShowroomContentCard = ({ showroom, isSelected, onClick, onEdit, onDeleteSu
     className="opacity-90 hover:opacity-100" 
   />
 </Flex>
+
+        {showroom.adShowroomTag && (
+          <Box
+            position="absolute"
+            top={20}
+            right={6}
+            bg="blue.500"
+            color="white"
+            px={2}
+            py={0.5}
+            borderRadius="full"
+            fontSize="xs"
+            fontWeight="medium"
+            zIndex={2}
+            boxShadow="sm"
+          >
+            {showroom.adShowroomTag.name}
+          </Box>
+        )}
 
         <Box position="relative">
           <Image 

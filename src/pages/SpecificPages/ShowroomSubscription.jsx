@@ -21,7 +21,7 @@ export default function ShowroomSubscriptionPage() {
     const navigate = useNavigate();
     const toast = useToast();
     const { userData } = useContext(UserdataContext);
-
+console.log(id);
     const [loadingPlanId, setLoadingPlanId] = useState(null);
     const [selectedShowroom, setSelectedShowroom] = useState(name)
     
@@ -130,16 +130,20 @@ export default function ShowroomSubscriptionPage() {
           userId: userData?.id
         };
 
+        // Complete the subscription
         await completeSubscriptionMutation.mutateAsync(subscriptionData);
+
+        // Update showroom tag - Fixed axios.put request
+        const token = localStorage.getItem('UserToken');
+        await axios.put(
+          `${BASE_URL}/api/update-showroom-tag/${id}`,
+          { adShowroomTag: 1 }, // Request body
+          { headers: { Authorization: `Bearer ${token}` } } // Headers configuration
+        );
+
       } catch (error) {
-        console.error('Error completing subscription:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to complete subscription setup.',
-          status: 'error',
-          duration: 5000,
-          isClosable: true,
-        });
+      
+     
       } finally {
         setLoadingPlanId(null);
       }
