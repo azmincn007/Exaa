@@ -437,25 +437,9 @@ const handleShowroomSelect = useCallback((showroom) => {
               </div>
 
               {showroomAds && showroomAds.length > 0 ? (
-                <VStack spacing={4} align="stretch">
+                <VStack spacing={4} align="stretch" height="100%">
                   <div className="flex justify-between items-center mb-4">
-                    <Button
-                      leftIcon={<MdAddCircleOutline />}
-                      colorScheme="blue"
-                      size="lg"
-                      borderRadius="xl"
-                      onClick={handleSellModalOpen}
-                      isDisabled={!selectedShowroom || (!selectedShowroom.locationTown?.name && selectedShowroom.isShowroomAdCreationPossible)}
-                      title={
-                        !selectedShowroom.locationTown?.name 
-                          ? "Please set a location for this showroom first" 
-                          : !selectedShowroom.isShowroomAdCreationPossible 
-                          ? "Please purchase a package to create ads"
-                          : ""
-                      }
-                    >
-                      New Post
-                    </Button>
+                    {/* Removed the New Post button from here */}
                   </div>
                   <Tabs variant="soft-rounded" colorScheme="blue">
                     <TabList mb={4}>
@@ -482,20 +466,26 @@ const handleShowroomSelect = useCallback((showroom) => {
                       </TabPanel>
                       <TabPanel p={0}>
                         <VStack spacing={4} align="stretch">
-                          {filterAds(showroomAds).expiredAds.map((ad) => (
-                            <ShowroomuserAdCard 
-                              key={ad.id} 
-                              data={ad} 
-                              onEdit={handleAdEdit} 
-                              onDelete={handleAdDeleted} 
-                              showroomId={selectedShowroom?.id} 
-                              token={token}
-                              opacity={0.6} // Reduced opacity for expired ads
-                              _hover={{ opacity: 0.8 }} // Slightly increase opacity on hover
-                            />
-                          ))}
-                          {filterAds(showroomAds).expiredAds.length === 0 && (
-                            <Text textAlign="center">No expired ads</Text>
+                          {filterAds(showroomAds).expiredAds.length === 0 ? (
+                            <Center flex={1} flexDirection="column">
+                              <Image src={emptyillus} alt="No expired ads" maxWidth="200px" maxHeight="200px" mb={4} />
+                              <Text fontSize="lg" fontWeight="medium" mb={4}>
+                                No expired ads
+                              </Text>
+                            </Center>
+                          ) : (
+                            filterAds(showroomAds).expiredAds.map((ad) => (
+                              <ShowroomuserAdCard 
+                                key={ad.id} 
+                                data={ad} 
+                                onEdit={handleAdEdit} 
+                                onDelete={handleAdDeleted} 
+                                showroomId={selectedShowroom?.id} 
+                                token={token}
+                                opacity={0.6} // Reduced opacity for expired ads
+                                _hover={{ opacity: 0.8 }} // Slightly increase opacity on hover
+                              />
+                            ))
                           )}
                         </VStack>
                       </TabPanel>
@@ -510,12 +500,20 @@ const handleShowroomSelect = useCallback((showroom) => {
                   </Text>
                 </Center>
               )}
+              
+              {/* New Post button moved here to be below the ads section */}
               <Button
                 leftIcon={<MdAddCircleOutline />}
                 colorScheme="blue"
                 size="lg"
                 borderRadius="xl"
-                onClick={handleSellModalOpen}
+                onClick={() => {
+                  if (!selectedShowroom.isShowroomAdCreationPossible) {
+                    navigate('/showroom-subscription', { state: { name: selectedShowroom.name, id: selectedShowroom.id } }); // Navigate to subscription if ad creation is not possible
+                  } else {
+                    handleSellModalOpen(); // Open the modal if ad creation is possible
+                  }
+                }}
                 isDisabled={!selectedShowroom || (!selectedShowroom.locationTown?.name && selectedShowroom.isShowroomAdCreationPossible)}
                 title={
                   !selectedShowroom.locationTown?.name 
