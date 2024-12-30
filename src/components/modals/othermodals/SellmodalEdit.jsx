@@ -116,6 +116,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
     { 
       enabled: isOpen && !!getUserToken() && !!listingData?.adCategory?.id && !!listingData?.id,
       onSuccess: (data) => {
+        console.log(data);
         setCompleteAdData(data);
         setIsDataLoaded(true);
         queryClient.invalidateQueries("userAds");
@@ -288,15 +289,10 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
       let isAdCreationPossible = true;
       let isTagCreationPossible = false;
 
-      if (parseInt(data.adCategory) !== parseInt(initialCategoryId)) {
-        const result = await checkAdCreationPossibility(data.adCategory);
-        isAdCreationPossible = result.isAdCreationPossible;
-        isTagCreationPossible = result.isTagCreationPossible;
-      } else {
-        isAdCreationPossible = true;
-        isTagCreationPossible = true;
-      }
-      
+      const result = await checkAdCreationPossibility(data.adCategory);
+      isAdCreationPossible = result.isAdCreationPossible;
+      isTagCreationPossible = result.isTagCreationPossible;
+
       setIsTagCreationPossible(isTagCreationPossible);
 
       if (!isAdCreationPossible) {
@@ -369,8 +365,6 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
         setSubmittedApiUrl(subCategoryDetails.apiUrl);
         setSubmittedImages(imageFiles);
         
-      
-
         setShowCongratulations(true);
         onClose();
 
@@ -668,7 +662,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
                     {...register('adCategory', { required: 'Category is required' })}
                     onChange={handleCategoryChange}
                     value={selectedCategoryId || ''}
-                    isDisabled={isCategoriesLoading}
+                    isDisabled={true}
                   >
                     <option value="">Select Category</option>
                     {categories?.map(({ id, name }) => (

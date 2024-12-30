@@ -28,6 +28,8 @@ const CongratulationsModal = ({
   const [showTagSelect, setShowTagSelect] = useState(false);
   const [selectedTag, setSelectedTag] = useState('');
   const queryClient = useQueryClient();
+  console.log(isTagCreationPossible);
+  
 
   // Fetch boost tags
   const { data: tags, isLoading, isError } = useQuery(
