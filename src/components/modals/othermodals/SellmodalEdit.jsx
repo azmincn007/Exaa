@@ -71,7 +71,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
 
   const queryClient = useQueryClient();
 
-  const { register, handleSubmit, control, formState: { errors }, setValue, getValues, reset } = useForm();
+  const { register, handleSubmit, control, formState: { errors }, setValue, getValues, reset, watch } = useForm();
   const getUserToken = useCallback(() => localStorage.getItem('UserToken'), []);
   const toast = useToast();
   const navigate = useNavigate();
@@ -120,10 +120,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
         setIsDataLoaded(true);
         queryClient.invalidateQueries("userAds");
         queryClient.invalidateQueries("expiredAds");
-        queryClient.invalidateQueries("pendingAds"); // Add pending ads invalidation
-        refetchUserAds();
-        refetchExpiredAds();
-        refetchPendingAds(); // Refetch pending ads
+        queryClient.invalidateQueries("pendingAds");
       },
       onError: (error) => {
         console.error('Error fetching complete ad data:', error);
@@ -621,6 +618,9 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
       setTownSearchQuery('');
     }
   }, [isOpen]);
+
+  const watchBrand = watch('brand');
+  const watchModel = watch('model');
 
   return (
     <>
