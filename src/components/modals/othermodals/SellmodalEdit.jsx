@@ -63,7 +63,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
   const [submittedAdType, setSubmittedAdType] = useState('');
   const [submittedFormData, setSubmittedFormData] = useState(null);
   const [submittedApiUrl, setSubmittedApiUrl] = useState(null);
-  const [isTagCreationPossible, setIsTagCreationPossible] = useState(false);
+  const [isTagCreationPossible, setIsTagCreationPossible] = useState('');
   const [submittedImages, setSubmittedImages] = useState([]);
   const [submittedAdId, setSubmittedAdId] = useState(null);
   const [selectedTypeId, setSelectedTypeId] = useState(null);
@@ -100,13 +100,14 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
     selectedSubCategoryId === 18 ? selectedTypeId : null
   );
   const { data: variants, isLoading: isVariantsLoading } = useVariants(isOpen, getUserToken, selectedModelId, selectedSubCategoryId);
+console.log(isTagCreationPossible);
 
   const fetchCompleteAdData = async (userToken, adCategoryId, adId) => {
     if (!userToken || !adCategoryId || !adId) return null;
     const { data } = await axios.get(`${BASE_URL}/api/find-one-ad/${adCategoryId}/${adId}`, {
       headers: { 'Authorization': `Bearer ${userToken}` },
     });
-    
+    console.log(data.data);
     return data.data;
   };
 
@@ -116,9 +117,9 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
     { 
       enabled: isOpen && !!getUserToken() && !!listingData?.adCategory?.id && !!listingData?.id,
       onSuccess: (data) => {
-        console.log(data);
         setCompleteAdData(data);
         setIsDataLoaded(true);
+        setIsTagCreationPossible(data.isTagCreationPossible);
         queryClient.invalidateQueries("userAds");
         queryClient.invalidateQueries("expiredAds");
         queryClient.invalidateQueries("pendingAds");
@@ -247,143 +248,110 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
     setUploadedImages(prevImages => prevImages.filter((_, i) => i !== index));
   };
 
-  const checkAdCreationPossibility = async (categoryId) => {
-    if (categoryId === initialCategoryId) {
-      return { isAdCreationPossible: true, isTagCreationPossible: true };
-    }
-
-    try {
-      const token = getUserToken();
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-
-      const response = await axios.get(`${BASE_URL}/api/ad-categories/${categoryId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      return { 
-        isAdCreationPossible: response.data.data.isAdCreationPossible, 
-        isTagCreationPossible: response.data.data.isTagCreationPossible 
-      };
-    } catch (error) {
-      console.error('Error checking ad creation possibility:', error);
-      toast({
-        title: "Error checking category permission",
-        description: error.response?.data?.message || "Something went wrong",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-      return { isAdCreationPossible: true, isTagCreationPossible: true };
-    }
-  };
+ 
 
   const onSubmit = async (data) => {
     if (isSubmitting) return;
 
     setIsSubmitting(true);
     try {
-      let isAdCreationPossible = true;
-      let isTagCreationPossible = false;
-
-      const result = await checkAdCreationPossibility(data.adCategory);
-      isAdCreationPossible = result.isAdCreationPossible;
-      isTagCreationPossible = result.isTagCreationPossible;
-
-      setIsTagCreationPossible(isTagCreationPossible);
-
-      if (!isAdCreationPossible) {
-        onClose();
-        navigate('/packages/post-more-ads');
-        toast({
-          title: "Package Required",
-          description: "You need to purchase a package to edit ads in this category. Redirecting you to available packages.",
-          status: "info",
-          duration: 5000,
-          isClosable: true,
-        });
-        setIsSubmitting(false);
-        return;
-      }
-
-      const formData = new FormData();
-      const alwaysIncludeFields = ['brand', 'model', 'variant', 'type'];
-
-      Object.keys(data).forEach(key => {
-        if (alwaysIncludeFields.includes(key)) {
-          formData.append(key, data[key] || '');
-        } else if (data[key] !== "") {
-          formData.append(key, data[key]);
+        let isAdCreationPossible = true;
+        if (parseInt(data.adCategory) !== parseInt(initialCategoryId)) {
+            isAdCreationPossible = true;
+        } else {
+            isAdCreationPossible = true;
         }
-      });
-
-      formData.append('adShowroom', '');
-      formData.append('adBoostTag', completeAdData?.adBoostTag?.id || '');
-      if (uploadedImages.length === 0) {
-        throw new Error('At least one image is required');
-      }
-
-      const imagePromises = uploadedImages.map(async (image, index) => {
-        if (image.file) {
-          return image.file;
-        } else if (image.isExisting) {
-          const response = await fetch(image.preview);
-          const blob = await response.blob();
-          return new File([blob], `existing_image_${index}.jpg`, { type: 'image/jpeg' });
-        }
-      });
-
-      const imageFiles = await Promise.all(imagePromises);
-      imageFiles.forEach((file, index) => {
-        formData.append('images', file);
-      });
-
-      const token = getUserToken();
-      if (!token) throw new Error('No authentication token found');
-
-      const apiEndpoint = subCategoryDetails?.apiUrl 
-        ? `${BASE_URL}/api/${subCategoryDetails.apiUrl}/${listingData.id}`
-        : `${BASE_URL}/api/update-ad/${listingData.id}`;
-
-      const response = await axios.put(apiEndpoint, formData, {
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-
-      if (response.status === 200) {
-        setSubmittedAdId(response.data.data.id);
-        setSubmittedAdType(subCategoryDetails.name);
-        setSubmittedFormData({
-          ...data,
-          adShowroom: []
-        });
-        setSubmittedApiUrl(subCategoryDetails.apiUrl);
-        setSubmittedImages(imageFiles);
         
-        setShowCongratulations(true);
-        onClose();
 
-        queryClient.invalidateQueries("userAds");
-        queryClient.invalidateQueries("pendingAds");
-      } else {
-        throw new Error('Failed to update ad');
-      }
+        if (!isAdCreationPossible) {
+            onClose();
+            navigate('/packages/post-more-ads');
+            toast({
+                title: "Package Required",
+                description: "You need to purchase a package to edit ads in this category. Redirecting you to available packages.",
+                status: "info",
+                duration: 5000,
+                isClosable: true,
+            });
+            setIsSubmitting(false);
+            return;
+        }
+
+        const formData = new FormData();
+        const alwaysIncludeFields = ['brand', 'model', 'variant', 'type'];
+
+        Object.keys(data).forEach(key => {
+            if (alwaysIncludeFields.includes(key)) {
+                formData.append(key, data[key] || '');
+            } else if (data[key] !== "") {
+                formData.append(key, data[key]);
+            }
+        });
+
+        formData.append('adShowroom', '');
+        formData.append('adBoostTag', completeAdData?.adBoostTag?.id || '');
+        if (uploadedImages.length === 0) {
+            throw new Error('At least one image is required');
+        }
+
+        const imagePromises = uploadedImages.map(async (image, index) => {
+            if (image.file) {
+                return image.file;
+            } else if (image.isExisting) {
+                const response = await fetch(image.preview);
+                const blob = await response.blob();
+                return new File([blob], `existing_image_${index}.jpg`, { type: 'image/jpeg' });
+            }
+        });
+
+        const imageFiles = await Promise.all(imagePromises);
+        imageFiles.forEach((file, index) => {
+            formData.append('images', file);
+        });
+
+        const token = getUserToken();
+        if (!token) throw new Error('No authentication token found');
+
+        const apiEndpoint = subCategoryDetails?.apiUrl 
+            ? `${BASE_URL}/api/${subCategoryDetails.apiUrl}/${listingData.id}`
+            : `${BASE_URL}/api/update-ad/${listingData.id}`;
+
+        const response = await axios.put(apiEndpoint, formData, {
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+
+        if (response.status === 200) {
+            setSubmittedAdId(response.data.data.id);
+            setSubmittedAdType(subCategoryDetails.name);
+            setSubmittedFormData({
+                ...data,
+                adShowroom: []
+            });
+            setSubmittedApiUrl(subCategoryDetails.apiUrl);
+            setSubmittedImages(imageFiles);
+            
+            setShowCongratulations(true);
+            onClose();
+
+            queryClient.invalidateQueries("userAds");
+            queryClient.invalidateQueries("pendingAds");
+        } else {
+            throw new Error('Failed to update ad');
+        }
     } catch (error) {
-      console.error('Error updating ad:', error);
-      toast({
-        title: "Error updating ad",
-        description: error.response?.data?.message || error.message,
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+        console.error('Error updating ad:', error);
+        toast({
+            title: "Error updating ad",
+            description: error.response?.data?.message || error.message,
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+        });
     } finally {
-      setIsSubmitting(false);
+        setIsSubmitting(false);
     }
   };
 
@@ -662,7 +630,7 @@ const SellModalEdit = ({ isOpen, onClose, listingData }) => {
                     {...register('adCategory', { required: 'Category is required' })}
                     onChange={handleCategoryChange}
                     value={selectedCategoryId || ''}
-                    isDisabled={true}
+                    isDisabled={isCategoriesLoading}
                   >
                     <option value="">Select Category</option>
                     {categories?.map(({ id, name }) => (

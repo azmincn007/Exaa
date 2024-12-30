@@ -20,7 +20,6 @@ const Profile = () => {
   
   
   const { userData, isLoading: isUserDataLoading } = useContext(UserdataContext);
-  console.log(userData);
   const navigate = useNavigate();
   const { isLoggedIn, isInitialized, getToken } = useAuth();
  
