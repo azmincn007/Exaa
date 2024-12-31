@@ -99,9 +99,7 @@ console.log(myShowroom);
     }
   };
 
-  const { data: showroomData } = useQuery(['showroomData', showroomId], () => 
-    fetch(`${BASE_URL}/showrooms/${showroomId}`).then(res => res.json())
-  );
+
 
   const handleFollowToggle = async () => {
     if (!isLoggedIn) {

@@ -41,6 +41,29 @@ function Showroomsingle() {
     return () => window.removeEventListener('resize', checkIfMobile);
   }, []);
 
+  useEffect(() => {
+    const createShowroomView = async () => {
+      const headers = {};
+      const token = localStorage.getItem('UserToken');
+      
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
+      try {
+        const response = await axios.post(`${BASE_URL}/api/create-showroom-view`, {
+          showroomId: id // Pass showroomId in the body
+        }, { headers });
+
+        console.log("Create Showroom View API Response:", response.data);
+      } catch (error) {
+        console.error("Error creating showroom view:", error);
+      }
+    };
+
+    createShowroomView();
+  }, [id]); // Dependency on id to ensure it runs when the showroom ID changes
+
   const fetchShowroomData = async () => {
     const headers = {};
     const token = localStorage.getItem('UserToken');
